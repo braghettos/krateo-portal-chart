@@ -11,21 +11,19 @@ spec:
     path: "/api/v1/namespaces"
     filter: "[.namespaces.items[] | .metadata.name]"
   - name: blueprintspanels
-    dependsOn: 
+    dependsOn:
       name: namespaces
       iterator: .namespaces
     path: ${ "/apis/widgets.templates.krateo.io/v1beta1/namespaces/" + (.) + "/panels" }
     continueOnError: true
+    filter: >
+      [.blueprintspanels.items[]?
+       | select((.metadata.labels // {})["krateo.io/portal-page"] == "blueprints")
+       | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])]
   filter: >
     {
       blueprintspanels: (
-        (if (.blueprintspanels | type) == "array" then
-          [.blueprintspanels[]?.items[]? | select((.metadata.labels // {})["krateo.io/portal-page"] == "blueprints")]
-        elif (.blueprintspanels | type) == "object" then
-          [.blueprintspanels.items[]? | select((.metadata.labels // {})["krateo.io/portal-page"] == "blueprints")]
-        else
-          []
-        end) as $items
+        (.blueprintspanels // []) as $items
         | ($items | sort_by(.metadata.creationTimestamp // "") | reverse) as $sorted
         | (.slice.offset  // 0)                 as $offset
         | (.slice.perPage // ($sorted | length)) as $perPage

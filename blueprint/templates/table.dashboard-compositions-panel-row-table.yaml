@@ -28,7 +28,8 @@ spec:
       expression: >
         ${
           (
-            (if .slice then .list[0 : (.slice.page * .slice.perPage)] else .list end)
+            ((.list | sort_by(.ts // "") | reverse)) as $sorted
+            | (if .slice then $sorted[0 : (.slice.page * .slice.perPage)] else $sorted end)
             | map([
                 {
                   valueKey: "key",
@@ -80,8 +81,6 @@ spec:
                   stringValue: .av
                 }
               ])
-            | sort_by( ([.[] | select(.valueKey == "date") | .stringValue] | first) )
-            | reverse
           )
         }
   apiRef:

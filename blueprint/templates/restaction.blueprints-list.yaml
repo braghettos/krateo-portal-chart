@@ -20,9 +20,9 @@ spec:
     {
       list: (
         if (.allCompositionDefinitions | type) == "array" then
-          [.allCompositionDefinitions[]?.items[]?]
+          [.allCompositionDefinitions[]?.items[]? | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])]
         elif (.allCompositionDefinitions | type) == "object" then
-          [.allCompositionDefinitions.items[]?]
+          [.allCompositionDefinitions.items[]? | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])]
         else
           []
         end

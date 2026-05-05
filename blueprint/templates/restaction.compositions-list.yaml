@@ -26,15 +26,10 @@ spec:
     verb: GET
     continueOnError: true
     errorKey: allCompositionsError
+    filter: >
+      [.allCompositions.items[]?
+       | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // [])}]
   filter: >
     {
-      list: (
-        if (.allCompositions | type) == "array" then
-          [.allCompositions[]?.items[]? | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // [])}]
-        elif (.allCompositions | type) == "object" then
-          [.allCompositions.items[]? | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // [])}]
-        else
-          []
-        end
-      )
+      list: (.allCompositions // [])
     }
