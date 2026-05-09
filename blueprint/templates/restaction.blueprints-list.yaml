@@ -10,13 +10,6 @@ spec:
   - filter: '[.namespaces.items[] | .metadata.name]'
     name: namespaces
     path: /api/v1/namespaces
-    # Q-RBAC-DECOUPLE C(d): elevated read via snowplow's SA, then
-    # per-user RBAC drop using the namespace name as the RBAC namespace.
-    userAccessFilter:
-      verb: list
-      group: ""
-      resource: namespaces
-      namespaceFrom: "."
   - continueOnError: true
     dependsOn:
       iterator: .namespaces
