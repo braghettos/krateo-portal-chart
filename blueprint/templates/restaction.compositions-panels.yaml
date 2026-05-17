@@ -7,15 +7,8 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-  - name: namespaces
-    path: "/api/v1/namespaces"
-    filter: "[.namespaces.items[] | .metadata.name]"
   - name: compositionspanels
-    dependsOn:
-      name: namespaces
-      iterator: .namespaces
-    path: ${ "/apis/widgets.templates.krateo.io/v1beta1/namespaces/" + (.) + "/panels" }
-    continueOnError: true
+    path: "/apis/widgets.templates.krateo.io/v1beta1/panels"
     filter: >
       [.compositionspanels.items[]?
        | select((.metadata.labels // {})["krateo.io/portal-page"] == "compositions")
