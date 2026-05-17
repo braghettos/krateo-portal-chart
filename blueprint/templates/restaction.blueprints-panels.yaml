@@ -9,6 +9,15 @@ spec:
   api:
   - name: namespaces
     path: "/api/v1/namespaces"
+    # Q-RBAC-DECOUPLE C(d): the namespace LIST is dispatched via
+    # snowplow's elevated SA, then per-user RBAC drops it to the
+    # namespaces the request user can `list panels` in. namespaceFrom:"."
+    # uses each returned namespace name as the RBAC namespace.
+    userAccessFilter:
+      verb: list
+      group: ""
+      resource: namespaces
+      namespaceFrom: "."
     filter: "[.namespaces.items[] | .metadata.name]"
   - name: blueprintspanels
     dependsOn:
