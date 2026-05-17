@@ -15,8 +15,8 @@ spec:
     # uses each returned namespace name as the RBAC namespace.
     userAccessFilter:
       verb: list
-      group: ""
-      resource: namespaces
+      group: widgets.templates.krateo.io
+      resource: panels
       namespaceFrom: "."
     filter: "[.namespaces.items[] | .metadata.name]"
   - name: blueprintspanels
