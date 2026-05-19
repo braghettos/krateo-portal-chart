@@ -15,6 +15,28 @@ spec:
     path: "/api/v1/namespaces"
     filter: "[.namespaces.items[] | .metadata.name]"
     continueOnError: true
+    # Ship 0.30.129 — RBAC-aware fan-out for the cyberjoker lane.
+    # dependsOn:{name:crds} is a PURE ORDERING EDGE (no iterator): it
+    # only forces the `crds` stage to resolve BEFORE this one, so
+    # dict["crds"] is populated when userAccessFilter.resourcesFrom is
+    # evaluated. It emits no extra request — createRequestOptions treats
+    # an empty iterator as a single ordinary call.
+    dependsOn:
+      name: crds
+    # The userAccessFilter prunes the namespace name-array to ONLY the
+    # namespaces the requesting user can `list` a composition CRD in.
+    # resourcesFrom jq-derives the composition CRD plural set from the
+    # runtime-discovered dict["crds"] — NO hardcoded plural. The
+    # refilter keeps namespace N iff the user can list ANY of those
+    # plurals in N (OR semantics). namespaceFrom:"." resolves the
+    # name-string item to itself. Without this, cyberjoker fans out
+    # blind to all ~40 namespaces and the serve-time gate drops the
+    # rows only afterward.
+    userAccessFilter:
+      verb: list
+      group: composition.krateo.io
+      resourcesFrom: "[ (.crds // [])[] | .plural ]"
+      namespaceFrom: "."
   # Q-RBAC-DECOUPLE C(d) v5 — D2 fix (audit 2026-05-05).
   # The (.crds // [])[] / (.namespaces // [])[] form short-circuits when
   # either api[] entry's err-write branch fires (any failure in resolve.go
