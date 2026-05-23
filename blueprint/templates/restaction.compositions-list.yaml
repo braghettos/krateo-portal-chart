@@ -24,6 +24,14 @@ spec:
       iterator: ".allNamespacesAndCrds.status"
     path: ${ "/apis/composition.krateo.io/" + (.version) + "/namespaces/" + (.namespace) + "/" + (.plural) }
     verb: GET
+    # Ship D.5 (snowplow 0.30.152) — collapse per-namespace iteration into one
+    # cluster-scope LIST when the dispatching user has cluster-wide GET on this GVR.
+    # Gate 5 in attemptClusterListCollapse (cluster_list.go) DENIES the collapse
+    # for narrow-RBAC users → iterator path is preserved for them (no RBAC overshare).
+    # For admin (cluster-admin), 62 dispatches → 1 LIST stored under identity-free
+    # apistage key. Earlier compositions-panels revert (2026-05-17, commit f30b166)
+    # predated Gate 5 — that risk is now mitigated.
+    clusterListWhenAllowed: true
     continueOnError: true
     errorKey: allCompositionsError
     filter: >
