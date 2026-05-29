@@ -15,27 +15,26 @@ spec:
     path: "/api/v1/namespaces"
     filter: "[.namespaces.items[] | .metadata.name]"
     continueOnError: true
-    # Ship 0.30.129 — RBAC-aware fan-out for the cyberjoker lane.
     # dependsOn:{name:crds} is a PURE ORDERING EDGE (no iterator): it
     # only forces the `crds` stage to resolve BEFORE this one, so
-    # dict["crds"] is populated when userAccessFilter.resourcesFrom is
+    # dict["crds"] is populated when this stage's cross-product filter is
     # evaluated. It emits no extra request — createRequestOptions treats
     # an empty iterator as a single ordinary call.
     dependsOn:
       name: crds
-    # The userAccessFilter prunes the namespace name-array to ONLY the
-    # namespaces the requesting user can `list` a composition CRD in.
-    # resourcesFrom jq-derives the composition CRD plural set from the
-    # runtime-discovered dict["crds"] — NO hardcoded plural. The
-    # refilter keeps namespace N iff the user can list ANY of those
-    # plurals in N (OR semantics). namespaceFrom:"." resolves the
-    # name-string item to itself. Without this, cyberjoker fans out
-    # blind to all ~40 namespaces and the serve-time gate drops the
-    # rows only afterward.
+    # Mirror the page's compositions-panels namespace-LIST UAF exactly:
+    # the namespace LIST is dispatched via snowplow's elevated SA, then
+    # per-user RBAC prunes it to ONLY the namespaces the requesting user
+    # can `list panels` in. namespaceFrom:"." uses each returned namespace
+    # name as the RBAC namespace. This makes the dashboard's per-user
+    # namespace gate identical to the page's, so a dev gains scoped
+    # dashboard access via a namespaced RoleBinding granting `list panels`
+    # (plus `list/get` on the composition CRD, exercised by the downstream
+    # compositions-list allCompositions iterator) — NO ClusterRole needed.
     userAccessFilter:
       verb: list
-      group: composition.krateo.io
-      resourcesFrom: "[ (.crds // [])[] | .plural ]"
+      group: widgets.templates.krateo.io
+      resource: panels
       namespaceFrom: "."
   # Q-RBAC-DECOUPLE C(d) v5 — D2 fix (audit 2026-05-05).
   # The (.crds // [])[] / (.namespaces // [])[] form short-circuits when
