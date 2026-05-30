@@ -23,9 +23,6 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: piecharts
         verb: GET
-        slice:
-          page: 1
-          perPage: 50
       - id: dashboard-compositions-panel-row-piechart-table
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: dashboard-compositions-panel-row-table
