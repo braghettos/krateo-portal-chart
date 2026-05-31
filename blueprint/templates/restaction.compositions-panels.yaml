@@ -7,51 +7,37 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-  - name: namespaces
-    path: "/api/v1/namespaces"
-    # Q-RBAC-DECOUPLE C(d): the namespace LIST is dispatched via
-    # snowplow's elevated SA, then per-user RBAC drops it to the
-    # namespaces the request user can `list panels` in. namespaceFrom:"."
-    # uses each returned namespace name as the RBAC namespace.
+  # Phase 3' / portal-chart 0.30.177 — single cluster-scope LIST with inline UAF.
+  #
+  # PRIOR SHAPE (portal-chart 0.30.176, runtime-collapsed by snowplow 0.30.218):
+  #   Stage 1: /api/v1/namespaces  + UAF(panels:list, namespaceFrom: ".")  → list of namespaces
+  #   Stage 2: iterator over .namespaces → per-ns LIST /apis/widgets.../namespaces/<ns>/panels
+  #            (snowplow collapse-decision per /call replaced the fan-out with one cluster-LIST)
+  #
+  # NEW SHAPE (this RA): a SINGLE cluster-scope LIST directly, with the UAF
+  # gating per-item by .metadata.namespace. This is the SAME runtime path that
+  # cluster_list collapse produced on snowplow 0.30.218 — the YAML is now
+  # architecturally explicit rather than relying on a runtime collapse.
+  #
+  # WIRE SHAPE & ENVELOPE: identical to 0.30.176 + 0.30.218 — same tight
+  # SPA-minimal projection, ~11.1 MiB envelope after projection.
+  #
+  # RBAC GATING: cluster-scope LIST is dispatched via snowplow's elevated SA;
+  # per-user RBAC drops items whose .metadata.namespace the requesting user
+  # cannot `list panels` in. This is byte-equivalent to today's runtime
+  # collapse-then-refilter result (same items kept/dropped per user).
+  #
+  # PROJECTION rationale unchanged from 0.30.176 (see git blame for details):
+  # DataGrid consumer reads only metadata.{name,namespace,uid,labels,creationTimestamp}
+  # + apiVersion + kind at LIST time. spec.* dropped entirely.
+  - name: compositionspanels
+    path: /apis/widgets.templates.krateo.io/v1beta1/panels
+    continueOnError: true
     userAccessFilter:
       verb: list
       group: widgets.templates.krateo.io
       resource: panels
-      namespaceFrom: "."
-    filter: "[.namespaces.items[] | .metadata.name]"
-  - name: compositionspanels
-    dependsOn:
-      name: namespaces
-      iterator: .namespaces
-    path: ${ "/apis/widgets.templates.krateo.io/v1beta1/namespaces/" + (.) + "/panels" }
-    continueOnError: true
-    # Path 3 / portal-chart 0.30.176 — tight SPA-minimal projection.
-    #
-    # EMPIRICAL (dev Phase 0 probe 2026-05-31 on live GKE cluster):
-    #   Raw cluster envelope:            132,271,296 bytes (126 MiB), 46,242 items
-    #   With spec.{apiRef,widgetData}:    26,054,968 bytes (24.84 MiB) — at edge of cap
-    #   This projection (no .spec fields): 11,473,949 bytes (10.9 MiB) — 2.3× under cap
-    #
-    # The DataGrid widget that consumes this LIST output
-    # (blueprint/templates/datagrid.compositions-page-datagrid.yaml) extracts
-    # ONLY metadata.{name,namespace} + apiVersion per row. It does NOT read
-    # spec.apiRef or spec.widgetData at LIST time. Per-widget /call (which
-    # IS spec-dependent) goes through a separate single-panel-by-name GET
-    # RA that returns the full un-projected spec.
-    #
-    # SPA verification chain (TRACED Phase 0 §C8):
-    #   useWidgetQuery.ts:128 → .status.resourcesRefs  (snowplow-populated, NOT .spec.*)
-    #   datagrid.compositions-page-datagrid.yaml:23,29 → metadata.name
-    #   datagrid.compositions-page-datagrid.yaml:30   → apiVersion
-    #   datagrid.compositions-page-datagrid.yaml:32   → metadata.namespace
-    #
-    # The flag-off (snowplow 0.30.215) state means cluster-list collapse
-    # does NOT activate; this projection runs per-NS unchanged through the
-    # existing iterator (each per-NS LIST returns a tighter response).
-    # Customer-visible behaviour is byte-equivalent on the SPA-rendered fields
-    # because the dropped fields are unused at LIST time.
-    # Snowplow 0.30.216 flip (Phase 2') activates cluster-LIST collapse on
-    # the already-tight per-stage filter → 10.9 MiB envelope from first /call.
+      namespaceFrom: .metadata.namespace
     filter: >
       [.compositionspanels.items[]?
        | select((.metadata.labels // {})["krateo.io/portal-page"] == "compositions")
