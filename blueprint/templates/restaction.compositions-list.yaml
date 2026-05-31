@@ -7,17 +7,22 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-  - name: allNamespacesAndCrds
-    path: "/call?apiVersion=templates.krateo.io%2Fv1&resource=restactions&name=compositions-get-ns-and-crd&namespace={{ .Release.Namespace }}"
+  # Phase 3'.1 / portal-chart 0.30.178 — CRD discovery collapsed in-place.
+  #
+  # PRIOR SHAPE (portal-chart 0.30.177): stage 1 was a cross-RA /call hop into
+  # compositions-get-ns-and-crd to fetch CRD list, costing one extra HTTP
+  # round-trip per compositions page load.
+  #
+  # NEW SHAPE: stage 1 is a direct LIST of CRDs (filtered to
+  # composition.krateo.io group) — same path the standalone RA used. The
+  # cross-RA /call hop is eliminated; compositions-get-ns-and-crd RA itself
+  # is also deleted (zero SPA references; was only consumed by this RA).
+  - name: crds
+    path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
     verb: GET
-    endpointRef:
-      name: snowplow-endpoint
-      namespace: {{ .Release.Namespace }}
-    headers:
-    - 'Accept: application/json'
+    filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0]}]"
     continueOnError: true
-    errorKey: allNamespacesAndCrdsError
-    exportJwt: true
+    errorKey: crdsError
   - name: allCompositions
     # Phase 3' / portal-chart 0.30.177 — namespace-dim REMOVED from iterator.
     #
@@ -33,8 +38,8 @@ spec:
     # namespaces where they hold the grant — byte-equivalent to today's
     # runtime collapse + per-item refilter.
     dependsOn:
-      name: allNamespacesAndCrds
-      iterator: ".allNamespacesAndCrds.status"
+      name: crds
+      iterator: ".crds"
     path: ${ "/apis/composition.krateo.io/" + (.version) + "/" + (.plural) }
     verb: GET
     continueOnError: true
@@ -42,7 +47,7 @@ spec:
     userAccessFilter:
       verb: list
       group: composition.krateo.io
-      resourcesFrom: "[ (.allNamespacesAndCrds.status // [])[] | .plural ]"
+      resourcesFrom: "[ (.crds // [])[] | .plural ]"
       namespaceFrom: .metadata.namespace
     filter: >
       [.allCompositions.items[]?
