@@ -9,41 +9,29 @@ spec:
   api:
   - name: crds
     path: "/apis/apiextensions.k8s.io/v1/customresourcedefinitions"
-    # Q-RBAC-DECOUPLE C(d): elevated read via snowplow's SA, then
-    # per-user RBAC drop. CRDs are cluster-scoped so no namespaceFrom
-    # (the RBAC check uses namespace="" → CRB-only matching).
-    userAccessFilter:
-      verb: list
-      group: apiextensions.k8s.io
-      resource: customresourcedefinitions
     filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {storedVersions: .status.storedVersions[0], plural: .status.acceptedNames.plural} ]"
     continueOnError: true
-  - name: namespaces
-    path: "/api/v1/namespaces"
-    # Q-RBAC-DECOUPLE C(d): elevated read via snowplow's SA, then
-    # per-user RBAC drop using the namespace name as the RBAC namespace.
-    userAccessFilter:
-      verb: list
-      group: ""
-      resource: namespaces
-      namespaceFrom: "."
-    filter: "[.namespaces.items[] | .metadata.name]"
-    continueOnError: true
-  # Q-RBAC-DECOUPLE C(d) v5 — D2 fix (audit 2026-05-05).
-  # The (.crds // [])[] / (.namespaces // [])[] form short-circuits when
-  # either api[] entry's err-write branch fires (any failure in resolve.go
-  # leaves dict[call.ErrorKey] set and dict["crds"]/dict["namespaces"]
-  # absent). Without the // [] default, jq evaluates .crds[] → null[] →
-  # "cannot iterate over: null" → 500. With it, the cross-product is
-  # len(crds) × len(namespaces) (zero when either is empty), so partial
-  # / total upstream failure degrades to 200 with body [].
+  # Phase 3' / portal-chart 0.30.177 — namespace cross-product REMOVED.
+  #
+  # PRIOR SHAPE (portal-chart 0.30.176): emitted K×N items (CRDs × user-visible
+  # namespaces) so compositions-list could iterate per-(CRD,namespace). The
+  # per-(CRD,ns) LIST was then runtime-collapsed by snowplow 0.30.218 into
+  # a single cluster-LIST per CRD.
+  #
+  # NEW SHAPE: emit just the K CRD entries. compositions-list now iterates
+  # K times (one cluster-scope LIST per CRD) with a per-item UAF gating by
+  # .metadata.namespace. Functionally equivalent to today's runtime-collapsed
+  # path (snowplow 0.30.218) but architecturally explicit.
+  #
+  # Name kept (compositions-get-ns-and-crd) for backward compatibility with
+  # the /call URL embedded in compositions-list — even though it no longer
+  # returns namespaces, renaming would require a coordinated edit and the
+  # name's "ns" suffix is now historical.
   filter: >
     [
       (.crds // [])[] as $crd |
-      (.namespaces // [])[] as $ns |
       {
         plural: $crd.plural,
-        version: $crd.storedVersions,
-        namespace: $ns
+        version: $crd.storedVersions
       }
     ]

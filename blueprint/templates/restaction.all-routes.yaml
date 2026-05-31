@@ -7,28 +7,24 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-  - name: namespaces
-    path: "/api/v1/namespaces"
-    # Q-RBAC-DECOUPLE C(d): elevated read via snowplow's SA, then
-    # per-user RBAC drop using the namespace name as the RBAC namespace.
-    userAccessFilter:
-      verb: list
-      group: ""
-      resource: namespaces
-      namespaceFrom: "."
-    filter: "[.namespaces.items[] | .metadata.name]"
+  # Ship A.0 — collapse the (namespaces LIST + per-namespace iterator)
+  # into ONE cluster-scoped LIST dispatched under snowplow's elevated SA,
+  # then prune per-user via userAccessFilter: each returned item is kept
+  # iff the request user can `list routes` in that item's own namespace
+  # (namespaceFrom: .metadata.namespace). Small GVR (cluster-wide count
+  # ~2) so raw item-level refilter is cheap.
   - name: routes
     continueOnError: true
-    dependsOn:
-      name: namespaces
-      iterator: .namespaces
-    path: ${ "/apis/widgets.templates.krateo.io/v1beta1/namespaces/" + (.) + "/routes" }
+    path: "/apis/widgets.templates.krateo.io/v1beta1/routes"
+    userAccessFilter:
+      verb: list
+      group: widgets.templates.krateo.io
+      resource: routes
+      namespaceFrom: ".metadata.namespace"
   filter: >
     {
       routes: (
-        if (.routes | type) == "array" then
-          [.routes[]?.items[]?]
-        elif (.routes | type) == "object" then
+        if (.routes | type) == "object" then
           [.routes.items[]?]
         else
           []

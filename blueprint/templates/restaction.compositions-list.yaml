@@ -19,13 +19,31 @@ spec:
     errorKey: allNamespacesAndCrdsError
     exportJwt: true
   - name: allCompositions
+    # Phase 3' / portal-chart 0.30.177 — namespace-dim REMOVED from iterator.
+    #
+    # PRIOR SHAPE (portal-chart 0.30.176): iterator was the K×N (CRDs ×
+    # namespaces) cross-product emitted by compositions-get-ns-and-crd. The
+    # per-(CRD,ns) LIST then ran through snowplow's cluster_list collapse to
+    # a single cluster-scope LIST per CRD (Ship D.5 / 0.30.152).
+    #
+    # NEW SHAPE: iterator is just the K CRD entries. Each iteration hits the
+    # cluster-scope LIST endpoint /apis/composition.krateo.io/<version>/<plural>
+    # directly (no /namespaces/<ns>/ segment). The per-item UAF gates by
+    # .metadata.namespace, so narrow-RBAC users receive only items in
+    # namespaces where they hold the grant — byte-equivalent to today's
+    # runtime collapse + per-item refilter.
     dependsOn:
       name: allNamespacesAndCrds
       iterator: ".allNamespacesAndCrds.status"
-    path: ${ "/apis/composition.krateo.io/" + (.version) + "/namespaces/" + (.namespace) + "/" + (.plural) }
+    path: ${ "/apis/composition.krateo.io/" + (.version) + "/" + (.plural) }
     verb: GET
     continueOnError: true
     errorKey: allCompositionsError
+    userAccessFilter:
+      verb: list
+      group: composition.krateo.io
+      resourcesFrom: "[ (.allNamespacesAndCrds.status // [])[] | .plural ]"
+      namespaceFrom: .metadata.namespace
     filter: >
       [.allCompositions.items[]?
        | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // [])}]
