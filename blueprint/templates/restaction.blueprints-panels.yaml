@@ -25,10 +25,29 @@ spec:
       iterator: .namespaces
     path: ${ "/apis/widgets.templates.krateo.io/v1beta1/namespaces/" + (.) + "/panels" }
     continueOnError: true
+    # Path 3 / portal-chart 0.30.176 — tight SPA-minimal projection.
+    # Symmetric to compositions-panels per Path 3 design §3.3. The DataGrid
+    # consumer reads only metadata.{name,namespace} + apiVersion at LIST
+    # time, so spec.* is dropped entirely (Phase 0 §C8 trace + empirical
+    # 10.9 MiB target — see compositions-panels.yaml for full rationale).
+    # On bench cluster the blueprints label match returns 0 items (the
+    # label only sets after a blueprint manifest activates) — empty-result
+    # handled by RAFullList empty-cell guard. Symmetric projection keeps
+    # the populate path uniform across both panel RAs.
     filter: >
       [.blueprintspanels.items[]?
        | select((.metadata.labels // {})["krateo.io/portal-page"] == "blueprints")
-       | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])]
+       | {
+           apiVersion,
+           kind,
+           metadata: {
+             name: .metadata.name,
+             namespace: .metadata.namespace,
+             uid: .metadata.uid,
+             creationTimestamp: .metadata.creationTimestamp,
+             labels: .metadata.labels
+           }
+         }]
   filter: >
     {
       blueprintspanels: (

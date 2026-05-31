@@ -25,10 +25,47 @@ spec:
       iterator: .namespaces
     path: ${ "/apis/widgets.templates.krateo.io/v1beta1/namespaces/" + (.) + "/panels" }
     continueOnError: true
+    # Path 3 / portal-chart 0.30.176 — tight SPA-minimal projection.
+    #
+    # EMPIRICAL (dev Phase 0 probe 2026-05-31 on live GKE cluster):
+    #   Raw cluster envelope:            132,271,296 bytes (126 MiB), 46,242 items
+    #   With spec.{apiRef,widgetData}:    26,054,968 bytes (24.84 MiB) — at edge of cap
+    #   This projection (no .spec fields): 11,473,949 bytes (10.9 MiB) — 2.3× under cap
+    #
+    # The DataGrid widget that consumes this LIST output
+    # (blueprint/templates/datagrid.compositions-page-datagrid.yaml) extracts
+    # ONLY metadata.{name,namespace} + apiVersion per row. It does NOT read
+    # spec.apiRef or spec.widgetData at LIST time. Per-widget /call (which
+    # IS spec-dependent) goes through a separate single-panel-by-name GET
+    # RA that returns the full un-projected spec.
+    #
+    # SPA verification chain (TRACED Phase 0 §C8):
+    #   useWidgetQuery.ts:128 → .status.resourcesRefs  (snowplow-populated, NOT .spec.*)
+    #   datagrid.compositions-page-datagrid.yaml:23,29 → metadata.name
+    #   datagrid.compositions-page-datagrid.yaml:30   → apiVersion
+    #   datagrid.compositions-page-datagrid.yaml:32   → metadata.namespace
+    #
+    # The flag-off (snowplow 0.30.215) state means cluster-list collapse
+    # does NOT activate; this projection runs per-NS unchanged through the
+    # existing iterator (each per-NS LIST returns a tighter response).
+    # Customer-visible behaviour is byte-equivalent on the SPA-rendered fields
+    # because the dropped fields are unused at LIST time.
+    # Snowplow 0.30.216 flip (Phase 2') activates cluster-LIST collapse on
+    # the already-tight per-stage filter → 10.9 MiB envelope from first /call.
     filter: >
       [.compositionspanels.items[]?
        | select((.metadata.labels // {})["krateo.io/portal-page"] == "compositions")
-       | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])]
+       | {
+           apiVersion,
+           kind,
+           metadata: {
+             name: .metadata.name,
+             namespace: .metadata.namespace,
+             uid: .metadata.uid,
+             creationTimestamp: .metadata.creationTimestamp,
+             labels: .metadata.labels
+           }
+         }]
   filter: >
     {
       compositionspanels: (
