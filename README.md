@@ -1,51 +1,29 @@
-# *Portal* Blueprint
+# krateo-portal-chart
 
-## Purpose
+Krateo PlatformOps **portal-starter** blueprint — seeds the Composable Portal's content
+(navmenus, routes, pages, panels, RestActions, and the demo-system RBAC) so a fresh install
+renders a usable portal. Distinct from the `frontend` chart (the SPA itself).
 
-The **Portal** Blueprint provides a foundational setup to deploy and customize the [Krateo Composable Portal](https://github.com/krateoplatformops/frontend) using Kubernetes-native resources. This Blueprint includes a Helm chart to help you bootstrap your own Krateo Composable Portal experience.
+Part of the [krateo-installer](https://github.com/braghettos/krateo-installer) ecosystem.
 
-## What It Does
+## What it ships
 
-- Deploys an initial consistent experience of Krateo Composable Portal
+| Path | Chart | OCI artifact |
+|------|-------|--------------|
+| `chart/` | `portal` | `oci://ghcr.io/braghettos/krateo/portal` |
 
-## Usage
+`chart/templates/` holds the portal content as Krateo resources: `navmenu*`, `route*`,
+`routesloader`, `page*`, `panel*`, `datagrid*`, `restaction*`, plus `rbac.*` and the
+`demo-system` namespace. Toggles in `values.yaml`: `enableAdminUser`, `enableCyberjokerUser`,
+`enableDemoSystemNamespace`.
 
-### Install the Helm Chart
+## How the installer consumes it
 
-Download Helm Chart values:
-
-```sh
-helm repo add marketplace https://marketplace.krateo.io
-helm repo update marketplace
-helm inspect values marketplace/portal --version 1.1.0 > ~/portal-values.yaml
-```
-
-Modify the *portal-values.yaml* file as the following example:
+The installer umbrella emits a `CompositionDefinition` that points `core-provider` at the OCI
+chart; `core-provider` generates `Portal.composition.krateo.io` and reconciles one Composition
+per instance:
 
 ```yaml
-enableAdminUser: true
-enableCyberjokerUser: true
-enableDemoSystemNamespace: true
-```
-
-Install the Blueprint:
-
-```sh
-helm install <name> template \
-  --repo https://marketplace.krateo.io \
-  --namespace <namespace> \
-  --create-namespace \
-  -f ~/portal-values.yaml
-  --version 1.1.0 \
-  --wait
-```
-
-### Install using Krateo Composable Operation
-
-Install the CompositionDefinition for the *Blueprint*:
-
-```sh
-cat <<EOF | kubectl apply -f -
 apiVersion: core.krateo.io/v1alpha1
 kind: CompositionDefinition
 metadata:
@@ -53,24 +31,23 @@ metadata:
   namespace: krateo-system
 spec:
   chart:
-    repo: portal
-    url: https://marketplace.krateo.io
-    version: 1.1.0
-EOF
+    url: oci://ghcr.io/braghettos/krateo/portal
+    version: "1.2.2"
 ```
 
-Install the Blueprint using, as metadata.name, the *Blueprint* name (the Helm Chart name of the blueprint):
+## Local validation
 
 ```sh
-cat <<EOF | kubectl apply -f -
-apiVersion: composition.krateo.io/v1-1-0
-kind: Portal
-metadata:
-  name: <name>
-  namespace: <namespace>
-spec:
-    enableAdminUser: true
-    enableCyberjokerUser: true
-    enableDemoSystemNamespace: true
-EOF
+helm lint chart
+helm template smoke chart
 ```
+
+## Release
+
+Push a semver tag (`X.Y.Z`) — CI packages `chart/` and publishes to
+`oci://ghcr.io/braghettos/krateo`.
+
+## Links
+
+- Installer umbrella: https://github.com/braghettos/krateo-installer
+- Composable Portal (frontend): https://github.com/krateoplatformops/frontend
