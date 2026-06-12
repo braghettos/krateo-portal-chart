@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set versions
         id: ver
@@ -38,7 +38,7 @@ jobs:
           done
 
       - name: Helm setup
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5.0.0
         with:
           version: v3.19.0
 
