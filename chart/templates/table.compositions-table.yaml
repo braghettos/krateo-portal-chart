@@ -1,0 +1,32 @@
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: compositions-table
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: middle
+    columns:
+    - valueKey: name
+      title: Name
+    - valueKey: kind
+      title: Type
+    - valueKey: ns
+      title: Namespace
+    - valueKey: status
+      title: Status
+    - valueKey: age
+      title: Created
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ .list[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"jsonSchemaType",type:"string",stringValue:( (.conditions // []) | if any(.type=="Ready" and .status=="True") then "Healthy" elif any(.type=="Ready" and .status=="False") then "Failed" else "Pending" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts} ] ] }'
+  apiRef:
+    name: compositions-list
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

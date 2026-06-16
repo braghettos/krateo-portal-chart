@@ -7,7 +7,13 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    label: +12%
-    color: green
+    label: '+0'
+    color: blue
+  widgetDataTemplate:
+  - forPath: label
+    expression: '${ "+" + (([.list[]|select(((.ts//"")|length>0) and ((.ts|fromdate) > (now-604800)))]|length)|tostring) }'
+  apiRef:
+    name: compositions-list
+    namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

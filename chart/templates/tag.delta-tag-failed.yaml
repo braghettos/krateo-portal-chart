@@ -7,7 +7,13 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    label: '+3'
+    label: 0%
     color: red
+  widgetDataTemplate:
+  - forPath: label
+    expression: '${ (if (.list|length)>0 then ((([.list[]|select((.conditions//[])|any(.type=="Ready" and .status=="False"))]|length)*100/(.list|length))|floor) else 0 end | tostring) + "%" }'
+  apiRef:
+    name: compositions-list
+    namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

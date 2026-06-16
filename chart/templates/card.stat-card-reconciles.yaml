@@ -7,10 +7,9 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Reconciles / h
     variant: outlined
     icon:
-      name: fa-bolt
+      name: fa-clock
       color: orange
     items:
     - resourceRefId: stat-reconciles

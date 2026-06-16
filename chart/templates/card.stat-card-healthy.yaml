@@ -7,7 +7,6 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Healthy
     variant: outlined
     icon:
       name: fa-circle-check

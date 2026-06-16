@@ -7,7 +7,6 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Compositions
     variant: outlined
     icon:
       name: fa-layer-group

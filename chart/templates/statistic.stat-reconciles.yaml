@@ -7,6 +7,13 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    value: 1.4k
+    title: Pending
+    value: 0
+  widgetDataTemplate:
+  - forPath: value
+    expression: '${ ([.list[]|select((.conditions//[])|(any(.type=="Ready" and (.status=="True" or .status=="False"))|not))]|length) }'
+  apiRef:
+    name: compositions-list
+    namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

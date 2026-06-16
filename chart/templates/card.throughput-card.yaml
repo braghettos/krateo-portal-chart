@@ -7,9 +7,9 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Reconciliation throughput
+    title: Compositions created
     variant: outlined
-    headerLeft: Successful reconciles per hour · last 24h
+    headerLeft: 'per day · last 14 days'
     items:
     - resourceRefId: throughput-chart
   resourcesRefs:

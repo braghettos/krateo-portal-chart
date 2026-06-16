@@ -7,7 +7,7 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    text: vs. last week
+    text: new this week
     type: secondary
   resourcesRefs:
     items: []

@@ -7,7 +7,6 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Failed
     variant: outlined
     icon:
       name: fa-triangle-exclamation

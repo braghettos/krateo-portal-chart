@@ -7,7 +7,7 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    text: steady
+    text: of total
     type: secondary
   resourcesRefs:
     items: []
