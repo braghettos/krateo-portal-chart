@@ -1,0 +1,31 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: stat-card-failed
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Failed
+    variant: outlined
+    icon:
+      name: fa-triangle-exclamation
+      color: red
+    items:
+    - resourceRefId: stat-failed
+    - resourceRefId: delta-failed
+  resourcesRefs:
+    items:
+    - id: stat-failed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: stat-failed
+      namespace: {{ .Release.Namespace }}
+      resource: statistics
+      verb: GET
+    - id: delta-failed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-failed
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET

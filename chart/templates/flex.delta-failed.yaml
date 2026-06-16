@@ -1,0 +1,31 @@
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: delta-failed
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - tags
+    - paragraphs
+    align: center
+    gap: small
+    items:
+    - resourceRefId: delta-tag-failed
+    - resourceRefId: delta-cap-failed
+  resourcesRefs:
+    items:
+    - id: delta-tag-failed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-tag-failed
+      namespace: {{ .Release.Namespace }}
+      resource: tags
+      verb: GET
+    - id: delta-cap-failed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-cap-failed
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET

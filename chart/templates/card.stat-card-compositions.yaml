@@ -1,0 +1,31 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: stat-card-compositions
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Compositions
+    variant: outlined
+    icon:
+      name: fa-layer-group
+      color: primary
+    items:
+    - resourceRefId: stat-compositions
+    - resourceRefId: delta-compositions
+  resourcesRefs:
+    items:
+    - id: stat-compositions
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: stat-compositions
+      namespace: {{ .Release.Namespace }}
+      resource: statistics
+      verb: GET
+    - id: delta-compositions
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-compositions
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET

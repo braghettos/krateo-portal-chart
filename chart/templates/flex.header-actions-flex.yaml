@@ -1,0 +1,31 @@
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: header-actions-flex
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - buttons
+    justify: flex-end
+    align: center
+    gap: small
+    items:
+    - resourceRefId: range-selector
+    - resourceRefId: new-composition
+  resourcesRefs:
+    items:
+    - id: range-selector
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: range-selector
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    - id: new-composition
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: new-composition
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET

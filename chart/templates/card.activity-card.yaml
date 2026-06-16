@@ -1,0 +1,22 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: activity-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Recent activity
+    variant: outlined
+    extra: View all
+    items:
+    - resourceRefId: activity-events
+  resourcesRefs:
+    items:
+    - id: activity-events
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: activity-events
+      namespace: {{ .Release.Namespace }}
+      resource: eventlists
+      verb: GET

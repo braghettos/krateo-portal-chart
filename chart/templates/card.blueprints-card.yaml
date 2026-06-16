@@ -1,0 +1,22 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprints-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Top blueprints
+    variant: outlined
+    extra: This month
+    items:
+    - resourceRefId: blueprints-list
+  resourcesRefs:
+    items:
+    - id: blueprints-list
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: blueprints-list
+      namespace: {{ .Release.Namespace }}
+      resource: lists
+      verb: GET

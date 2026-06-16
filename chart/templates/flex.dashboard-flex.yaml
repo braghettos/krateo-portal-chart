@@ -1,0 +1,54 @@
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: dashboard-flex
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    - rows
+    - cards
+    - statistics
+    - tags
+    - paragraphs
+    - buttons
+    - linecharts
+    - piecharts
+    - eventlists
+    - lists
+    vertical: true
+    gap: large
+    items:
+    - resourceRefId: header-row
+    - resourceRefId: stats-row
+    - resourceRefId: charts-row
+    - resourceRefId: lists-row
+  resourcesRefs:
+    items:
+    - id: header-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: header-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: stats-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: stats-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: charts-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: charts-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: lists-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: lists-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET

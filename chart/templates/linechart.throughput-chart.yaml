@@ -1,0 +1,91 @@
+kind: LineChart
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: throughput-chart
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    xField: t
+    yField: v
+    colorField: series
+    shapeField: smooth
+    area: true
+    legend: true
+    height: 220
+    data:
+    - t: '00:00'
+      series: Reconciles
+      v: 42
+    - t: '02:00'
+      series: Reconciles
+      v: 48
+    - t: '04:00'
+      series: Reconciles
+      v: 55
+    - t: '06:00'
+      series: Reconciles
+      v: 61
+    - t: '08:00'
+      series: Reconciles
+      v: 70
+    - t: '10:00'
+      series: Reconciles
+      v: 78
+    - t: '12:00'
+      series: Reconciles
+      v: 86
+    - t: '14:00'
+      series: Reconciles
+      v: 92
+    - t: '16:00'
+      series: Reconciles
+      v: 99
+    - t: '18:00'
+      series: Reconciles
+      v: 108
+    - t: '20:00'
+      series: Reconciles
+      v: 115
+    - t: '22:00'
+      series: Reconciles
+      v: 121
+    - t: '00:00'
+      series: Drift events
+      v: 4
+    - t: '02:00'
+      series: Drift events
+      v: 3
+    - t: '04:00'
+      series: Drift events
+      v: 5
+    - t: '06:00'
+      series: Drift events
+      v: 6
+    - t: '08:00'
+      series: Drift events
+      v: 4
+    - t: '10:00'
+      series: Drift events
+      v: 7
+    - t: '12:00'
+      series: Drift events
+      v: 9
+    - t: '14:00'
+      series: Drift events
+      v: 6
+    - t: '16:00'
+      series: Drift events
+      v: 8
+    - t: '18:00'
+      series: Drift events
+      v: 10
+    - t: '20:00'
+      series: Drift events
+      v: 7
+    - t: '22:00'
+      series: Drift events
+      v: 5
+  resourcesRefs:
+    items: []

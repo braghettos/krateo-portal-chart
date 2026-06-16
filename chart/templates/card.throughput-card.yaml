@@ -1,0 +1,22 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: throughput-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Reconciliation throughput
+    variant: outlined
+    headerLeft: Successful reconciles per hour · last 24h
+    items:
+    - resourceRefId: throughput-chart
+  resourcesRefs:
+    items:
+    - id: throughput-chart
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: throughput-chart
+      namespace: {{ .Release.Namespace }}
+      resource: linecharts
+      verb: GET

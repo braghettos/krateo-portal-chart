@@ -1,0 +1,41 @@
+kind: List
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprints-list
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    itemLayout: horizontal
+    split: false
+    dataSource:
+    - name: postgresql-ha
+      installs: 42
+      category: DB
+      icon: fa-database
+      color: blue
+    - name: gke-autopilot
+      installs: 31
+      category: Cluster
+      icon: fa-server
+      color: primary
+    - name: s3-bucket
+      installs: 27
+      category: Storage
+      icon: fa-box-archive
+      color: orange
+    - name: redis-cache
+      installs: 19
+      category: Cache
+      icon: fa-bolt
+      color: red
+    itemTemplate:
+      icon: '{icon}'
+      color:
+        value: '{color}'
+      primaryText: '{name}'
+      subPrimaryText: '{installs} installs'
+      secondaryText: '{category}'
+  resourcesRefs:
+    items: []

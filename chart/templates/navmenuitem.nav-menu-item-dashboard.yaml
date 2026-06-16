@@ -8,17 +8,17 @@ metadata:
 spec:
   widgetData:
     allowedResources:
-      - pages
-    resourceRefId: dashboard-page
+      - flexes
+    resourceRefId: dashboard-flex
     label: Dashboard
     icon: fa-chart-line
     path: /dashboard
     order: 10
   resourcesRefs:
     items:
-      - id: dashboard-page
+      - id: dashboard-flex
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: dashboard-page
+        name: dashboard-flex
         namespace: {{ .Release.Namespace }}
-        resource: pages
+        resource: flexes
         verb: GET
