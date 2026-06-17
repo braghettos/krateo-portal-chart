@@ -32,18 +32,29 @@ spec:
       verb: GET
       headers:
         - 'Accept: application/json'
+    # Namespaces fed into the form's Namespace field as a select (enum). v1: all
+    # namespaces. TODO RBAC-filter to namespaces the user can `create` the composition
+    # in, via per-namespace SelfSubjectAccessReview + exportJwt (krateoplatformops-
+    # blueprints/portal-blueprint-page restaction-schema-override-allowed-ns pattern).
+    - name: namespaces
+      path: /api/v1/namespaces
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      filter: "[.namespaces.items[] | .metadata.name]"
   # The returned schemaSpec is the CRD's spec schema with two synthetic fields PREPENDED:
   # `name` + `namespace` — the instance identity the user enters. The Form routes them to
   # metadata.* via payloadToOverride and excludes them from spec (del). This is the create
   # form's schema, so owning the instance-identity fields here is intentional.
   filter: |
     (.compdef.status.apiVersion | split("/")[1]) as $ver
+    | .namespaces as $namespaces
     | (.crd.spec.versions[]? | select(.name == $ver) | .schema.openAPIV3Schema.properties.spec) as $spec
     | {
         schemaSpec: ($spec
           | .properties = ({
               name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-              namespace: { type: "string", title: "Namespace", description: "Target namespace" }
+              namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces }
             } + (.properties // {}))
           | .required = (["name", "namespace"] + (.required // []))),
         apiVersion: .compdef.status.apiVersion,
