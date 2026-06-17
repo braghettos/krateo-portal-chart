@@ -1,0 +1,23 @@
+# Root shell — the INIT target (config.INIT = /call?resource=layouts&name=app-shell&namespace=<ns>).
+# antd Layout with a Sider that hosts the sidebar-nav Menu; the Content slot renders the routed
+# page <Outlet/>. Replaces the legacy NavMenu/RoutesLoader shell (widget-taxonomy-and-layout.md §H).
+kind: Layout
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: app-shell
+  namespace: {{ .Release.Namespace }}
+spec:
+  widgetData:
+    hasSider: true
+    sider:
+      resourceRefId: nav
+      theme: light
+      width: 236
+  resourcesRefs:
+    items:
+      - id: nav
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: sidebar-nav
+        namespace: {{ .Release.Namespace }}
+        resource: menus
+        verb: GET
