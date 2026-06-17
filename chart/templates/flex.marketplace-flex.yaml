@@ -1,0 +1,31 @@
+# Marketplace page container — stacks the filter bar above the tile grid. The
+# /marketplace route points here; both children share the marketplace-filters prefix.
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: marketplace-flex
+  namespace: {{ .Release.Namespace }}
+spec:
+  widgetData:
+    vertical: true
+    gap: large
+    allowedResources:
+      - filters
+      - lists
+    items:
+      - resourceRefId: marketplace-filters
+      - resourceRefId: marketplace-grid
+  resourcesRefs:
+    items:
+      - id: marketplace-filters
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-filters
+        namespace: {{ .Release.Namespace }}
+        resource: filters
+        verb: GET
+      - id: marketplace-grid
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-grid
+        namespace: {{ .Release.Namespace }}
+        resource: lists
+        verb: GET

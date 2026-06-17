@@ -1,0 +1,35 @@
+# Marketplace content — antd `List` in grid mode, one cell per blueprint Card
+# discovered by blueprints-cards. `List` supersedes the (unregistered) DataGrid.
+# dataSource carries each card's resourceRefId (rendered as a child widget);
+# resourcesRefsTemplate fans out a GET ref per card in its own namespace.
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: List
+metadata:
+  name: marketplace-grid
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprints-cards
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    prefix: marketplace-filters
+    grid:
+      gutter: 16
+      column: 3
+    dataSource: []
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ [ .cards[] | { resourceRefId: .metadata.name } ] }'
+  resourcesRefs:
+    items: []
+  resourcesRefsTemplate:
+    - iterator: ${ .cards }
+      template:
+        id: ${ .metadata.name }
+        apiVersion: ${ .apiVersion }
+        resource: cards
+        namespace: ${ .metadata.namespace }
+        name: ${ .metadata.name }
+        verb: GET

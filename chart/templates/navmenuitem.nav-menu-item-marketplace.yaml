@@ -1,0 +1,27 @@
+# Marketplace nav entry → the antd tile catalog (marketplace-flex: category filter
+# bar + per-blueprint Card grid). Replaces the retired blueprints-page (DataGrid,
+# unrenderable in the antd portal). The NavMenu auto-aggregates this item.
+kind: NavMenuItem
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: nav-menu-item-marketplace
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - flexes
+    resourceRefId: marketplace-flex
+    label: Marketplace
+    icon: fa-store
+    path: /marketplace
+    order: 20
+  resourcesRefs:
+    items:
+      - id: marketplace-flex
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-flex
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
