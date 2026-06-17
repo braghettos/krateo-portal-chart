@@ -32,15 +32,24 @@ spec:
       verb: GET
       headers:
         - 'Accept: application/json'
-    # Namespaces fed into the form's Namespace field as a select (enum). v1: all
-    # namespaces. TODO RBAC-filter to namespaces the user can `create` the composition
-    # in, via per-namespace SelfSubjectAccessReview + exportJwt (krateoplatformops-
-    # blueprints/portal-blueprint-page restaction-schema-override-allowed-ns pattern).
+    # Namespaces fed into the form's Namespace field as a select (enum), RBAC-filtered
+    # to the namespaces where the USER can `create` this composition. Uses snowplow's
+    # native userAccessFilter (the SubjectAccessReview the user-bearer token is appended
+    # to on non-UAF stages — api/resolve.go); cleaner than the reference's per-namespace
+    # SSAR fan-out. group is the shared composition.krateo.io; resource is the blueprint's
+    # (from the CompositionDefinition status); namespaceFrom is each namespace's own name.
     - name: namespaces
       path: /api/v1/namespaces
       verb: GET
       headers:
         - 'Accept: application/json'
+      dependsOn:
+        name: crd
+      userAccessFilter:
+        verb: create
+        group: composition.krateo.io
+        resourcesFrom: "[.compdef.status.resource]"
+        namespaceFrom: .metadata.name
       filter: "[.namespaces.items[] | .metadata.name]"
   # The returned schemaSpec is the CRD's spec schema with two synthetic fields PREPENDED:
   # `name` + `namespace` — the instance identity the user enters. The Form routes them to
