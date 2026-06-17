@@ -7,15 +7,13 @@
 #   - create target (resourcesRefsTemplate) is built from the discovered GVR — no hardcode.
 #   - submit routes the user's name/namespace into metadata and the rest into spec.
 # page-blueprint-create points its child ref at THIS form (forms/blueprint-create) instead
-# of a per-blueprint form. Wired + verified on a real Krateo cluster (this kind demo lacks
-# compositiondefinitions, so blueprint-formdef can't resolve here — the per-blueprint
-# rancher-create path stays in place on kind-krateo-dash).
-#
-# VERIFY-ON-REAL-CLUSTER (can't be tested without the CRD present):
-#  - does snowplow's POST /call need apiVersion/kind in the BODY, or infer them from the
-#    resource+apiVersion in the URL? If the body needs them, template them onto
-#    action.payload.{apiVersion,kind} from the formdef result.
-#  - resourcesRefsTemplate resolving ${.apiVersion}/${.resource} from the apiRef result.
+# of a per-blueprint form. VERIFIED end-to-end on kind-krateo-dash (after installing the
+# core-provider CRDs + a CompositionDefinition with populated status): the form renders the
+# discovered schema and a submit deploys the composition. Both prior unknowns resolved:
+#  - snowplow's POST /call INFERS apiVersion/kind from the URL (resource+apiVersion query);
+#    the body only needs metadata + spec, so action.payload doesn't template them.
+#  - resourcesRefsTemplate resolves ${.apiVersion}/${.resource} from the apiRef result.
+# Supersedes the per-blueprint rancher-create/rancher-formdef.
 kind: Form
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

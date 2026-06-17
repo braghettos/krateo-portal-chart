@@ -7,8 +7,10 @@
 #      kind, resource (plural). CRD name = <resource>.<group>.
 #   3. GET that CRD; its openAPIV3Schema.properties.spec IS the form's JSON schema.
 # Returns { schemaSpec, apiVersion, kind, resource } — schema for the fields, GVR for
-# the create POST target. Requires a real Krateo cluster (core-provider + Composition-
-# Definitions); not resolvable on the seeded kind-krateo-dash demo (no compositiondefinitions).
+# the create POST target. Needs the core-provider CRDs + a CompositionDefinition whose
+# status carries the generated GVR. VERIFIED on kind-krateo-dash after installing the
+# core-provider CRDs and populating a CompositionDefinition status (the controller itself
+# needs a newer k8s — MutatingAdmissionPolicy — than that demo cluster has).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
