@@ -1,0 +1,27 @@
+# Convention page root for the templated route /compositions/{namespace}/{name}
+# (nav item `page: composition-detail` → resource `flexes`, name `page-<slug>`).
+# Minimal proof page for the routing redesign (widget-taxonomy-and-layout.md §H):
+# it renders one Paragraph that echoes the route params, which arrive via ?extras
+# (useWidgetQuery folds useParams() in). Grows into the real Detail page (P0.2).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-composition-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - paragraphs
+    vertical: true
+    items:
+      - resourceRefId: composition-detail-text
+  resourcesRefs:
+    items:
+      - id: composition-detail-text
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-text
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET

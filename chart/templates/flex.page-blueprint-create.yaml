@@ -1,0 +1,27 @@
+# Convention page root for the templated create route /marketplace/{namespace}/{name}/new
+# (nav item `page: blueprint-create` → resource `flexes`, name `page-<slug>`).
+# Minimal proof page for the routing redesign (widget-taxonomy-and-layout.md §H): it renders
+# one Paragraph echoing the blueprint route params, which arrive via ?extras. Grows into the
+# real schema-driven Create Form (Steps + Form from the blueprint's formdefinition) at P0.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-blueprint-create
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - paragraphs
+    vertical: true
+    items:
+      - resourceRefId: blueprint-create-text
+  resourcesRefs:
+    items:
+      - id: blueprint-create-text
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-create-text
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET
