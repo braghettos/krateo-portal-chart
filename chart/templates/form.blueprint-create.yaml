@@ -1,0 +1,64 @@
+# GENERIC blueprint create Form — ONE Form for ALL blueprints (replaces every
+# per-blueprint create form, e.g. the hand-authored rancher-create).
+#   - apiRef → blueprint-formdef: returns the CRD's spec schema (with synthetic
+#     name+namespace fields prepended) + the discovered GVR (apiVersion/kind/resource).
+#   - schema ← schemaSpec: SchemaFields renders the instance Name, Namespace, and the
+#     blueprint's own spec fields.
+#   - create target (resourcesRefsTemplate) is built from the discovered GVR — no hardcode.
+#   - submit routes the user's name/namespace into metadata and the rest into spec.
+# page-blueprint-create points its child ref at THIS form (forms/blueprint-create) instead
+# of a per-blueprint form. Wired + verified on a real Krateo cluster (this kind demo lacks
+# compositiondefinitions, so blueprint-formdef can't resolve here — the per-blueprint
+# rancher-create path stays in place on kind-krateo-dash).
+#
+# VERIFY-ON-REAL-CLUSTER (can't be tested without the CRD present):
+#  - does snowplow's POST /call need apiVersion/kind in the BODY, or infer them from the
+#    resource+apiVersion in the URL? If the body needs them, template them onto
+#    action.payload.{apiVersion,kind} from the formdef result.
+#  - resourcesRefsTemplate resolving ${.apiVersion}/${.resource} from the apiRef result.
+kind: Form
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprint-create
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprint-formdef
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    layout: vertical
+    submitActionId: submit
+    schema: {}
+    buttonConfig:
+      primary:
+        label: Review & create
+      secondary:
+        label: Cancel
+    actions:
+      rest:
+        - id: submit
+          type: rest
+          resourceRefId: create-composition
+          headers:
+            - 'Content-Type: application/json'
+          onSuccessNavigateTo: /compositions
+          successMessage: Composition created
+          # All from {json} (the form values) — the only context payloadToOverride jq sees.
+          payloadToOverride:
+            - { name: metadata.name,      value: '${ .json.name }' }
+            - { name: metadata.namespace, value: '${ .json.namespace }' }
+            - { name: spec,               value: '${ .json | del(.name) | del(.namespace) }' }
+  widgetDataTemplate:
+    - forPath: schema
+      expression: '${ .schemaSpec }'
+  resourcesRefs:
+    items: []
+  resourcesRefsTemplate:
+    - template:
+        id: create-composition
+        apiVersion: '${ .apiVersion }'
+        resource: '${ .resource }'
+        namespace: '${ .namespace }'
+        verb: POST

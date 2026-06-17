@@ -1,0 +1,50 @@
+# GENERIC blueprint create-form schema source — ONE RESTAction for ALL blueprints
+# (replaces per-blueprint formdef RAs). The blueprint identity arrives via ?extras
+# (.namespace / .name = route params from /marketplace/{namespace}/{name}/new). It
+# discovers the composition CRD purely from data — no hardcoded GVR:
+#   1. GET the blueprint's CompositionDefinition (core.krateo.io).
+#   2. Its status carries the generated CRD's GVR: apiVersion (group/version),
+#      kind, resource (plural). CRD name = <resource>.<group>.
+#   3. GET that CRD; its openAPIV3Schema.properties.spec IS the form's JSON schema.
+# Returns { schemaSpec, apiVersion, kind, resource } — schema for the fields, GVR for
+# the create POST target. Requires a real Krateo cluster (core-provider + Composition-
+# Definitions); not resolvable on the seeded kind-krateo-dash demo (no compositiondefinitions).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: blueprint-formdef
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: compdef
+      path: ${ "/apis/core.krateo.io/v1alpha1/namespaces/" + .namespace + "/compositiondefinitions/" + .name }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+    - name: crd
+      dependsOn:
+        name: compdef
+      path: ${ "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/" + .compdef.status.resource + "." + (.compdef.status.apiVersion | split("/")[0]) }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+  # The returned schemaSpec is the CRD's spec schema with two synthetic fields PREPENDED:
+  # `name` + `namespace` — the instance identity the user enters. The Form routes them to
+  # metadata.* via payloadToOverride and excludes them from spec (del). This is the create
+  # form's schema, so owning the instance-identity fields here is intentional.
+  filter: |
+    (.compdef.status.apiVersion | split("/")[1]) as $ver
+    | (.crd.spec.versions[]? | select(.name == $ver) | .schema.openAPIV3Schema.properties.spec) as $spec
+    | {
+        schemaSpec: ($spec
+          | .properties = ({
+              name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
+              namespace: { type: "string", title: "Namespace", description: "Target namespace" }
+            } + (.properties // {}))
+          | .required = (["name", "namespace"] + (.required // []))),
+        apiVersion: .compdef.status.apiVersion,
+        kind: .compdef.status.kind,
+        resource: .compdef.status.resource
+      }
