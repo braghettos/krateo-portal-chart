@@ -33,7 +33,8 @@ spec:
                uid: .metadata.uid,
                creationTimestamp: .metadata.creationTimestamp,
                labels: .metadata.labels
-             }
+             },
+             tags: (.spec.widgetData.tags // [])
            }]
   filter: >
     {
