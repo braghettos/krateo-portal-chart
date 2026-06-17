@@ -28,8 +28,11 @@ spec:
       - { label: Blueprints,   icon: fa-layer-group, order: 4, path: /blueprints,   resourceRefId: blueprints }
       - { label: Marketplace,  icon: fa-store,       order: 5, path: /marketplace,  resourceRefId: marketplace }
       - { label: Settings,     icon: fa-gear,        order: 6, path: /settings,     resourceRefId: settings }
-      # route-only (no label → hidden): templated detail + create routes via the convention.
-      # Paths are quoted — the {param} braces would otherwise be read as YAML flow mappings.
+      # route-only (no label → hidden). /search renders the search-results List; its
+      # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
+      - { order: 800, path: /search, resourceRefId: search-results }
+      # Templated detail + create routes via the convention. Paths are quoted — the
+      # {param} braces would otherwise be read as YAML flow mappings.
       - { order: 900, path: "/compositions/{namespace}/{name}",   page: composition-detail }
       - { order: 910, path: "/marketplace/{namespace}/{name}/new", page: blueprint-create }
   resourcesRefs:
@@ -51,4 +54,10 @@ spec:
         name: marketplace-flex
         namespace: {{ .Release.Namespace }}
         resource: flexes
+        verb: GET
+      - id: search-results
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: search-results
+        namespace: {{ .Release.Namespace }}
+        resource: lists
         verb: GET

@@ -1,0 +1,29 @@
+# Header-search results. Fed by the `global-search` RESTAction (apiRef), which
+# filters compositions + blueprints server-side by the `q` term the frontend
+# forwards as ?extras={"q":...} on this List's /call. widgetDataTemplate maps the
+# RA's `.items` into the List `dataSource`; itemTemplate renders each row.
+# v1: rows are display-only (title + subtitle) — List itemTemplate has no per-row
+# navigate yet; click-through lands with the §A actions (per-row navigate) work.
+kind: List
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: search-results
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: global-search
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    itemLayout: horizontal
+    split: false
+    dataSource: []
+    itemTemplate:
+      primaryText: '{title}'
+      secondaryText: '{subtitle}'
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: ${ .items }
+  resourcesRefs:
+    items: []
