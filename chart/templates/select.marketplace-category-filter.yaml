@@ -1,29 +1,25 @@
-# Category facet control for the Marketplace filter. `name: tags` binds this Select
-# to each card's `tags` array (where the blueprint's category is the lead tag); the
-# Filters engine matches by case-insensitive substring, so picking a category keeps
-# only cards whose tags include it. Options mirror the krateo.io/category taxonomy.
+# Category facet control. Options are DERIVED from the live blueprint Cards'
+# `krateo.io/category` labels (via the blueprints-cards RESTAction) — no hardcoded
+# taxonomy: the dropdown shows exactly the categories present among registered
+# blueprints. `name: tags` binds the filter to each card's `tags` array (where the
+# category is the lead tag); the Filters engine matches by case-insensitive substring.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: Select
 metadata:
   name: marketplace-category-filter
   namespace: {{ .Release.Namespace }}
 spec:
+  apiRef:
+    name: blueprints-cards
+    namespace: {{ .Release.Namespace }}
   widgetData:
     name: tags
     label: Category
     placeholder: All categories
     allowClear: true
-    options:
-      - value: Compute
-      - value: Containers
-      - value: Storage
-      - value: Database
-      - value: Networking
-      - value: Security
-      - value: Analytics
-      - value: Integration
-      - value: MachineLearning
-      - value: Management
-      - value: DeveloperTools
+    options: []
+  widgetDataTemplate:
+    - forPath: options
+      expression: '${ [ .cards[]? | .metadata.labels["krateo.io/category"] // empty ] | unique | sort | map({ value: . }) }'
   resourcesRefs:
     items: []
