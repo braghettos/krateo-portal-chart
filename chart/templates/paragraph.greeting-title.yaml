@@ -6,8 +6,20 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # Data-driven greeting. Time-of-day is computed server-side in jq (`now | localtime`);
+  # the name comes from the login identity the frontend forwards via `?extras` (there is
+  # no runtime /me). Requires snowplow >= 1.1.0 (extras-to-widgets, PR #27): its Fix-2
+  # merges request `extras` into a no-apiRef widget's widgetDataTemplate data source, so
+  # `.displayName` resolves here. On an older image the template degrades to
+  # "Good <time>, there" (the name simply resolves to null → the `// "there"` fallback).
+  # NOTE: `localtime` uses the snowplow POD's timezone — set `TZ` on the snowplow
+  # Deployment (else UTC). `widgetData.text` below is only a last-resort fallback if the
+  # template cannot run at all.
   widgetData:
-    text: Good morning, Diego
+    text: Welcome
     strong: true
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ (now | localtime | .[2]) as $h | "Good " + (if $h < 12 then "morning" elif $h < 18 then "afternoon" else "evening" end) + ", " + (.displayName // "there") }'
   resourcesRefs:
     items: []
