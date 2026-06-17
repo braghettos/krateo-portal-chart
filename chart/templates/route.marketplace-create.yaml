@@ -1,0 +1,23 @@
+# Parameterized Create route — one route serves every blueprint's Create form.
+# /marketplace/<namespace>/<cd>/new resolves to the blueprint's `<cd>-create` Form
+# in <namespace> (the Install button on each Marketplace tile navigates here). The
+# composition is namespace-scoped, so the namespace is part of the route + endpoint.
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Route
+metadata:
+  name: marketplace-create-route
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    path: /marketplace/{namespace}/{name}/new
+    resourceRefId: create-form
+  resourcesRefs:
+    items:
+      - id: create-form
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: "{name}-create"
+        namespace: "{namespace}"
+        resource: forms
+        verb: GET
