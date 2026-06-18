@@ -18,6 +18,6 @@ spec:
     percent: 0
   widgetDataTemplate:
     - forPath: percent
-      expression: '${ .healthPercent }'
+      expression: '${ (.detail.status.conditions // []) as $c | if ($c | length) > 0 then (($c | map(select(.status == "True")) | length) * 100 / ($c | length) | floor) else 0 end }'
   resourcesRefs:
     items: []

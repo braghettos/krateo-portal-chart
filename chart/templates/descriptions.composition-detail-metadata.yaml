@@ -18,6 +18,6 @@ spec:
     items: []
   widgetDataTemplate:
     - forPath: items
-      expression: '${ .metadataItems }'
+      expression: '${ [ { label: "Namespace", value: (.detail.metadata.namespace // "") }, { label: "UID", value: (.detail.metadata.uid // "") }, { label: "Created", value: (.detail.metadata.creationTimestamp // "") } ] + ((.detail.metadata.labels // {}) | to_entries | map({ label: ("label/" + .key), value: .value })) }'
   resourcesRefs:
     items: []

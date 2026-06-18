@@ -1,0 +1,23 @@
+# Status pill next to the title. The conditions→label/color logic lives HERE
+# (widget representation), not in the RA: the RA just supplies the raw object.
+kind: Tag
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-status
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: Unknown
+    color: default
+  widgetDataTemplate:
+    - forPath: label
+      expression: '${ (.detail.status.conditions // []) as $c | if ($c | length) == 0 then "Unknown" elif ($c | map(select(.type == "Ready" and .status == "True")) | length) > 0 then "Healthy" elif ($c | map(select(.status == "False")) | length) > 0 then "Degraded" else "Pending" end }'
+    - forPath: color
+      expression: '${ (.detail.status.conditions // []) as $c | if ($c | length) == 0 then "default" elif ($c | map(select(.type == "Ready" and .status == "True")) | length) > 0 then "green" elif ($c | map(select(.status == "False")) | length) > 0 then "red" else "gold" end }'
+  resourcesRefs:
+    items: []

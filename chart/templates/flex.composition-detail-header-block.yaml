@@ -1,0 +1,32 @@
+# Page header block: the title line (name + status Tag) stacked over the subtitle.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-header-block
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: small
+    allowedResources:
+      - flexes
+      - paragraphs
+    items:
+      - resourceRefId: composition-detail-title-line
+      - resourceRefId: composition-detail-subtitle
+  resourcesRefs:
+    items:
+      - id: composition-detail-title-line
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-title-line
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: composition-detail-subtitle
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-subtitle
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET

@@ -1,18 +1,12 @@
-# Resolves ONE composition (from ?extras .name/.namespace) and shapes EVERY field
-# the Detail page needs — server-side, per the nothing-client-side rule. Compositions
-# are heterogeneous per-blueprint kinds, so discover generically: list the
-# composition.krateo.io CRDs, list each cluster-wide, pick the item matching the
-# route name+namespace, then ALSO pull that object's namespaced Events.
-#
-# Returns:
-#   detail        : {apiVersion,kind,name,namespace}  flat identity (object-level watch)
-#   title         : the composition name (header)
-#   subtitle      : "<kind> · <namespace> · created <ts>"
-#   manifestJson  : desired-state manifest as a JSON string (YamlViewer renders it)
-#   specItems     : [{label,value}]  the spec, as Descriptions rows
-#   metadataItems : [{label,value}]  namespace/uid/created + labels
-#   healthPercent : % of status.conditions that are True (0 when none reported)
-#   events        : this object's recent k8s Events (honest ~1h TTL window)
+# Thin, generic data source — NO widget representation logic (that lives in each
+# consuming widget's widgetDataTemplate). Resolves ONE composition (from ?extras
+# .name/.namespace): compositions are heterogeneous per-blueprint kinds, so
+# discover generically (list composition.krateo.io CRDs, list each cluster-wide,
+# pick name+namespace), and pull its namespaced Events. Returns ONLY raw data:
+#   detail : the full composition object (managedFields stripped)
+#   events : that object's raw k8s Events
+# Every detail widget (header/status/subtitle/spec/health/events/manifest/
+# metadata/relations) shapes its own slice from this in its widgetDataTemplate.
 # Extras reach RA api steps on this snowplow (same mechanism as blueprint-formdef).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
@@ -50,15 +44,7 @@ spec:
   filter: >
     .name as $n
     | .namespace as $ns
-    | ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {}) as $obj
-    | ($obj.status.conditions // []) as $conds
     | {
-        detail: { apiVersion: $obj.apiVersion, kind: $obj.kind, name: $obj.metadata.name, namespace: $obj.metadata.namespace },
-        title: ($obj.metadata.name // $n // "composition"),
-        subtitle: (($obj.kind // "Composition") + " · " + ($obj.metadata.namespace // $ns // "?") + " · created " + ($obj.metadata.creationTimestamp // "?")),
-        manifestJson: ({ apiVersion: $obj.apiVersion, kind: $obj.kind, metadata: { name: $obj.metadata.name, namespace: $obj.metadata.namespace, labels: ($obj.metadata.labels // {}) }, spec: ($obj.spec // {}) } | tojson),
-        specItems: (($obj.spec // {}) | to_entries | map({ label: .key, value: (.value | if type == "string" then . else tojson end) })),
-        metadataItems: ([ { label: "Namespace", value: ($obj.metadata.namespace // "") }, { label: "UID", value: ($obj.metadata.uid // "") }, { label: "Created", value: ($obj.metadata.creationTimestamp // "") } ] + (($obj.metadata.labels // {}) | to_entries | map({ label: ("label/" + .key), value: .value }))),
-        healthPercent: (if ($conds | length) > 0 then (($conds | map(select(.status == "True")) | length) * 100 / ($conds | length) | floor) else 0 end),
-        events: ([ .objectEvents[]? | select(.involvedObject.name == $n) | { metadata: { name: .metadata.name, namespace: .metadata.namespace, uid: .metadata.uid, creationTimestamp: .metadata.creationTimestamp }, involvedObject: .involvedObject, reason: .reason, message: .message, type: .type, lastTimestamp: .lastTimestamp, eventTime: .eventTime, source: .source } ] | sort_by(.lastTimestamp // .eventTime // "") | reverse | .[0:8])
+        detail: ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {}),
+        events: [ .objectEvents[]? | select(.involvedObject.name == $n) ]
       }

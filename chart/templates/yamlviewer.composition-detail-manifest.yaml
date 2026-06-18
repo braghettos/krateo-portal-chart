@@ -15,6 +15,6 @@ spec:
     json: "{}"
   widgetDataTemplate:
     - forPath: json
-      expression: '${ .manifestJson }'
+      expression: '${ { apiVersion: .detail.apiVersion, kind: .detail.kind, metadata: { name: .detail.metadata.name, namespace: .detail.metadata.namespace, labels: (.detail.metadata.labels // {}) }, spec: (.detail.spec // {}) } | tojson }'
   resourcesRefs:
     items: []

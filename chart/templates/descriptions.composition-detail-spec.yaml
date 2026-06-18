@@ -19,6 +19,6 @@ spec:
     items: []
   widgetDataTemplate:
     - forPath: items
-      expression: '${ .specItems }'
+      expression: '${ (.detail.spec // {}) | to_entries | map({ label: .key, value: (.value | if type == "string" then . else tojson end) }) }'
   resourcesRefs:
     items: []

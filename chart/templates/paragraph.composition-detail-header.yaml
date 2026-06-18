@@ -17,6 +17,6 @@ spec:
     level: 2
   widgetDataTemplate:
     - forPath: text
-      expression: '${ .title }'
+      expression: '${ .detail.metadata.name // "composition" }'
   resourcesRefs:
     items: []

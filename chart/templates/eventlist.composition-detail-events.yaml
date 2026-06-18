@@ -15,6 +15,6 @@ spec:
     events: []
   widgetDataTemplate:
     - forPath: events
-      expression: '${ .events }'
+      expression: '${ .events | sort_by(.lastTimestamp // .eventTime // "") | reverse | .[0:8] }'
   resourcesRefs:
     items: []

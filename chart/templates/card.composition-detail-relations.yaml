@@ -1,0 +1,21 @@
+# "Relations" card → the composition's related resources, as a List.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-composition-detail-relations
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Relations
+    items:
+      - resourceRefId: list-composition-detail-relations
+  resourcesRefs:
+    items:
+      - id: list-composition-detail-relations
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: list-composition-detail-relations
+        namespace: {{ .Release.Namespace }}
+        resource: lists
+        verb: GET

@@ -1,0 +1,21 @@
+# Sub-line under the title: "<kind> · <namespace> · created <ts>". The string is
+# assembled HERE (widget representation) from the raw object the RA supplies.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-subtitle
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ""
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ ((.detail.kind // "Composition")) + " · " + (.detail.metadata.namespace // "?") + " · created " + (.detail.metadata.creationTimestamp // "?") }'
+  resourcesRefs:
+    items: []

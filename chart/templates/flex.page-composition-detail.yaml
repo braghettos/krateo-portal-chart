@@ -1,8 +1,9 @@
-# Convention page root for /compositions/{namespace}/{name} (nav item
-# `page: composition-detail` → resource `flexes`, name `page-<slug>`). The real
-# Detail page: a header + stacked Cards, each fed by the composition-detail RA
-# (which shapes every field server-side). v1 is single-column (vertical) — a
-# 2-column layout + a Relations card + object-level live-refresh are follow-ups.
+# Convention page root for /compositions/{namespace}/{name}. Matches the
+# enterprise-detail mockup: a pagehead (title + status Tag + subtitle) over a
+# 2-column grid (Row, 1.7fr:1fr ≈ size 15/9): left = Specification/Events/Manifest,
+# right = Health/Relations/Metadata. Every field is shaped server-side by the
+# composition-detail RA. Deferred: back-link + Sync/Edit action buttons (need
+# real reconcile/edit endpoints); object-level live-refresh.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,50 +16,22 @@ spec:
     vertical: true
     gap: large
     allowedResources:
-      - paragraphs
-      - cards
+      - flexes
+      - rows
     items:
-      - resourceRefId: composition-detail-header
-      - resourceRefId: card-composition-detail-spec
-      - resourceRefId: card-composition-detail-health
-      - resourceRefId: card-composition-detail-events
-      - resourceRefId: card-composition-detail-manifest
-      - resourceRefId: card-composition-detail-metadata
+      - resourceRefId: composition-detail-header-block
+      - resourceRefId: composition-detail-grid
   resourcesRefs:
     items:
-      - id: composition-detail-header
+      - id: composition-detail-header-block
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: composition-detail-header
+        name: composition-detail-header-block
         namespace: {{ .Release.Namespace }}
-        resource: paragraphs
+        resource: flexes
         verb: GET
-      - id: card-composition-detail-spec
+      - id: composition-detail-grid
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-composition-detail-spec
+        name: composition-detail-grid
         namespace: {{ .Release.Namespace }}
-        resource: cards
-        verb: GET
-      - id: card-composition-detail-health
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-composition-detail-health
-        namespace: {{ .Release.Namespace }}
-        resource: cards
-        verb: GET
-      - id: card-composition-detail-events
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-composition-detail-events
-        namespace: {{ .Release.Namespace }}
-        resource: cards
-        verb: GET
-      - id: card-composition-detail-manifest
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-composition-detail-manifest
-        namespace: {{ .Release.Namespace }}
-        resource: cards
-        verb: GET
-      - id: card-composition-detail-metadata
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-composition-detail-metadata
-        namespace: {{ .Release.Namespace }}
-        resource: cards
+        resource: rows
         verb: GET

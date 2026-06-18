@@ -1,0 +1,27 @@
+# Related resources — derived HERE (widget representation) from the raw object's
+# real ownerReferences. Empty for a standalone claim (honest); populated when the
+# composition actually owns/references resources. No RA-side shaping.
+kind: List
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: list-composition-detail-relations
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    itemLayout: horizontal
+    split: false
+    dataSource: []
+    itemTemplate:
+      icon: fa-diagram-project
+      primaryText: '{name}'
+      secondaryText: '{kind}'
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ [ (.detail.metadata.ownerReferences // [])[] | { name: .name, kind: .kind } ] }'
+  resourcesRefs:
+    items: []
