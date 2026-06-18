@@ -1,0 +1,37 @@
+# Resolves ONE composition's identity + GVK from the route (?extras .name/.namespace),
+# so the detail widget can declare an OBJECT-LEVEL live-refresh watch on exactly it.
+# Compositions are heterogeneous per-blueprint kinds, so discover generically: list the
+# composition.krateo.io CRDs, list each cluster-wide, and pick the item matching the
+# route name+namespace. Returns { detail: {apiVersion, kind, name, namespace} }.
+# Extras reach RA api steps on this snowplow (same mechanism the create-form's
+# blueprint-formdef uses).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: composition-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: crds
+      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0]}]"
+      continueOnError: true
+    - name: found
+      dependsOn:
+        name: crds
+        iterator: .crds
+      path: ${ "/apis/composition.krateo.io/" + .version + "/" + .plural }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      filter: "[.found.items[]? | {apiVersion, kind, name: .metadata.name, namespace: .metadata.namespace}]"
+  filter: >
+    .name as $n
+    | .namespace as $ns
+    | { detail: ([ .found[]? | select(.name == $n and .namespace == $ns) ][0] // {}) }
