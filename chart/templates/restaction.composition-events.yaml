@@ -52,7 +52,13 @@ spec:
       exportJwt: true
       continueOnError: true
   filter: >
-    {
-      list: (.getEvents.resources // .getEvents[0].resources // []),
-      compositionId: ([ .found[]? ][0].uid // "")
-    }
+    (.name) as $n
+    | (.namespace) as $ns
+    | ([ .found[]? ][0].uid // "") as $uid
+    | {
+        list: [
+          (.getEvents.resources // .getEvents[0].resources // [])[]
+          | select(.involvedObject.uid == $uid or (.involvedObject.name == $n and .involvedObject.namespace == $ns))
+        ],
+        compositionId: $uid
+      }
