@@ -9,7 +9,11 @@ spec:
   widgetData:
     title: Pending
     value: 0
+    # live-refresh: watch the composition kinds in the data (computed, not hardcoded)
+    watch: []
   widgetDataTemplate:
+  - forPath: watch
+    expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: value
     expression: '${ ([.list[]|select((.conditions//[])|(any(.type=="Ready" and (.status=="True" or .status=="False"))|not))]|length) }'
   apiRef:
