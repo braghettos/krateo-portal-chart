@@ -22,9 +22,15 @@ spec:
     - valueKey: age
       title: Created
     dataSource: []
+    # Live-refresh: watch the composition kinds this table lists. Computed from the
+    # data (the distinct apiVersion/kind in .list) — NOT a hardcoded kind list — so it
+    # refetches when any composition it shows changes, and generalizes to any blueprint.
+    watch: []
   widgetDataTemplate:
   - forPath: dataSource
     expression: '${ [ .list[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"jsonSchemaType",type:"string",stringValue:( (.conditions // []) | if any(.type=="Ready" and .status=="True") then "Healthy" elif any(.type=="Ready" and .status=="False") then "Failed" else "Pending" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts} ] ] }'
+  - forPath: watch
+    expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}
