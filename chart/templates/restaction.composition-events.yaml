@@ -1,17 +1,19 @@
-# Composition events via the events-presenter (krateo-sse-proxy): GET
-# /events?composition_id=<uuid> — the canonical krateo composition-events source
-# (events flow k8s -> OTel -> ClickHouse -> sse-proxy), NOT raw k8s core events.
+# Composition events via the events-presenter (krateo-sse-proxy): the canonical
+# krateo composition-events source (events flow k8s -> OTel -> ClickHouse ->
+# sse-proxy), NOT raw k8s core events.
 #
-# The reference blueprint bakes compositionId at Helm time (per-composition page).
-# This page is generic/runtime, so we resolve the uuid from the route: discover
-# the composition's GVK, match the route name/namespace (the resolve dict is
-# SEEDED with ?extras, so a step filter sees .name/.namespace), take its uid, then
-# GET /events by composition_id. exportJwt forwards the user's JWT to the presenter.
-#
-# Live updates are handled by the EventList's SSE subscription (sseEndpoint), not here.
-# DEPENDS ON the platform's `events-presenter-endpoint` Endpoint + the krateo-sse-proxy
-# (+ ClickHouse/OTel) stack; absent that, getEvents fails gracefully (continueOnError)
-# and the card is empty.
+# This page is generic/runtime (the reference blueprint bakes compositionId at
+# Helm time). We GET ALL recent events from the presenter, then scope to THIS
+# composition in the FINAL filter by involvedObject (name+namespace, also uid when
+# resolved) — matching where `?extras` (.name/.namespace) is reliably in scope
+# (the resolve dict is seeded with extras; a per-STEP filter is NOT a safe place
+# to read them, so the discovery + scoping both live in the final filter). The
+# composition's uid is discovered for `compositionId` (used by the EventList's
+# SSE sseEndpoint). exportJwt forwards the user's JWT to the presenter.
+# NOTE: sse-proxy v0.1.0 ignores ?composition_id (returns all); server-side
+# filtering arrives with the enhanced proxy — the client-side scope here is correct
+# regardless. DEPENDS ON the platform's `events-presenter-endpoint` Endpoint + the
+# krateo-sse-proxy stack; absent it, getEvents fails gracefully (continueOnError).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -37,15 +39,12 @@ spec:
       headers:
         - 'Accept: application/json'
       continueOnError: true
-      filter: '(.name) as $n | (.namespace) as $ns | [.found.items[]? | select(.metadata.name == $n and .metadata.namespace == $ns) | {uid: .metadata.uid}]'
+      filter: "[.found.items[]? | {name: .metadata.name, namespace: .metadata.namespace, uid: .metadata.uid}]"
     - name: getEvents
-      dependsOn:
-        name: found
-        iterator: .found
       endpointRef:
         name: events-presenter-endpoint
         namespace: {{ .Release.Namespace }}
-      path: ${ "/events?composition_id=" + .uid + "&limit=200" }
+      path: /events?limit=200
       verb: GET
       headers:
         - 'Accept: application/json'
@@ -54,12 +53,12 @@ spec:
   filter: >
     (.name) as $n
     | (.namespace) as $ns
-    | ([ .found[]? ][0].uid // "") as $uid
+    | ([ .found[]? | select(.name == $n and .namespace == $ns) ][0].uid // "") as $uid
     | ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end ) as $all
     | {
         list: [
           $all[]?
-          | select(.involvedObject.uid == $uid or (.involvedObject.name == $n and .involvedObject.namespace == $ns))
+          | select((.involvedObject.name == $n and .involvedObject.namespace == $ns) or (($uid != "") and (.involvedObject.uid == $uid)))
         ],
         compositionId: $uid
       }
