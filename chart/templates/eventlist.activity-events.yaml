@@ -1,7 +1,7 @@
-# Dashboard "Recent activity" — real, no hardcoded data. Fed from the `events`
-# RA (real core/v1 Events, Krateo-involved, last ~1h). The EventList renders each
-# k8s Event (reason/message/type/involvedObject/timestamp) directly; the RA
-# already shaped the items, so the widget just forwards them.
+# Dashboard "Recent activity" — real, no hardcoded data. Snapshot from the `events`
+# RA (events-presenter /events, all recent activity); LIVE updates via SSE on
+# /notifications (topic "krateo" = global feed) — the EventList subscribes itself.
+# The card shows the most recent few; the cap is widget representation.
 kind: EventList
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,8 +15,10 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     events: []
+    sseEndpoint: /notifications
+    sseTopic: krateo
   widgetDataTemplate:
     - forPath: events
-      expression: '${ .events }'
+      expression: '${ (.list // []) | .[0:8] }'
   resourcesRefs:
     items: []
