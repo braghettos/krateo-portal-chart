@@ -1,5 +1,7 @@
-# This composition's recent k8s Events (shaped server-side by the
-# composition-detail RA, .events — filtered to this object, honest ~1h window).
+# This composition's events. Snapshot from the composition-events RA (GET
+# /events?composition_id=<uuid> via the events-presenter); LIVE updates via SSE on
+# /notifications?composition_id=<uuid> (topic "krateo") — the EventList component
+# subscribes itself. compositionId is resolved at runtime by the RA.
 kind: EventList
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -9,12 +11,15 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   apiRef:
-    name: composition-detail
+    name: composition-events
     namespace: {{ .Release.Namespace }}
   widgetData:
     events: []
+    sseTopic: krateo
   widgetDataTemplate:
     - forPath: events
-      expression: '${ .events | sort_by(.lastTimestamp // .eventTime // "") | reverse | .[0:8] }'
+      expression: '${ .list }'
+    - forPath: sseEndpoint
+      expression: '${ "/notifications?composition_id=" + (.compositionId // "") }'
   resourcesRefs:
     items: []

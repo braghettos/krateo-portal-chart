@@ -2,11 +2,11 @@
 # consuming widget's widgetDataTemplate). Resolves ONE composition (from ?extras
 # .name/.namespace): compositions are heterogeneous per-blueprint kinds, so
 # discover generically (list composition.krateo.io CRDs, list each cluster-wide,
-# pick name+namespace), and pull its namespaced Events. Returns ONLY raw data:
+# pick name+namespace). Returns ONLY raw data:
 #   detail : the full composition object (managedFields stripped)
-#   events : that object's raw k8s Events
-# Every detail widget (header/status/subtitle/spec/health/events/manifest/
-# metadata/relations) shapes its own slice from this in its widgetDataTemplate.
+# Every detail widget (header/status/subtitle/spec/health/manifest/metadata/
+# relations) shapes its own slice from this in its widgetDataTemplate. Events are
+# a separate concern → restaction.composition-events (the events-presenter/SSE).
 # Extras reach RA api steps on this snowplow (same mechanism as blueprint-formdef).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
@@ -34,17 +34,9 @@ spec:
         - 'Accept: application/json'
       continueOnError: true
       filter: "[.found.items[]? | del(.metadata.managedFields, .metadata.annotations[\"kubectl.kubernetes.io/last-applied-configuration\"])]"
-    - name: objectEvents
-      path: ${ "/api/v1/namespaces/" + (.namespace // "krateo-system") + "/events" }
-      verb: GET
-      headers:
-        - 'Accept: application/json'
-      continueOnError: true
-      filter: "[.objectEvents.items[]?]"
   filter: >
     .name as $n
     | .namespace as $ns
     | {
-        detail: ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {}),
-        events: [ .objectEvents[]? | select(.involvedObject.name == $n) ]
+        detail: ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {})
       }

@@ -1,0 +1,58 @@
+# Composition events via the events-presenter (krateo-sse-proxy): GET
+# /events?composition_id=<uuid> — the canonical krateo composition-events source
+# (events flow k8s -> OTel -> ClickHouse -> sse-proxy), NOT raw k8s core events.
+#
+# The reference blueprint bakes compositionId at Helm time (per-composition page).
+# This page is generic/runtime, so we resolve the uuid from the route: discover
+# the composition's GVK, match the route name/namespace (the resolve dict is
+# SEEDED with ?extras, so a step filter sees .name/.namespace), take its uid, then
+# GET /events by composition_id. exportJwt forwards the user's JWT to the presenter.
+#
+# Live updates are handled by the EventList's SSE subscription (sseEndpoint), not here.
+# DEPENDS ON the platform's `events-presenter-endpoint` Endpoint + the krateo-sse-proxy
+# (+ ClickHouse/OTel) stack; absent that, getEvents fails gracefully (continueOnError)
+# and the card is empty.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: composition-events
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: crds
+      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0]}]"
+      continueOnError: true
+    - name: found
+      dependsOn:
+        name: crds
+        iterator: .crds
+      path: ${ "/apis/composition.krateo.io/" + .version + "/" + .plural }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      filter: '(.name) as $n | (.namespace) as $ns | [.found.items[]? | select(.metadata.name == $n and .metadata.namespace == $ns) | {uid: .metadata.uid}]'
+    - name: getEvents
+      dependsOn:
+        name: found
+        iterator: .found
+      endpointRef:
+        name: events-presenter-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: ${ "/events?composition_id=" + .uid + "&limit=200" }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      exportJwt: true
+      continueOnError: true
+  filter: >
+    {
+      list: (.getEvents.resources // .getEvents[0].resources // []),
+      compositionId: ([ .found[]? ][0].uid // "")
+    }
