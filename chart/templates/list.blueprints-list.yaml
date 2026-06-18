@@ -1,3 +1,9 @@
+# Dashboard "Recent blueprints" — real, no hardcoded data. Fed from the SAME
+# blueprints-cards RA the marketplace uses (self-registered blueprint Cards), so
+# the dashboard and the marketplace agree on the blueprint set + categories.
+# Honest-data: there is no backable per-blueprint "installs" metric, so the
+# mockup's install counts are dropped; we show the 5 most-recently-registered
+# blueprints with their real tags as the category line.
 kind: List
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -6,36 +12,19 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  apiRef:
+    name: blueprints-cards
+    namespace: {{ .Release.Namespace }}
   widgetData:
     itemLayout: horizontal
     split: false
-    dataSource:
-    - name: postgresql-ha
-      installs: 42
-      category: DB
-      icon: fa-database
-      color: blue
-    - name: gke-autopilot
-      installs: 31
-      category: Cluster
-      icon: fa-server
-      color: primary
-    - name: s3-bucket
-      installs: 27
-      category: Storage
-      icon: fa-box-archive
-      color: orange
-    - name: redis-cache
-      installs: 19
-      category: Cache
-      icon: fa-bolt
-      color: red
+    dataSource: []
     itemTemplate:
-      icon: '{icon}'
-      color:
-        value: '{color}'
+      icon: fa-cube
       primaryText: '{name}'
-      subPrimaryText: '{installs} installs'
       secondaryText: '{category}'
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ [ .cards[]? | { name: .metadata.name, category: (if ((.tags // []) | length) > 0 then (.tags | join(" · ")) else "blueprint" end) } ] | .[0:5] }'
   resourcesRefs:
     items: []

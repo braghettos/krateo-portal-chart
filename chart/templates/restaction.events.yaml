@@ -1,0 +1,56 @@
+# Recent-activity source — real Kubernetes core Events (no hardcoded data).
+# Generic-RA: ONE cluster-scoped LIST of core/v1 Events under snowplow's elevated
+# SA, then userAccessFilter prunes per request-user (kept iff the user may `list
+# events` in that event's own namespace). The widget's own template shapes it.
+#
+# Honest-data: core Events have a ~1h TTL, so this is genuinely "recent activity"
+# (last hour), NOT an all-time feed. We project to Krateo-involved events
+# (involvedObject in a *.krateo.io group) to keep the feed relevant, then the
+# 10 most-recent by lastTimestamp/eventTime.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: events
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: coreEvents
+      continueOnError: true
+      path: /api/v1/events
+      userAccessFilter:
+        verb: list
+        group: ""
+        resource: events
+        namespaceFrom: ".metadata.namespace"
+  filter: >
+    {
+      events: (
+        if (.coreEvents | type) == "object" then
+          [ .coreEvents.items[]?
+            | select(((.involvedObject.apiVersion // "") | test("krateo.io")))
+            | {
+                metadata: {
+                  name: .metadata.name,
+                  namespace: .metadata.namespace,
+                  uid: .metadata.uid,
+                  creationTimestamp: .metadata.creationTimestamp
+                },
+                involvedObject: .involvedObject,
+                reason: .reason,
+                message: .message,
+                type: .type,
+                lastTimestamp: .lastTimestamp,
+                eventTime: .eventTime,
+                source: .source
+              }
+          ]
+          | sort_by(.lastTimestamp // .eventTime // .metadata.creationTimestamp // "")
+          | reverse
+          | .[0:10]
+        else
+          []
+        end
+      )
+    }

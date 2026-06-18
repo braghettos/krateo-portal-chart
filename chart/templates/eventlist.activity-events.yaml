@@ -1,3 +1,7 @@
+# Dashboard "Recent activity" — real, no hardcoded data. Fed from the `events`
+# RA (real core/v1 Events, Krateo-involved, last ~1h). The EventList renders each
+# k8s Event (reason/message/type/involvedObject/timestamp) directly; the RA
+# already shaped the items, so the widget just forwards them.
 kind: EventList
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -6,79 +10,13 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  apiRef:
+    name: events
+    namespace: {{ .Release.Namespace }}
   widgetData:
-    events:
-    - metadata:
-        name: evt-postgres-prod-eu
-        namespace: eu-west-1
-        uid: evt-uid-1
-        creationTimestamp: '2026-06-16T09:58:00Z'
-      involvedObject:
-        kind: DatabaseClaim
-        name: postgres-prod-eu
-        namespace: eu-west-1
-        uid: io-uid-1
-        apiVersion: db.krateo.io/v1alpha1
-      reason: Reconciled
-      message: postgres-prod-eu reconciled successfully
-      type: Normal
-      lastTimestamp: '2026-06-16T09:58:00Z'
-      eventTime: '2026-06-16T09:58:00Z'
-      source:
-        component: composition-controller
-    - metadata:
-        name: evt-redis-cache-02
-        namespace: mock
-        uid: evt-uid-2
-        creationTimestamp: '2026-06-16T09:42:00Z'
-      involvedObject:
-        kind: Composition
-        name: redis-cache-02
-        namespace: mock
-        uid: io-uid-2
-        apiVersion: core.krateo.io/v1alpha1
-      reason: Created
-      message: New composition created — redis-cache-02
-      type: Normal
-      lastTimestamp: '2026-06-16T09:42:00Z'
-      eventTime: '2026-06-16T09:42:00Z'
-      source:
-        component: composition-controller
-    - metadata:
-        name: evt-kafka-events
-        namespace: mock
-        uid: evt-uid-3
-        creationTimestamp: '2026-06-16T09:19:00Z'
-      involvedObject:
-        kind: StreamClaim
-        name: kafka-events
-        namespace: mock
-        uid: io-uid-3
-        apiVersion: stream.krateo.io/v1alpha1
-      reason: SyncFailed
-      message: kafka-events failed to sync — provider timeout
-      type: Warning
-      lastTimestamp: '2026-06-16T08:59:00Z'
-      eventTime: '2026-06-16T08:59:00Z'
-      source:
-        component: provider-kafka
-    - metadata:
-        name: evt-gke-autopilot-publish
-        namespace: mock
-        uid: evt-uid-4
-        creationTimestamp: '2026-06-16T08:40:00Z'
-      involvedObject:
-        kind: Blueprint
-        name: gke-autopilot
-        namespace: mock
-        uid: io-uid-4
-        apiVersion: core.krateo.io/v1alpha1
-      reason: Published
-      message: Blueprint published — gke-autopilot v2.1.0
-      type: Normal
-      lastTimestamp: '2026-06-16T08:40:00Z'
-      eventTime: '2026-06-16T08:40:00Z'
-      source:
-        component: blueprint-controller
+    events: []
+  widgetDataTemplate:
+    - forPath: events
+      expression: '${ .events }'
   resourcesRefs:
     items: []
