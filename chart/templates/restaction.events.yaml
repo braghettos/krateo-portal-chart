@@ -25,5 +25,5 @@ spec:
       continueOnError: true
   filter: >
     {
-      list: (.getEvents.resources // [])
+      list: ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end )
     }

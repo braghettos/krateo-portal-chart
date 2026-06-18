@@ -55,9 +55,10 @@ spec:
     (.name) as $n
     | (.namespace) as $ns
     | ([ .found[]? ][0].uid // "") as $uid
+    | ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end ) as $all
     | {
         list: [
-          (.getEvents.resources // .getEvents[0].resources // [])[]
+          $all[]?
           | select(.involvedObject.uid == $uid or (.involvedObject.name == $n and .involvedObject.namespace == $ns))
         ],
         compositionId: $uid
