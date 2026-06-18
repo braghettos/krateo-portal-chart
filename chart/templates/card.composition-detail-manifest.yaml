@@ -1,0 +1,21 @@
+# "Manifest" card → the composition's desired-state YAML, via YamlViewer.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-composition-detail-manifest
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Manifest
+    items:
+      - resourceRefId: yamlviewer-composition-detail-manifest
+  resourcesRefs:
+    items:
+      - id: yamlviewer-composition-detail-manifest
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: yamlviewer-composition-detail-manifest
+        namespace: {{ .Release.Namespace }}
+        resource: yamlviewers
+        verb: GET

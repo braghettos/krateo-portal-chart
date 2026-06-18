@@ -1,0 +1,21 @@
+# "Health" card → a Progress derived from the composition's status.conditions.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-composition-detail-health
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Health
+    items:
+      - resourceRefId: progress-composition-detail-health
+  resourcesRefs:
+    items:
+      - id: progress-composition-detail-health
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: progress-composition-detail-health
+        namespace: {{ .Release.Namespace }}
+        resource: progresses
+        verb: GET

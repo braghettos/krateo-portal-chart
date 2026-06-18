@@ -1,0 +1,23 @@
+# Health = % of the composition's status.conditions that are True (computed
+# server-side by the composition-detail RA, .healthPercent). 0% when no
+# conditions are reported yet (honest — not "unhealthy", just not reconciled).
+kind: Progress
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: progress-composition-detail-health
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    type: circle
+    showInfo: true
+    percent: 0
+  widgetDataTemplate:
+    - forPath: percent
+      expression: '${ .healthPercent }'
+  resourcesRefs:
+    items: []

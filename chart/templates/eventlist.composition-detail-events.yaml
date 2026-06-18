@@ -1,0 +1,20 @@
+# This composition's recent k8s Events (shaped server-side by the
+# composition-detail RA, .events — filtered to this object, honest ~1h window).
+kind: EventList
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: eventlist-composition-detail-events
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    events: []
+  widgetDataTemplate:
+    - forPath: events
+      expression: '${ .events }'
+  resourcesRefs:
+    items: []

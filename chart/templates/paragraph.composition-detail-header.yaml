@@ -1,0 +1,22 @@
+# Detail page header — the composition name as an H2 (Paragraph `level`, the new
+# Part-A field). Text is the composition's real name, resolved server-side by the
+# composition-detail RA from the route's ?extras.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-header
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: Composition
+    level: 2
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .title }'
+  resourcesRefs:
+    items: []

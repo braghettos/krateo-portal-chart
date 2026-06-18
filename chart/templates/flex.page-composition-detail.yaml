@@ -1,8 +1,8 @@
-# Convention page root for the templated route /compositions/{namespace}/{name}
-# (nav item `page: composition-detail` → resource `flexes`, name `page-<slug>`).
-# Minimal proof page for the routing redesign (widget-taxonomy-and-layout.md §H):
-# it renders one Paragraph that echoes the route params, which arrive via ?extras
-# (useWidgetQuery folds useParams() in). Grows into the real Detail page (P0.2).
+# Convention page root for /compositions/{namespace}/{name} (nav item
+# `page: composition-detail` → resource `flexes`, name `page-<slug>`). The real
+# Detail page: a header + stacked Cards, each fed by the composition-detail RA
+# (which shapes every field server-side). v1 is single-column (vertical) — a
+# 2-column layout + a Relations card + object-level live-refresh are follow-ups.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -12,16 +12,53 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
+    vertical: true
+    gap: large
     allowedResources:
       - paragraphs
-    vertical: true
+      - cards
     items:
-      - resourceRefId: composition-detail-text
+      - resourceRefId: composition-detail-header
+      - resourceRefId: card-composition-detail-spec
+      - resourceRefId: card-composition-detail-health
+      - resourceRefId: card-composition-detail-events
+      - resourceRefId: card-composition-detail-manifest
+      - resourceRefId: card-composition-detail-metadata
   resourcesRefs:
     items:
-      - id: composition-detail-text
+      - id: composition-detail-header
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: composition-detail-text
+        name: composition-detail-header
         namespace: {{ .Release.Namespace }}
         resource: paragraphs
+        verb: GET
+      - id: card-composition-detail-spec
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-spec
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-composition-detail-health
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-health
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-composition-detail-events
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-events
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-composition-detail-manifest
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-manifest
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-composition-detail-metadata
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-metadata
+        namespace: {{ .Release.Namespace }}
+        resource: cards
         verb: GET
