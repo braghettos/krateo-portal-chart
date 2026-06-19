@@ -10,7 +10,12 @@ spec:
     label: New composition
     type: primary
     icon: fa-plus
-    actions: {}
-    clickActionId: ''
+    # Navigate to the Marketplace (the blueprint picker) → Install → Create flow.
+    clickActionId: new-composition-nav
+    actions:
+      navigate:
+        - id: new-composition-nav
+          path: /marketplace
+          type: navigate
   resourcesRefs:
     items: []

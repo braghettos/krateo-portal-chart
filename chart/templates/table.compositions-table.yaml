@@ -10,6 +10,8 @@ spec:
     allowedResources: []
     bordered: false
     size: middle
+    # Row click → the composition detail page ({ns}/{name} from the row's cells).
+    rowNavigateTo: /compositions/{ns}/{name}
     columns:
     - valueKey: name
       title: Name
