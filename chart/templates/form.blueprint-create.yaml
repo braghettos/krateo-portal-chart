@@ -53,6 +53,8 @@ spec:
   widgetDataTemplate:
     - forPath: schema
       expression: '${ .schemaSpec }'
+    - forPath: propertiesToHide
+      expression: '${ .propertiesToHide }'
   resourcesRefs:
     items: []
   resourcesRefsTemplate:

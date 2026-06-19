@@ -59,6 +59,9 @@ spec:
     (.compdef.status.apiVersion | split("/")[1]) as $ver
     | .namespaces as $namespaces
     | (.crd.spec.versions[]? | select(.name == $ver) | .schema.openAPIV3Schema.properties.spec) as $spec
+    # Fields the blueprint marks hidden (title contains "(should be hidden)") are
+    # omitted from the generated form — propertiesToHide derived from the schema, not hardcoded.
+    | ([ ($spec.properties // {}) | to_entries[] | select((.value.title // "") | test("should be hidden"; "i")) | .key ]) as $hidden
     | {
         schemaSpec: ($spec
           | .properties = ({
@@ -66,6 +69,7 @@ spec:
               namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces }
             } + (.properties // {}))
           | .required = (["name", "namespace"] + (.required // []))),
+        propertiesToHide: $hidden,
         apiVersion: .compdef.status.apiVersion,
         kind: .compdef.status.kind,
         resource: .compdef.status.resource
