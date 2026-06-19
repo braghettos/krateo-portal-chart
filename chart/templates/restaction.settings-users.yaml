@@ -1,0 +1,52 @@
+# Settings → Users tab — STRATEGY-AGNOSTIC platform users. Not the basic-only
+# users CRD (that misses oidc/ldap/oauth identities): instead we list the
+# per-user `<username>-clientconfig` Secret that authn writes after EVERY login
+# regardless of strategy (internal/helpers/kube/config/storage/storage.go) — the
+# same artifact snowplow's UserConfig middleware reads. So this is "everyone who
+# has authenticated", by any strategy.
+#
+# SECURITY: those Secrets hold the user's client cert + private key. The step
+# filter keeps ONLY name + creationTimestamp — .data NEVER leaves snowplow.
+#
+# The cert lifetime is authn's AUTHN_KUBECONFIG_CRT_EXPIRES_IN (flag cert-expires,
+# default 24h) → we read it from authn's own Deployment env (no hardcoding; falls
+# back to authn's compiled 24h default when unset). The Table computes the expiry
+# as creationTimestamp + this duration in its widgetDataTemplate.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: settings-users
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: clientconfigs
+      path: /api/v1/namespaces/{{ .Release.Namespace }}/secrets
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      userAccessFilter:
+        verb: list
+        group: ""
+        resource: secrets
+        namespaceFrom: .metadata.namespace
+      filter: >
+        [ .clientconfigs.items[]?
+          | select((.metadata.name // "") | endswith("-clientconfig"))
+          | { name: .metadata.name, creationTimestamp: .metadata.creationTimestamp } ]
+    - name: authnDeployments
+      path: /apis/apps/v1/namespaces/{{ .Release.Namespace }}/deployments
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      filter: >
+        ( [ .authnDeployments.items[]?.spec.template.spec.containers[]?.env[]?
+            | select(.name == "AUTHN_KUBECONFIG_CRT_EXPIRES_IN") | .value ][0] ) // "24h"
+  filter: >
+    {
+      list: (.clientconfigs // []),
+      certDuration: (.authnDeployments // "24h")
+    }

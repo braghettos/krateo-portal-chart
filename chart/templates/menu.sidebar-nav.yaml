@@ -22,9 +22,7 @@ spec:
     items:
       - { label: Dashboard,    icon: fa-gauge,       order: 1, path: /dashboard,    resourceRefId: dashboard }
       - { label: Compositions, icon: fa-cubes,       order: 2, path: /compositions, resourceRefId: compositions }
-      # NOTE: resources/blueprints/settings resolve via the page-<slug> convention to
-      # flexes/page-resources|page-blueprints|page-settings (not yet authored — clicking 404s).
-      - { label: Resources,    icon: fa-database,    order: 3, path: /resources,    resourceRefId: resources }
+      # Blueprints → blueprints-table (the flat catalog of CompositionDefinitions).
       - { label: Blueprints,   icon: fa-layer-group, order: 4, path: /blueprints,   resourceRefId: blueprints }
       - { label: Marketplace,  icon: fa-store,       order: 5, path: /marketplace,  resourceRefId: marketplace }
       - { label: Settings,     icon: fa-gear,        order: 6, path: /settings,     resourceRefId: settings }
@@ -49,6 +47,12 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: tables
         verb: GET
+      - id: blueprints
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprints-table
+        namespace: {{ .Release.Namespace }}
+        resource: tables
+        verb: GET
       - id: marketplace
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-flex
@@ -60,4 +64,10 @@ spec:
         name: search-results
         namespace: {{ .Release.Namespace }}
         resource: lists
+        verb: GET
+      - id: settings
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: settings-admin
+        namespace: {{ .Release.Namespace }}
+        resource: tabs
         verb: GET

@@ -1,0 +1,40 @@
+# Blueprints page — the catalog of installable blueprint definitions
+# (core.krateo.io CompositionDefinitions). Distinct from Marketplace (which is the
+# install-oriented Card grid): this is the flat, technical table view of every
+# blueprint the user may list. Thin/generic RA (blueprints-list returns the full
+# objects); ALL presentation shaping lives here in widgetDataTemplate.
+# Honest columns only — CompositionDefinitions carry no Ready condition on this
+# platform, so there is no fabricated status column; we surface the real fields:
+# what the blueprint provisions (status.kind), its chart + version, and namespace.
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprints-table
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: middle
+    columns:
+    - valueKey: name
+      title: Name
+    - valueKey: provisions
+      title: Provisions
+    - valueKey: chart
+      title: Chart
+    - valueKey: version
+      title: Version
+    - valueKey: ns
+      title: Namespace
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ .list[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.metadata.name}, {valueKey:"provisions",kind:"jsonSchemaType",type:"string",stringValue:(.status.kind // "—")}, {valueKey:"chart",kind:"jsonSchemaType",type:"string",stringValue:( (.spec.chart.url // "") | split("/") | last )}, {valueKey:"version",kind:"jsonSchemaType",type:"string",stringValue:(.spec.chart.version // "—")}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.metadata.namespace} ] ] }'
+  apiRef:
+    name: blueprints-list
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []
