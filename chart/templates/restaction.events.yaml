@@ -25,5 +25,12 @@ spec:
       continueOnError: true
   filter: >
     {
-      list: ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end )
+      list: (
+        ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end )
+        | group_by((.involvedObject.uid // "") + "|" + (.reason // "") + "|" + (.message // ""))
+        | map(max_by(.lastTimestamp // .eventTime // .firstTimestamp // ""))
+        | sort_by(.lastTimestamp // .eventTime // .firstTimestamp // "")
+        | reverse
+        | .[0:50]
+      )
     }
