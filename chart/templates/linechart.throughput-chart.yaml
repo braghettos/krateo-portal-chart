@@ -23,7 +23,7 @@ spec:
   - forPath: data
     expression: '${ . as $r | [ range(0;14) | (now - (.*86400)) as $t | ($t|gmtime|strftime("%Y-%m-%d")) as $day | { t: ($t|gmtime|strftime("%b %d")), series: "Created", v: ([ $r.list[]? | select(((.ts//"")[0:10]) == $day) ] | length) } ] | reverse }'
   apiRef:
-    name: compositions-list
+    name: dashboard-data
     namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

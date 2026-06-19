@@ -17,7 +17,7 @@ spec:
   - forPath: value
     expression: ${ [.list[] | select((.conditions // []) | any(.type=="Ready" and .status=="False"))] | length }
   apiRef:
-    name: compositions-list
+    name: dashboard-data
     namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

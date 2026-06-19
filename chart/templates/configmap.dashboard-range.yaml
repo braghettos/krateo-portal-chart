@@ -1,0 +1,14 @@
+# Persisted dashboard time-range selection (Tier C #10). The range-selector writes
+# data.range here (a rest PATCH); dashboard-data reads it to scope the dashboard
+# widgets. A ConfigMap is the state carrier — real, RBAC-scoped, read/written through
+# the existing rest-action engine. Default "all"; helm upgrade resets to this default
+# (the runtime selection persists between upgrades).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-range
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/portal": "dashboard-range"
+data:
+  range: "all"

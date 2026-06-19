@@ -13,13 +13,34 @@ spec:
     align: center
     gap: small
     items:
-    - resourceRefId: range-selector
+    - resourceRefId: range-btn-24h
+    - resourceRefId: range-btn-7d
+    - resourceRefId: range-btn-30d
+    - resourceRefId: range-btn-all
     - resourceRefId: new-composition
   resourcesRefs:
     items:
-    - id: range-selector
+    - id: range-btn-24h
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: range-selector
+      name: range-btn-24h
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    - id: range-btn-7d
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: range-btn-7d
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    - id: range-btn-30d
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: range-btn-30d
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    - id: range-btn-all
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: range-btn-all
       namespace: {{ .Release.Namespace }}
       resource: buttons
       verb: GET

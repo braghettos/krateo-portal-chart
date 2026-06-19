@@ -1,0 +1,43 @@
+# Dashboard time-range options (Tier C #10). Each button rest-PATCHes the shared
+# dashboard-range ConfigMap's data.range; the engine's post-rest invalidate refetches
+# the dashboard widgets (apiRef -> dashboard-data), which re-read the ConfigMap and
+# re-scope by creationTimestamp. No client state — the ConfigMap IS the state.
+{{- $opts := list (dict "k" "24h" "l" "24h") (dict "k" "7d" "l" "7d") (dict "k" "30d" "l" "30d") (dict "k" "all" "l" "All") }}
+{{- range $opts }}
+---
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Button
+metadata:
+  name: range-btn-{{ .k }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: {{ .l | quote }}
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: set-range
+    actions:
+      rest:
+        - id: set-range
+          type: rest
+          resourceRefId: range-cm
+          headers:
+            - 'Content-Type: application/merge-patch+json'
+          successMessage: {{ printf "Showing: %s" .l | quote }}
+          payload:
+            data:
+              range: {{ .k | quote }}
+          loading:
+            display: true
+  resourcesRefs:
+    items:
+      - id: range-cm
+        apiVersion: v1
+        name: dashboard-range
+        namespace: {{ $.Release.Namespace }}
+        resource: configmaps
+        verb: PATCH
+{{- end }}
