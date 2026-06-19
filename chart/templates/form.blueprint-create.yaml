@@ -34,6 +34,8 @@ spec:
         label: Review & create
       secondary:
         label: Cancel
+        # Cancel → back to the Marketplace (navigate, not a form reset).
+        navigateTo: /marketplace
     actions:
       rest:
         - id: submit

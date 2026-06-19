@@ -20,8 +20,10 @@ spec:
       column: 3
     dataSource: []
   widgetDataTemplate:
+    # Each card renders as a child widget (resourceRefId) AND carries navigateTo —
+    # clicking the blueprint card opens its create flow (Install → Create).
     - forPath: dataSource
-      expression: '${ [ .cards[] | { resourceRefId: .metadata.name } ] }'
+      expression: '${ [ .cards[] | { resourceRefId: .metadata.name, navigateTo: ("/marketplace/" + .metadata.namespace + "/" + .metadata.name + "/new") } ] }'
   resourcesRefs:
     items: []
   resourcesRefsTemplate:
