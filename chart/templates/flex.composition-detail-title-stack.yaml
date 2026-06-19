@@ -1,0 +1,34 @@
+# Left side of the detail pagehead: the title line (name + status Tag) stacked
+# over the subtitle. Extracted from the old header-block so the header can become
+# a space-between row (title-stack | actions), matching the enterprise-detail mockup.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-title-stack
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: small
+    allowedResources:
+      - flexes
+      - paragraphs
+    items:
+      - resourceRefId: composition-detail-title-line
+      - resourceRefId: composition-detail-subtitle
+  resourcesRefs:
+    items:
+      - id: composition-detail-title-line
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-title-line
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: composition-detail-subtitle
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-subtitle
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET

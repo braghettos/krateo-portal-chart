@@ -1,4 +1,5 @@
-# Page header block: the title line (name + status Tag) stacked over the subtitle.
+# Page header block — a space-between row matching enterprise-detail.html:
+#   [ title-stack (name + status + subtitle) ]      [ actions (Sync · Pause · Edit · Delete) ]
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -8,25 +9,26 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    vertical: true
-    gap: small
+    vertical: false
+    justify: space-between
+    align: flex-start
+    gap: middle
     allowedResources:
       - flexes
-      - paragraphs
     items:
-      - resourceRefId: composition-detail-title-line
-      - resourceRefId: composition-detail-subtitle
+      - resourceRefId: composition-detail-title-stack
+      - resourceRefId: composition-detail-actions
   resourcesRefs:
     items:
-      - id: composition-detail-title-line
+      - id: composition-detail-title-stack
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: composition-detail-title-line
+        name: composition-detail-title-stack
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
-      - id: composition-detail-subtitle
+      - id: composition-detail-actions
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: composition-detail-subtitle
+        name: composition-detail-actions
         namespace: {{ .Release.Namespace }}
-        resource: paragraphs
+        resource: flexes
         verb: GET

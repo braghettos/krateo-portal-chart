@@ -22,7 +22,7 @@ spec:
       verb: GET
       headers:
         - 'Accept: application/json'
-      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0]}]"
+      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0], kind: .status.acceptedNames.kind, group: .spec.group}]"
       continueOnError: true
     - name: found
       dependsOn:
@@ -37,6 +37,14 @@ spec:
   filter: >
     .name as $n
     | .namespace as $ns
+    | ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {}) as $d
+    | ($d.apiVersion // "") as $av
     | {
-        detail: ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {})
+        detail: $d,
+        gvr: {
+          apiVersion: $av,
+          resource: ([ .crds[]? | select(.group == ($av | split("/")[0]) and .kind == $d.kind) ][0].plural // ""),
+          name: ($d.metadata.name // $n),
+          namespace: ($d.metadata.namespace // $ns)
+        }
       }
