@@ -17,10 +17,12 @@ spec:
     allowedResources:
       - flexes
       - forms
+      - steps
     vertical: true
     gap: large
     items:
       - resourceRefId: create-header
+      - resourceRefId: create-wizard
       - resourceRefId: blueprint-form
   resourcesRefs:
     items:
@@ -29,6 +31,12 @@ spec:
         name: create-header
         namespace: {{ .Release.Namespace }}
         resource: flexes
+        verb: GET
+      - id: create-wizard
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: create-wizard
+        namespace: {{ .Release.Namespace }}
+        resource: steps
         verb: GET
       - id: blueprint-form
         apiVersion: widgets.templates.krateo.io/v1beta1

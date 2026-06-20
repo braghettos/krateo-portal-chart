@@ -1,0 +1,23 @@
+# Wayfinding indicator for the blueprint create flow, matching the enterprise
+# mockup's 3-step header (Blueprint ✓ / Configure / Review). The flow is a single
+# form, so this is a static guide, not a multi-step form: the blueprint is already
+# chosen (reached via /marketplace/{ns}/{name}/new), so `current: 1` marks Blueprint
+# done (antd auto-styles prior steps as finished), Configure active, Review waiting.
+kind: Steps
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: create-wizard
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    current: 1
+    size: small
+    items:
+      - title: Blueprint
+        description: Selected
+      - title: Configure
+        description: Set parameters
+      - title: Review
+        description: Review & deploy
