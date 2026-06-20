@@ -1,5 +1,6 @@
-# Page header (H1 + subtitle) for /compositions — greeting pattern (vertical Flex
-# wrapping a strong title + a secondary subtitle Paragraph).
+# Compositions head row — title+subtitle stack on the left, the primary
+# "New composition" CTA on the right (mockup layout). justify space-between pushes
+# the button to the far edge.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -10,22 +11,24 @@ metadata:
 spec:
   widgetData:
     allowedResources:
-    - paragraphs
-    vertical: true
+    - flexes
+    - buttons
+    justify: space-between
+    align: center
     items:
-    - resourceRefId: compositions-title
-    - resourceRefId: compositions-subtitle
+    - resourceRefId: compositions-title-stack
+    - resourceRefId: new-composition
   resourcesRefs:
     items:
-    - id: compositions-title
+    - id: compositions-title-stack
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: compositions-title
+      name: compositions-title-stack
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
+      resource: flexes
       verb: GET
-    - id: compositions-subtitle
+    - id: new-composition
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: compositions-subtitle
+      name: new-composition
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
+      resource: buttons
       verb: GET
