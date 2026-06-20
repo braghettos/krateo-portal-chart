@@ -74,9 +74,13 @@ function loadChart() {
       buttons.push({ label, inert, file: f })
     }
     if (kind === 'Form') {
-      const label = (text.match(/(?:submitLabel|label):\s*(.+)/) || [])[1]?.trim() || 'submit'
       const inert = /actions:\s*\{\s*\}/.test(text) || !/actions:/.test(text)
-      buttons.push({ label, inert, file: f, form: true })
+      // A Form contributes ALL its labels as affordances — Cancel / Save draft live
+      // in buttonConfig.{secondary,draft}.label (wired via navigateTo / draftActionId),
+      // not as standalone Button CRs, so scanning only the first label misses them.
+      const labels = [...text.matchAll(/(?:submitLabel|label):\s*(.+)/g)].map((m) => m[1].trim())
+      if (labels.length === 0) { labels.push('submit') }
+      for (const label of labels) { buttons.push({ label, inert, file: f, form: true }) }
     }
 
     // nav routes from the Menu
@@ -112,6 +116,18 @@ const IGNORE_AFF = ['', 'k', 'menu', 'close', 'krateo']
 // sidebar nav links appear on every mockup page — wired via nav routes, not buttons
 const NAV_LABELS = new Set(chart.navRoutes.map((r) => norm(r.label)))
 const REMOVED_NAV = ['resources'] // in the mockup sidebar; intentionally dropped from the portal
+// Affordances wired in a way the label-match heuristic can't see — a renamed control
+// or item-level navigation. Documented so they don't false-flag; each maps the mockup
+// label → the chart wiring that satisfies it. (Verified wired, not suppressed.)
+const COVERED_BY = {
+  dashboard: { 'last 24 hours': 'range filter — buttons.range-options.yaml 24h/7d/30d/All (#10)' },
+  marketplace: { 'install': 'blueprint card → create — marketplace-grid dataSource navigateTo (Install→Create)' },
+}
+// Affordances intentionally NOT built, with the reason. Reported as deferrals, not gaps.
+const DEFERRED = {
+  compositions: { 'export': 'an action can only GET one named resource, never a list — #9 (skipped)' },
+  detail: { 'open console': 'needs an antd-purity exception for a terminal widget — #8 (pending)' },
+}
 
 let gaps = 0
 const out = []
@@ -135,10 +151,14 @@ for (const P of PAGES) {
 
   // 2. journey affordances
   const journeyAff = m.affordances.filter((a) => !IGNORE_AFF.includes(a))
-  const missing = [], inert = [], frontend = [], removed = []
+  const pageCovered = COVERED_BY[P.page] || {}
+  const pageDeferred = DEFERRED[P.page] || {}
+  const missing = [], inert = [], frontend = [], removed = [], covered = [], deferred = []
   for (const a of journeyAff) {
     if (NAV_LABELS.has(a)) { continue }                 // sidebar nav link — wired via routes
     if (REMOVED_NAV.includes(a)) { removed.push(a); continue }
+    if (pageDeferred[a]) { deferred.push(`${a} (${pageDeferred[a]})`); continue }
+    if (pageCovered[a]) { covered.push(`${a} → ${pageCovered[a]}`); continue }
     if (FRONTEND_AFF.some((fa) => a.includes(fa) || fa.includes(a))) { frontend.push(a); continue }
     const hit = buttonLabels.find((b) => b.n && (b.n.includes(a) || a.includes(b.n)))
     if (!hit) { missing.push(a) }
@@ -146,9 +166,11 @@ for (const P of PAGES) {
   }
   if (missing.length) { out.push(`  JOURNEY ✗ no wired control for: ${missing.join(' · ')}`); gaps += missing.length }
   if (inert.length) { out.push(`  JOURNEY ⚠ INERT (actions empty): ${inert.join(' · ')}`); gaps += inert.length }
+  if (covered.length) { out.push(`  JOURNEY · wired (non-label control): ${covered.join(' · ')}`) }
+  if (deferred.length) { out.push(`  JOURNEY · intentionally deferred: ${deferred.join(' · ')}`) }
   if (removed.length) { out.push(`  JOURNEY · mockup nav intentionally removed: ${removed.join(' · ')}`) }
   if (frontend.length) { out.push(`  JOURNEY · frontend-owned: ${frontend.join(' · ')}`) }
-  if (!missing.length && !inert.length) { out.push(`  JOURNEY ✓ all mockup affordances wired (or nav/frontend-owned)`) }
+  if (!missing.length && !inert.length) { out.push(`  JOURNEY ✓ all mockup affordances wired (or nav/frontend/deferred)`) }
 
   out.push('')
 }
