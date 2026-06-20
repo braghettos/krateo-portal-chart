@@ -28,6 +28,11 @@ spec:
   widgetData:
     layout: vertical
     submitActionId: submit
+    # Save draft (Tier C #11): persists the CURRENT field values un-validated, so an
+    # incomplete form survives. The Form reads them with getFieldsValue(true) — which
+    # includes __owner (the per-user draft key seeded into initialValues but never
+    # rendered/validated), so the real submit (onFinish, registered fields only) stays clean.
+    draftActionId: save-draft
     schema: {}
     buttonConfig:
       primary:
@@ -36,6 +41,8 @@ spec:
         label: Cancel
         # Cancel → back to the Marketplace (navigate, not a form reset).
         navigateTo: /marketplace
+      draft:
+        label: Save draft
     actions:
       rest:
         - id: submit
@@ -46,17 +53,46 @@ spec:
           onSuccessNavigateTo: /compositions
           successMessage: Composition created
           # All from {json} (the form values) — the only context payloadToOverride jq sees.
+          # __owner is absent here (onFinish yields only registered fields), so it can't leak.
           payloadToOverride:
             - { name: metadata.name,      value: '${ .json.name }' }
             - { name: metadata.namespace, value: '${ .json.namespace }' }
             - { name: spec,               value: '${ .json | del(.name) | del(.namespace) }' }
+        # Merge-patch the shared blueprint-drafts CM at the user's key. metadata.* targets
+        # the CM (the engine builds ?name=&namespace= from payload.metadata); data.<__owner>
+        # = the in-progress form as a JSON string. merge-patch ⇒ other users'/blueprints'
+        # keys are untouched. The CM pre-exists (Helm), so no create-on-first-save is needed.
+        - id: save-draft
+          type: rest
+          resourceRefId: draft-cm
+          headers:
+            - 'Content-Type: application/merge-patch+json'
+          successMessage: Draft saved
+          payload:
+            metadata:
+              name: blueprint-drafts
+              namespace: {{ .Release.Namespace }}
+          payloadToOverride:
+            - { name: data, value: '${ { (.json.__owner): (.json | del(.__owner) | tojson) } }' }
   widgetDataTemplate:
     - forPath: schema
       expression: '${ .schemaSpec }'
     - forPath: propertiesToHide
       expression: '${ .propertiesToHide }'
+    # Resume: a saved draft (+ the __owner key) pre-fills the form. Form merges these
+    # over schema defaults; __owner has no schema field so it stays unrendered.
+    - forPath: initialValues
+      expression: '${ .initialValues }'
   resourcesRefs:
-    items: []
+    items:
+      # Static (name known at Helm time): the shared drafts CM. snowplow resolves `allowed`
+      # via the user's RBAC; verb PATCH = merge-patch the user's key.
+      - id: draft-cm
+        apiVersion: v1
+        name: blueprint-drafts
+        namespace: {{ .Release.Namespace }}
+        resource: configmaps
+        verb: PATCH
   resourcesRefsTemplate:
     - template:
         id: create-composition

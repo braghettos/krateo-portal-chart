@@ -51,6 +51,18 @@ spec:
         resourcesFrom: "[.compdef.status.resource]"
         namespaceFrom: .metadata.name
       filter: "[.namespaces.items[] | .metadata.name]"
+    # The shared blueprint-drafts ConfigMap (Tier C #11): a previously-saved draft for
+    # THIS user + THIS blueprint pre-fills the form (resume). continueOnError so an
+    # absent CM / no-RBAC simply yields no draft — the form still renders.
+    - name: drafts
+      path: /api/v1/namespaces/{{ .Release.Namespace }}/configmaps/blueprint-drafts
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      dependsOn:
+        name: namespaces
+      continueOnError: true
+      errorKey: draftsError
   # The returned schemaSpec is the CRD's spec schema with two synthetic fields PREPENDED:
   # `name` + `namespace` — the instance identity the user enters. The Form routes them to
   # metadata.* via payloadToOverride and excludes them from spec (del). This is the create
@@ -62,6 +74,20 @@ spec:
     # Fields the blueprint marks hidden (title contains "(should be hidden)") are
     # omitted from the generated form — propertiesToHide derived from the schema, not hardcoded.
     | ([ ($spec.properties // {}) | to_entries[] | select((.value.title // "") | test("should be hidden"; "i")) | .key ]) as $hidden
+    # Draft resume (Tier C #11): the key is per-user (extras.username) + per-blueprint
+    # (extras.namespace/.name), sanitized to the ConfigMap-key charset [-._a-zA-Z0-9].
+    # __owner is the key itself — it rides in the form store (initialValues) so the
+    # save-draft action knows where to write, WITHOUT recomputing identity client-side
+    # (identity is never trusted from the client). A saved draft (JSON string under that
+    # key) overlays the schema defaults; absent → just __owner, a clean form.
+    | (((.username // "anon") | gsub("[^a-zA-Z0-9_.-]"; "-"))
+        + "__" + ((.namespace // "") | gsub("[^a-zA-Z0-9_.-]"; "-"))
+        + "__" + ((.name // "") | gsub("[^a-zA-Z0-9_.-]"; "-"))) as $draftKey
+    # fromjson yields numbers as json.Number, which snowplow's jq encoder can't
+    # serialize (it panics); `+ 0` via walk coerces every number to a native float
+    # so the encoder is happy. Non-objects (corrupt draft) fall back to {}.
+    | (try (((.drafts.data[$draftKey]) // "") | fromjson) catch {}) as $draftParsed
+    | (if ($draftParsed | type) == "object" then ($draftParsed | walk(if type == "number" then . + 0 else . end)) else {} end) as $draft
     | {
         schemaSpec: ($spec
           | .properties = ({
@@ -70,6 +96,7 @@ spec:
             } + (.properties // {}))
           | .required = (["name", "namespace"] + (.required // []))),
         propertiesToHide: $hidden,
+        initialValues: ($draft + { __owner: $draftKey }),
         apiVersion: .compdef.status.apiVersion,
         kind: .compdef.status.kind,
         resource: .compdef.status.resource
