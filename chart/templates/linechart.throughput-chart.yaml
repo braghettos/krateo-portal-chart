@@ -14,6 +14,26 @@ spec:
     area: true
     legend: true
     height: 220
+    # Sparse-count legibility: a count metric maxing at 1 otherwise auto-nices to a
+    # fractional 0..1 y-axis, leaving the plot mostly empty up top. Pin y to
+    # zero-anchored integers with a small honest top floor, mark each bucket, and
+    # thin the ticks. domainMax is a FLOOR (data wins via @antv/scale Math.max), so
+    # dense ranges (7d/30d) are never clipped.
+    point: true
+    scale:
+      # NB: quote the "y" key — bare `y:` is parsed as the YAML 1.1 boolean `true`,
+      # which would put the scale config on the wrong channel and silently no-op.
+      "y":
+        zero: true
+        nice: true
+        domainMin: 0
+        domainMax: 3
+        tickCount: 4
+    axis:
+      x:
+        tickCount: 6
+      "y":
+        tickCount: 4
     data: []
     # live-refresh: watch the composition kinds in the data (computed, not hardcoded)
     watch: []
@@ -21,7 +41,7 @@ spec:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: data
-    expression: '${ . as $r | [ range(0;14) | (now - (.*86400)) as $t | ($t|gmtime|strftime("%Y-%m-%d")) as $day | { t: ($t|gmtime|strftime("%b %d")), series: "Created", v: ([ $r.list[]? | select(((.ts//"")[0:10]) == $day) ] | length) } ] | reverse }'
+    expression: '${ . as $r | ($r.range // "all") as $range | (if $range=="24h" then {n:24,step:3600,fmt:"%H:00"} elif $range=="7d" then {n:7,step:86400,fmt:"%b %d"} elif $range=="30d" then {n:30,step:86400,fmt:"%b %d"} else {n:14,step:86400,fmt:"%b %d"} end) as $cfg | (now|floor) as $now | ($now - ($now % $cfg.step)) as $cur | (reduce ($r.list[]?) as $it ({}; (($it.ts // "") | (fromdateiso8601? // null)) as $e | if ($e|type) != "number" then . else ($e - ($e % $cfg.step)) as $b | .[($b|tostring)] = ((.[($b|tostring)] // 0) + 1) end)) as $counts | [ range(0; $cfg.n) | ($cur - (. * $cfg.step)) as $b | { t: ($b|gmtime|strftime($cfg.fmt)), series: "Created", v: ($counts[($b|tostring)] // 0) } ] | reverse }'
   apiRef:
     name: dashboard-data
     namespace: {{ .Release.Namespace }}

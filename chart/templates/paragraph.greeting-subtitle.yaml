@@ -7,7 +7,16 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    text: Here's what's happening across your platform today
+    # Static fallback (no "today" — the data is range-scoped, not midnight-scoped).
+    # The template below makes the subtitle reflect the selected time-range.
+    text: Here's what's happening across your platform
     type: secondary
+  widgetDataTemplate:
+  - forPath: text
+    expression: >-
+      ${ "Here's what's happening across your platform" + ({"24h":" in the last 24 hours","7d":" this week","30d":" this month","all":""}[.range // "all"]) }
+  apiRef:
+    name: dashboard-data
+    namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

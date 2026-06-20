@@ -9,6 +9,8 @@ spec:
   widgetData:
     title: Recent activity
     variant: outlined
+    # SSE-backed feed — "Live" badge renders inline with the title.
+    live: true
     extra: View all
     items:
     - resourceRefId: activity-events

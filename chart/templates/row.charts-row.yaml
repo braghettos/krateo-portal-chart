@@ -9,7 +9,7 @@ spec:
   widgetData:
     allowedResources:
     - cards
-    alignment: top
+    alignment: stretch
     items:
     - resourceRefId: throughput-card
       size: 16

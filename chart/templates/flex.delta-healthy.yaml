@@ -10,7 +10,7 @@ spec:
     allowedResources:
     - tags
     - paragraphs
-    align: center
+    align: baseline
     gap: small
     items:
     - resourceRefId: delta-tag-healthy

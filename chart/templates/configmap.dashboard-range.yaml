@@ -11,4 +11,4 @@ metadata:
   annotations:
     "krateo.io/portal": "dashboard-range"
 data:
-  range: "all"
+  range: "24h"

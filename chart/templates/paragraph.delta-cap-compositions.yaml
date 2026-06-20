@@ -9,5 +9,12 @@ spec:
   widgetData:
     text: new this week
     type: secondary
+  widgetDataTemplate:
+  - forPath: text
+    expression: >-
+      ${ {"24h":"new in the last 24 hours","7d":"new this week","30d":"new this month","all":"new (all time)"}[.range // "all"] }
+  apiRef:
+    name: dashboard-data
+    namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

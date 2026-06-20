@@ -32,6 +32,16 @@ spec:
               range: {{ .k | quote }}
           loading:
             display: true
+  # Selected-state is data-driven: read the live range and render this chip as a
+  # filled primary button when its key is the active one, outlined otherwise.
+  widgetDataTemplate:
+    - forPath: type
+      expression: '${ if (.range // "all") == {{ .k | quote }} then "primary" else "default" end }'
+    - forPath: variant
+      expression: '${ if (.range // "all") == {{ .k | quote }} then "solid" else "outlined" end }'
+  apiRef:
+    name: dashboard-data
+    namespace: {{ $.Release.Namespace }}
   resourcesRefs:
     items:
       - id: range-cm

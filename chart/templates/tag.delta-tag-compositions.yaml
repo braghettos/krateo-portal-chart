@@ -9,11 +9,16 @@ spec:
   widgetData:
     label: '+0'
     color: blue
+    # Sized to match (slightly exceed) the caption so the delta number is legible.
+    style:
+      fontSize: '15px'
+      fontWeight: 600
+      lineHeight: '20px'
   widgetDataTemplate:
   - forPath: label
-    expression: '${ "+" + (([.list[]|select(((.ts//"")|length>0) and ((.ts|fromdate) > (now-604800)))]|length)|tostring) }'
+    expression: '${ "+" + ((.list | length) | tostring) }'
   apiRef:
-    name: compositions-list
+    name: dashboard-data
     namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items: []

@@ -9,9 +9,15 @@ spec:
   widgetData:
     title: Compositions created
     variant: outlined
-    headerLeft: 'per day · last 14 days'
+    # Timeframe + frequency shown inline (top-right of the header) rather than as a
+    # body sub-line — removes the dead gap above the chart.
+    extra: 'per day · last 14 days'
     items:
     - resourceRefId: throughput-chart
+  widgetDataTemplate:
+  - forPath: extra
+    expression: '${ (.range // "all") as $x | (if $x=="24h" then "per hour · last 24 hours" elif $x=="7d" then "per day · last 7 days" elif $x=="30d" then "per day · last 30 days" else "per day · last 14 days" end) }'
+  apiRef: { name: dashboard-data, namespace: {{ .Release.Namespace }} }
   resourcesRefs:
     items:
     - id: throughput-chart

@@ -9,6 +9,8 @@ metadata:
 spec:
   widgetData:
     title: Events
+    # SSE-backed feed — "Live" badge renders inline with the title.
+    live: true
     items:
       - resourceRefId: eventlist-composition-detail-events
   resourcesRefs:
