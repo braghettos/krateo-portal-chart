@@ -10,13 +10,21 @@ spec:
     vertical: true
     gap: large
     allowedResources:
+      - flexes
       - filters
       - lists
     items:
+      - resourceRefId: marketplace-header
       - resourceRefId: marketplace-filters
       - resourceRefId: marketplace-grid
   resourcesRefs:
     items:
+      - id: marketplace-header
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-header
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
       - id: marketplace-filters
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-filters

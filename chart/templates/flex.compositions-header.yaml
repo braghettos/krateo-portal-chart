@@ -1,0 +1,31 @@
+# Page header (H1 + subtitle) for /compositions — greeting pattern (vertical Flex
+# wrapping a strong title + a secondary subtitle Paragraph).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: compositions-header
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - paragraphs
+    vertical: true
+    items:
+    - resourceRefId: compositions-title
+    - resourceRefId: compositions-subtitle
+  resourcesRefs:
+    items:
+    - id: compositions-title
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-title
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: compositions-subtitle
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-subtitle
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
