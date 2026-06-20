@@ -1,0 +1,14 @@
+# The app brand logo, defined declaratively (antd Image widget) instead of the
+# old hardcoded engine "K Krateo" lockup. Swap `src`/`width` to rebrand — no code.
+# `preview: false` because a logo is decorative (no click-to-zoom).
+kind: Image
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: brand-logo
+  namespace: {{ .Release.Namespace }}
+spec:
+  widgetData:
+    src: https://raw.githubusercontent.com/krateoplatformops/krateo/main/docs/media/logo.svg
+    alt: Krateo
+    width: 150
+    preview: false

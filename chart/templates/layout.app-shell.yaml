@@ -10,14 +10,14 @@ spec:
   widgetData:
     hasSider: true
     sider:
-      resourceRefId: nav
+      resourceRefId: sider-content
       theme: light
       width: 236
   resourcesRefs:
     items:
-      - id: nav
+      - id: sider-content
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: sidebar-nav
+        name: sider-content
         namespace: {{ .Release.Namespace }}
-        resource: menus
+        resource: flexes
         verb: GET
