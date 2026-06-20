@@ -13,13 +13,21 @@ spec:
     vertical: true
     gap: small
     allowedResources:
+      - buttons
       - flexes
       - paragraphs
     items:
+      - resourceRefId: composition-detail-back
       - resourceRefId: composition-detail-title-line
       - resourceRefId: composition-detail-subtitle
   resourcesRefs:
     items:
+      - id: composition-detail-back
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-back
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
       - id: composition-detail-title-line
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: composition-detail-title-line
