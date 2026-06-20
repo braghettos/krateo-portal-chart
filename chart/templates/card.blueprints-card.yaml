@@ -9,7 +9,8 @@ spec:
   widgetData:
     title: Top blueprints
     variant: outlined
-    extra: This month
+    # No timeframe label: this list isn't range-scoped, so a "This month" badge would
+    # falsely imply it tracks the dashboard's time filter.
     items:
     - resourceRefId: blueprints-list
   resourcesRefs:

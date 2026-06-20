@@ -16,7 +16,7 @@ spec:
     - resourceRefId: throughput-chart
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ (.range // "all") as $x | (if $x=="24h" then "per hour · last 24 hours" elif $x=="7d" then "per day · last 7 days" elif $x=="30d" then "per day · last 30 days" else "per day · last 14 days" end) }'
+    expression: '${ (.range // "24h") as $x | (if $x=="24h" then "per hour · last 24 hours" elif $x=="7d" then "per day · last 7 days" elif $x=="30d" then "per day · last 30 days" else "per day · all time" end) }'
   apiRef: { name: dashboard-data, namespace: {{ .Release.Namespace }} }
   resourcesRefs:
     items:

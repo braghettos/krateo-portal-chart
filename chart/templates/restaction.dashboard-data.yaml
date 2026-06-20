@@ -37,15 +37,11 @@ spec:
     filter: >
       [.allCompositions.items[]?
        | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // [])}]
-  - name: rangeCfg
-    path: /api/v1/namespaces/{{ .Release.Namespace }}/configmaps/dashboard-range
-    verb: GET
-    headers:
-      - 'Accept: application/json'
-    continueOnError: true
-    errorKey: rangeCfgError
+  # The range comes from the request `extras` (?range=… in the URL, forwarded by the
+  # frontend) and is read here as `.range` — synchronous, no ConfigMap read-after-write
+  # lag. Defaults to 24h when the URL carries no ?range.
   filter: >
-    ((.rangeCfg.data.range) // "all") as $range
+    ((.range) // "24h") as $range
     | (if $range == "24h" then 86400 elif $range == "7d" then 604800 elif $range == "30d" then 2592000 else 0 end) as $window
     | (now - $window) as $cutoff
     | {
