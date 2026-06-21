@@ -1,9 +1,13 @@
-# Marketplace aggregator — lists every blueprint's antd Card cluster-wide by the
-# `krateo.io/portal-page: blueprints` label (the per-blueprint self-registration
-# contract). Supersedes blueprints-panels (which listed the legacy `panels`).
-#
-# Generic-RA: returns only metadata; each tile's data is resolved by its own Card
-# (apiRef → per-blueprint RESTAction). UAF prunes to cards the user may list.
+# Blueprint catalog — lists the cluster's CompositionDefinitions (core.krateo.io),
+# the canonical blueprint set, one entry per blueprint. Replaces the retired
+# per-blueprint self-registered Card pattern (krateo.io/portal-page=blueprints
+# label) — the platform no longer ships one widget CR per blueprint; ONE templated
+# tile is iterated over this list. Honest fields straight off each Composition
+# Definition: name/namespace, chart version (spec.chart.version), category (the
+# krateo.io/tier label: platform/observability), chart url. Feeds BOTH the
+# marketplace grid and the dashboard "Top blueprints" (same `.cards` contract).
+# UAF gates to compositiondefinitions the user may list; continueOnError so a
+# missing grant degrades to an empty catalog, not a broken page.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -13,17 +17,19 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-    - name: cards
-      path: /apis/widgets.templates.krateo.io/v1beta1/cards
+    - name: compdefs
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
+      verb: GET
       continueOnError: true
+      errorKey: compdefsError
       userAccessFilter:
         verb: list
-        group: widgets.templates.krateo.io
-        resource: cards
+        group: core.krateo.io
+        resource: compositiondefinitions
         namespaceFrom: .metadata.namespace
       filter: >
-        [.cards.items[]?
-         | select((.metadata.labels // {})["krateo.io/portal-page"] == "blueprints")
+        [.compdefs.items[]?
+         | ((.metadata.labels // {})["krateo.io/tier"] // "blueprint") as $cat
          | {
              apiVersion,
              kind,
@@ -34,9 +40,12 @@ spec:
                creationTimestamp: .metadata.creationTimestamp,
                labels: .metadata.labels
              },
-             tags: (.spec.widgetData.tags // [])
+             version: (.spec.chart.version // ""),
+             chart: (.spec.chart.url // ""),
+             category: $cat,
+             tags: [ $cat ]
            }]
   filter: >
     {
-      cards: ((.cards // []) | sort_by(.metadata.creationTimestamp // "") | reverse)
+      cards: ((.compdefs // []) | sort_by(.metadata.name // ""))
     }

@@ -1,7 +1,11 @@
-# Marketplace content — antd `List` in grid mode, one cell per blueprint Card
-# discovered by blueprints-cards. `List` supersedes the (unregistered) DataGrid.
-# dataSource carries each card's resourceRefId (rendered as a child widget);
-# resourcesRefsTemplate fans out a GET ref per card in its own namespace.
+# Marketplace content — antd `List` in 3-col grid mode, ONE templated tile per
+# blueprint (CompositionDefinition), iterated over `blueprints-cards`. Replaces the
+# retired per-blueprint Card-CR fanout (resourcesRefsTemplate → one widget per
+# blueprint): now a single itemTemplate renders every tile from the catalog's flat
+# data — icon + name + version + a soft-tint category (tier) pill — and the whole
+# tile navigates to the blueprint's create flow (Install → Create). `prefix`
+# wires the marketplace category filter. Honest fields only (name/version/category
+# off the CompositionDefinition); no invented ratings/install-counts.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: List
 metadata:
@@ -19,19 +23,15 @@ spec:
       gutter: 16
       column: 3
     dataSource: []
+    itemTemplate:
+      icon: fa-cube
+      primaryText: '{name}'
+      subPrimaryText: 'v{version}'
+      secondaryText: '{category}'
+      secondaryTextAsTag: true
+      navigateTo: '/marketplace/{namespace}/{name}/new'
   widgetDataTemplate:
-    # Each card renders as a child widget (resourceRefId) AND carries navigateTo —
-    # clicking the blueprint card opens its create flow (Install → Create).
     - forPath: dataSource
-      expression: '${ [ .cards[] | { resourceRefId: .metadata.name, navigateTo: ("/marketplace/" + .metadata.namespace + "/" + .metadata.name + "/new") } ] }'
+      expression: '${ [ .cards[] | { name: .metadata.name, namespace: .metadata.namespace, version: .version, category: .category } ] }'
   resourcesRefs:
     items: []
-  resourcesRefsTemplate:
-    - iterator: ${ .cards }
-      template:
-        id: ${ .metadata.name }
-        apiVersion: ${ .apiVersion }
-        resource: cards
-        namespace: ${ .metadata.namespace }
-        name: ${ .metadata.name }
-        verb: GET
