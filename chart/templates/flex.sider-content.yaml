@@ -1,7 +1,9 @@
-# Declarative Sider content: the brand logo stacked above the nav Menu. This is
-# what makes the brand declarative — the engine no longer injects a hardcoded
-# Brand; the Layout's Sider renders this Flex (app-shell sider.resourceRefId).
-# (The user footer is still engine-injected — it's per-user identity, not data.)
+# Declarative Sider content: brand logo → context strip (tenant chip + project
+# selector) → nav Menu. The context strip makes the platform model visible — TENANT
+# = cluster (tenant-chip, deployer config), PROJECT = namespace (project-select, a
+# ?project= URL→extras scope that filters compositions/dashboard server-side). This
+# is what makes the brand+scope declarative — the engine injects no hardcoded chrome.
+# (The user footer is still engine-injected — per-user identity, not data.)
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,9 +17,13 @@ spec:
     gap: middle
     allowedResources:
       - images
+      - tags
+      - selects
       - menus
     items:
       - resourceRefId: brand
+      - resourceRefId: tenant-chip
+      - resourceRefId: project-select
       - resourceRefId: nav
   resourcesRefs:
     items:
@@ -26,6 +32,18 @@ spec:
         name: brand-logo
         namespace: {{ .Release.Namespace }}
         resource: images
+        verb: GET
+      - id: tenant-chip
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: tenant-chip
+        namespace: {{ .Release.Namespace }}
+        resource: tags
+        verb: GET
+      - id: project-select
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: project-select
+        namespace: {{ .Release.Namespace }}
+        resource: selects
         verb: GET
       - id: nav
         apiVersion: widgets.templates.krateo.io/v1beta1

@@ -1,0 +1,33 @@
+# Projects = namespaces (per the platform model: tenant = cluster, project =
+# namespace). Lists the namespaces the caller may `list` (UAF-gated, so each user
+# sees only their projects) and shapes them into Select `options`, prepended with
+# an "All projects" (empty value = no scope). The project-select widget binds this
+# to the ?project= URL param → extras, which compositions-list reads as `.project`
+# to scope the dashboard/compositions server-side. continueOnError so a missing
+# RBAC grant degrades to just "All projects" rather than erroring the shell.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: projects
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: namespaces
+      path: /api/v1/namespaces
+      verb: GET
+      continueOnError: true
+      errorKey: namespacesError
+      userAccessFilter:
+        verb: list
+        group: ""
+        resource: namespaces
+        namespaceFrom: .metadata.name
+  filter: >
+    {
+      options: (
+        [ { label: "All projects", value: "" } ]
+        + ( [ .namespaces.items[]? | { label: .metadata.name, value: .metadata.name } ] | sort_by(.value) )
+      )
+    }

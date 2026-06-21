@@ -60,7 +60,7 @@ spec:
   # mechanism as dashboard-data's ?range). Each item gains a derived `.state`
   # (healthy/pending/failed from the Ready condition) so filtering/counting is one pass.
   filter: >
-    (.namespace // "") as $ns
+    ((.project // .namespace) // "") as $ns
     | (.status // "all") as $status
     | (.range // "") as $range
     | ((.from // "") | tostring) as $from
