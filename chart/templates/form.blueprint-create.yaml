@@ -36,7 +36,12 @@ spec:
     schema: {}
     buttonConfig:
       primary:
-        label: Review & create
+        # Honest label: this submit CREATES the composition directly (there is no
+        # separate Review page yet), and the success toast already says "Composition
+        # created" — so the action keeps its name through the whole flow. (A real
+        # Configure→Review step is a planned enhancement; until it ships the button
+        # must not promise a review it doesn't perform.)
+        label: Create composition
       secondary:
         label: Cancel
         # Cancel → back to the Marketplace (navigate, not a form reset).
