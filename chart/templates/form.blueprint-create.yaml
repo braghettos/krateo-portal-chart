@@ -27,6 +27,9 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     layout: vertical
+    # Real Configure→Review: the primary button validates and reveals an in-place
+    # read-only Review of the entered values; only the Review step's button creates.
+    reviewBeforeSubmit: true
     submitActionId: submit
     # Save draft (Tier C #11): persists the CURRENT field values un-validated, so an
     # incomplete form survives. The Form reads them with getFieldsValue(true) — which

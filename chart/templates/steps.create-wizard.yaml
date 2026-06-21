@@ -1,10 +1,9 @@
-# Wayfinding indicator for the blueprint create flow (Blueprint ✓ / Configure / Deploy).
-# The flow is a single form, so this is a static guide, not a multi-step form: the
-# blueprint is already chosen (reached via /marketplace/{ns}/{name}/new), so `current: 1`
-# marks Blueprint done (antd auto-styles prior steps as finished), Configure active, and
-# Deploy = what submit does (create the composition). NB: there is no separate Review
-# page yet, so the final step is "Deploy", not a "Review" it can't perform — a dedicated
-# Configure→Review step is a planned enhancement.
+# Wayfinding indicator for the blueprint create flow (Blueprint ✓ / Configure / Review).
+# The blueprint is already chosen (reached via /marketplace/{ns}/{name}/new), so
+# `current: 1` marks Blueprint done (antd auto-styles prior steps as finished) and
+# Configure active. Review is REAL: the Form (reviewBeforeSubmit) reveals an in-place
+# read-only summary of the entered values before the final create — so the indicator's
+# three steps match the actual journey.
 kind: Steps
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -21,5 +20,5 @@ spec:
         description: Selected
       - title: Configure
         description: Set parameters
-      - title: Deploy
-        description: Create the composition
+      - title: Review
+        description: Review & create
