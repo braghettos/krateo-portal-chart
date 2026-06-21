@@ -22,6 +22,6 @@ spec:
       secondaryText: '{kind}'
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ (.detail.metadata.ownerReferences // [])[] | { name: .name, kind: .kind } ] }'
+      expression: '${ [ (.detail.status.managed // [])[] | { name: .name, kind: .resource } ] }'
   resourcesRefs:
     items: []

@@ -1,6 +1,8 @@
 # The composition's spec as label/value rows. Generic: whatever fields the
-# blueprint's claim carries (e.g. a DemoClaim shows `blueprint`). Shaped
-# server-side by the composition-detail RA (.specItems); nothing hardcoded.
+# blueprint's claim carries. Nested objects/arrays are flattened to DOTTED-PATH
+# leaf rows (jq paths(scalars)) — e.g. database.engine / database.size / tags.0 —
+# so a deep spec reads as structured rows here, distinct from the raw-YAML
+# Manifest card (no JSON blob, no [object Object]). Nothing hardcoded.
 kind: Descriptions
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -19,6 +21,6 @@ spec:
     items: []
   widgetDataTemplate:
     - forPath: items
-      expression: '${ (.detail.spec // {}) | to_entries | map({ label: .key, value: (.value | if type == "string" then . else tojson end) }) }'
+      expression: '${ (.detail.spec // {}) as $s | [ $s | paths(scalars) as $p | { label: ($p | map(tostring) | join(".")), value: ($s | getpath($p) | tostring) } ] }'
   resourcesRefs:
     items: []
