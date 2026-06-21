@@ -14,11 +14,10 @@ spec:
     area: true
     legend: true
     height: 220
-    # Sparse-count legibility: a count metric maxing at 1 otherwise auto-nices to a
-    # fractional 0..1 y-axis, leaving the plot mostly empty up top. Pin y to
-    # zero-anchored integers with a small honest top floor, mark each bucket, and
-    # thin the ticks. domainMax is a FLOOR (data wins via @antv/scale Math.max), so
-    # dense ranges (7d/30d) are never clipped.
+    # Zero-anchored INTEGER y-axis (no fractional 0..1 ticks for a count) with a marker
+    # on each bucket. NO domainMax: it is a hard CAP, not a floor — it clipped real
+    # peaks (a day with 15 rendered as 3). zero+nice auto-scale to the real max and
+    # round up for headroom, so the peak is shown in full and never cropped.
     point: true
     scale:
       # NB: quote the "y" key — bare `y:` is parsed as the YAML 1.1 boolean `true`,
@@ -27,7 +26,6 @@ spec:
         zero: true
         nice: true
         domainMin: 0
-        domainMax: 3
         tickCount: 4
     axis:
       x:
