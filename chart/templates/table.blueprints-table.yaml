@@ -18,6 +18,10 @@ spec:
     allowedResources: []
     bordered: false
     size: middle
+    # Row click → the per-blueprint create form (selection IS the start of "Configure").
+    # Reuses the existing create route (/marketplace/{ns}/{name}/new → page-blueprint-create);
+    # the ns+name cells below template it. Turns the dead-end catalog into a selectable entry point.
+    rowNavigateTo: /marketplace/{ns}/{name}/new
     columns:
     - valueKey: name
       title: Name

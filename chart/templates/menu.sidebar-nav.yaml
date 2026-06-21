@@ -22,7 +22,7 @@ spec:
     items:
       - { label: Dashboard,    icon: fa-gauge,       order: 1, path: /dashboard,    resourceRefId: dashboard }
       - { label: Compositions, icon: fa-cubes,       order: 2, path: /compositions, resourceRefId: compositions }
-      # Blueprints → blueprints-table (the flat catalog of CompositionDefinitions).
+      # Blueprints → page-blueprints (header + the now-selectable catalog table).
       - { label: Blueprints,   icon: fa-layer-group, order: 4, path: /blueprints,   resourceRefId: blueprints }
       - { label: Marketplace,  icon: fa-store,       order: 5, path: /marketplace,  resourceRefId: marketplace }
       - { label: Settings,     icon: fa-gear,        order: 6, path: /settings,     resourceRefId: settings }
@@ -53,9 +53,9 @@ spec:
         verb: GET
       - id: blueprints
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: blueprints-table
+        name: page-blueprints
         namespace: {{ .Release.Namespace }}
-        resource: tables
+        resource: flexes
         verb: GET
       - id: marketplace
         apiVersion: widgets.templates.krateo.io/v1beta1
