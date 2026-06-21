@@ -52,8 +52,27 @@ spec:
     filter: >
       [.allCompositions.items[]?
        | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // [])}]
+  # Final shape. `list` stays the FULL (ns-scoped) set — the dashboard stat/donut/delta
+  # widgets share this RA and read `.list` for totals, so it must NOT be date/status
+  # filtered. The compositions PAGE reads `.filtered` (status + time-window applied) and
+  # `.counts` (per-status totals for the toolbar chips). All scope params come from the
+  # request `extras` (?status, ?range, ?from, ?to in the URL, read synchronously — same
+  # mechanism as dashboard-data's ?range). Each item gains a derived `.state`
+  # (healthy/pending/failed from the Ready condition) so filtering/counting is one pass.
   filter: >
     (.namespace // "") as $ns
+    | (.status // "all") as $status
+    | (.range // "") as $range
+    | ((.from // "") | tostring) as $from
+    | ((.to // "") | tostring) as $to
+    | now as $now
+    | ((.allCompositions // []) | map(select($ns == "" or .ns == $ns)) | map(. + {state: ((.conditions // []) | if any(.type == "Ready" and .status == "True") then "healthy" elif any(.type == "Ready" and .status == "False") then "failed" else "pending" end)})) as $all
+    | (if $range == "24h" then {lo: ($now - 86400), hi: ($now + 86400)} elif $range == "7d" then {lo: ($now - 604800), hi: ($now + 86400)} elif $range == "30d" then {lo: ($now - 2592000), hi: ($now + 86400)} elif $range == "all" then {lo: 0, hi: ($now + 86400)} elif $from != "" and $to != "" then {lo: ($from | tonumber), hi: ($to | tonumber)} else {lo: 0, hi: ($now + 86400)} end) as $win
+    | ($all | map(select(((.ts | fromdateiso8601?) // 0) >= $win.lo and ((.ts | fromdateiso8601?) // 0) <= $win.hi))) as $dated
     | {
-      list: ((.allCompositions // []) | map(select($ns == "" or .ns == $ns)))
-    }
+        list: $all,
+        filtered: ($dated | map(select($status == "all" or .state == $status))),
+        counts: {all: ($dated | length), healthy: ($dated | map(select(.state == "healthy")) | length), pending: ($dated | map(select(.state == "pending")) | length), failed: ($dated | map(select(.state == "failed")) | length)},
+        status: $status,
+        range: $range
+      }

@@ -1,0 +1,37 @@
+# Compositions time-range chips — the SAME filter the dashboard exposes, copied onto the
+# compositions page (?range=24h|7d|30d|all). Each chip NAVIGATES to /compositions?range=<k>;
+# compositions-list reads `.range` from extras and time-windows its `.filtered` set by
+# creationTimestamp, and the chip selected-state reads `.range` synchronously (no apiRef).
+# Default is "all" here (a list page shows everything until narrowed), unlike the
+# dashboard's 24h default. Same-path navigation merges query params, so range composes
+# with the status chips and the custom from/to range picker.
+{{- $opts := list (dict "k" "24h" "l" "24h") (dict "k" "7d" "l" "7d") (dict "k" "30d" "l" "30d") (dict "k" "all" "l" "All") }}
+{{- range $opts }}
+---
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Button
+metadata:
+  name: comp-range-btn-{{ .k }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: {{ .l | quote }}
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: set-comp-range-{{ .k }}
+    actions:
+      navigate:
+        - id: set-comp-range-{{ .k }}
+          type: navigate
+          path: /compositions?range={{ .k }}
+  widgetDataTemplate:
+    - forPath: type
+      expression: '${ if (.range // "all") == {{ .k | quote }} then "primary" else "default" end }'
+    - forPath: variant
+      expression: '${ if (.range // "all") == {{ .k | quote }} then "solid" else "outlined" end }'
+  resourcesRefs:
+    items: []
+{{- end }}

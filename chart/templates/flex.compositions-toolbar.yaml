@@ -1,0 +1,35 @@
+# Compositions filter toolbar — status chips on the left, time-range chips + custom
+# from/to picker on the right (mirrors the dashboard's filter row, extended for a list
+# page). Sits between the page header and the table in flex.page-compositions.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: compositions-toolbar
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    justify: space-between
+    align: center
+    gap: small
+    wrap: true
+    items:
+    - resourceRefId: compositions-status-group
+    - resourceRefId: compositions-range-group
+  resourcesRefs:
+    items:
+    - id: compositions-status-group
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-status-group
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: compositions-range-group
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-range-group
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET

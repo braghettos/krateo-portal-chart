@@ -17,12 +17,19 @@ spec:
     gap: large
     items:
     - resourceRefId: compositions-header
+    - resourceRefId: compositions-toolbar
     - resourceRefId: compositions-table
   resourcesRefs:
     items:
     - id: compositions-header
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: compositions-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: compositions-toolbar
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-toolbar
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET

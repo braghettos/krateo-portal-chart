@@ -29,8 +29,11 @@ spec:
     # refetches when any composition it shows changes, and generalizes to any blueprint.
     watch: []
   widgetDataTemplate:
+  # Rows come from `.filtered` (compositions-list applies the toolbar's status + time
+  # filters server-side via ?status/?range/?from/?to); `.list` stays the dashboard's
+  # full set. Status cell uses the pre-derived `.state` from the RA.
   - forPath: dataSource
-    expression: '${ [ .list[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"tag",stringValue:( (.conditions // []) | if any(.type=="Ready" and .status=="True") then "Healthy" elif any(.type=="Ready" and .status=="False") then "Failed" else "Pending" end ),color:( (.conditions // []) | if any(.type=="Ready" and .status=="True") then "green" elif any(.type=="Ready" and .status=="False") then "red" else "gold" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"tag",stringValue:( .state | if .=="healthy" then "Healthy" elif .=="failed" then "Failed" else "Pending" end ),color:( .state | if .=="healthy" then "green" elif .=="failed" then "red" else "gold" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   apiRef:
