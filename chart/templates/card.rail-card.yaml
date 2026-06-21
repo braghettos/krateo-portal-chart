@@ -1,0 +1,24 @@
+# Reconciliation rail panel (dashboard signature element). Wraps the rail List;
+# the mono eyebrow title + "Live" badge follow the Petrol flight-deck language.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: rail-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Reconciliation rail · desired vs actual
+    variant: outlined
+    live: true
+    items:
+    - resourceRefId: rail-list
+  resourcesRefs:
+    items:
+    - id: rail-list
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: rail-list
+      namespace: {{ .Release.Namespace }}
+      resource: lists
+      verb: GET
