@@ -8,6 +8,7 @@ metadata:
 spec:
   widgetData:
     title: Compositions created
+    titleVariant: eyebrow
     variant: outlined
     # Timeframe + frequency shown inline (top-right of the header) rather than as a
     # body sub-line — removes the dead gap above the chart.

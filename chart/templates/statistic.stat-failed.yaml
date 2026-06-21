@@ -9,6 +9,8 @@ spec:
   widgetData:
     title: Failed
     value: 0
+    valueStyle:
+      color: var(--error-color)
     # live-refresh: watch the composition kinds in the data (computed, not hardcoded)
     watch: []
   widgetDataTemplate:

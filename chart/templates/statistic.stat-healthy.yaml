@@ -9,6 +9,8 @@ spec:
   widgetData:
     title: Healthy
     value: 0
+    valueStyle:
+      color: var(--cyan-color)
     # live-refresh: watch the composition kinds in the data (computed, not hardcoded)
     watch: []
   widgetDataTemplate:

@@ -8,6 +8,7 @@ metadata:
 spec:
   widgetData:
     title: Recent activity
+    titleVariant: eyebrow
     variant: outlined
     # SSE-backed feed — "Live" badge renders inline with the title.
     live: true

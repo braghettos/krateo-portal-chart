@@ -8,7 +8,7 @@ metadata:
 spec:
   widgetData:
     label: 0%
-    color: green
+    color: cyan
     style:
       fontSize: '18px'
       fontWeight: 700

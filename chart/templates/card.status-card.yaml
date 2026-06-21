@@ -8,6 +8,7 @@ metadata:
 spec:
   widgetData:
     title: Compositions status breakdown
+    titleVariant: eyebrow
     variant: outlined
     items:
     - resourceRefId: status-donut

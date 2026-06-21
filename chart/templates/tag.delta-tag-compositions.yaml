@@ -7,8 +7,8 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    label: '+0'
-    color: blue
+    label: '▲ +0'
+    color: cyan
     # Sized to match (slightly exceed) the caption so the delta number is legible.
     style:
       fontSize: '18px'
@@ -16,7 +16,7 @@ spec:
       lineHeight: '24px'
   widgetDataTemplate:
   - forPath: label
-    expression: '${ "+" + ((.list | length) | tostring) }'
+    expression: '${ "▲ +" + ((.list | length) | tostring) }'
   apiRef:
     name: dashboard-data
     namespace: {{ .Release.Namespace }}

@@ -8,6 +8,7 @@ metadata:
 spec:
   widgetData:
     title: Top blueprints
+    titleVariant: eyebrow
     variant: outlined
     # No timeframe label: this list isn't range-scoped, so a "This month" badge would
     # falsely imply it tracks the dashboard's time filter.

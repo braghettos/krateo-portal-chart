@@ -10,6 +10,7 @@ metadata:
 spec:
   widgetData:
     title: Reconciliation rail · desired vs actual
+    titleVariant: eyebrow
     variant: outlined
     live: true
     items:

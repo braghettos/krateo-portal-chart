@@ -32,9 +32,13 @@ spec:
         fontSize: 13
         fontWeight: 600
         fill: "#ffffff"
-    # Donut-center total + label. annotations[0].style.text is templated to the
-    # live total below; G2 positions text at 50%/50% of the donut coordinate, so
-    # it stays centered regardless of the (bottom) legend.
+    # Donut-center HEALTH GAUGE: the big number is the healthy % (actual-matches-
+    # desired), not the raw total — the flight-deck "X% OK" reading. annotations[0]
+    # .style.text is templated to the live healthy-fraction below; G2 positions text
+    # at 50%/50% of the donut coordinate, so it stays centered regardless of the
+    # (bottom) legend. fill is a LITERAL hex (canvas/G2 can't read CSS vars): cyan
+    # for the % (health=cyan, visible on both Petrol-dark and Paper-light) and a
+    # neutral gray for the "OK" caption. The old #1f2937 was invisible on dark.
     annotations:
     - type: text
       style:
@@ -42,21 +46,21 @@ spec:
         # `true`, which would drop the vertical position.
         "x": "50%"
         "y": "44%"
-        text: "0"
+        text: "0%"
         textAlign: center
         textBaseline: middle
         fontSize: 30
         fontWeight: bold
-        fill: "#1f2937"
+        fill: "#34D6C8"
     - type: text
       style:
         "x": "50%"
         "y": "60%"
-        text: Compositions
+        text: OK
         textAlign: center
         textBaseline: middle
         fontSize: 13
-        fill: "#8c8c8c"
+        fill: "#8A97A6"
     # live-refresh: watch the composition kinds in the data (computed, not hardcoded)
     watch: []
   widgetDataTemplate:
@@ -69,7 +73,7 @@ spec:
   - forPath: data[2].count
     expression: ${ [.list[] | select((.conditions // []) | any(.type=="Ready" and .status=="False"))] | length }
   - forPath: annotations[0].style.text
-    expression: ${ (.list | length) | tostring }
+    expression: '${ (if (.list|length)>0 then ((([.list[]|select((.conditions//[])|any(.type=="Ready" and .status=="True"))]|length)*100/(.list|length))|floor) else 0 end | tostring) + "%" }'
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}
