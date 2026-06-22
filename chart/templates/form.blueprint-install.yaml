@@ -35,8 +35,10 @@ spec:
           onSuccessNavigateTo: /blueprints
           successMessage: Blueprint installed
           # Body = metadata (name from the form, namespace fixed to the release ns) + spec
-          # (the form values minus the synthetic name). Empty optional spec objects are pruned
-          # so an untouched apiRef/deploy/statusDataTemplate can't fail CRD validation.
+          # (the form values minus the synthetic name). antd registers the hidden-section
+          # fields, so an untouched optional object rides along EMPTY (e.g. deploy.targetRef:{}),
+          # which the real CRD rejects (targetRef.name required) → 422. RECURSIVELY prune empty
+          # values (null / "" / {} / []) bottom-up so only filled objects (chart) remain.
           payload:
             apiVersion: core.krateo.io/v1alpha1
             kind: CompositionDefinition
@@ -44,7 +46,8 @@ spec:
               namespace: {{ .Release.Namespace }}
           payloadToOverride:
             - { name: metadata.name, value: '${ .json.name }' }
-            - { name: spec, value: '${ (.json | del(.name)) | with_entries(select(.value != {} and .value != null and .value != "" and .value != [])) }' }
+            - { name: metadata.namespace, value: '${ .json.namespace }' }
+            - { name: spec, value: '${ (.json | del(.name) | del(.namespace)) | walk(if type == "object" then with_entries(select(.value != null and .value != "" and .value != {} and .value != [])) else . end) }' }
   widgetDataTemplate:
     - forPath: schema
       expression: '${ .schemaSpec }'

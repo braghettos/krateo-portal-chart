@@ -31,6 +31,19 @@ spec:
         - 'Accept: application/x-yaml, text/yaml, application/json'
       continueOnError: true
       errorKey: catalogError
+    # Namespaces the user may create CompositionDefinitions in → the Namespace select's enum
+    # (UAF SubjectAccessReview, mirrors blueprint-formdef).
+    - name: namespaces
+      path: /api/v1/namespaces
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      userAccessFilter:
+        verb: create
+        group: core.krateo.io
+        resource: compositiondefinitions
+        namespaceFrom: .metadata.name
+      filter: "[.namespaces.items[] | .metadata.name]"
   filter: |
     # Drop statusDataTemplate — it's a blueprint-author field (status projection), not something
     # the installer sets; remove it from the fetched CRD schema so it doesn't render in the form.
@@ -40,17 +53,20 @@ spec:
     # the synthetic top-level `name` stays required (set below).
     | ($spec0 | .properties = ((.properties // {}) | walk(if (type == "object" and has("required")) then del(.required) else . end))) as $spec
     | (.name // "") as $bp
+    | .namespaces as $namespaces
     | (((.catalog.entries[$bp]?) // [])[0]) as $entry
     | ($entry.version // "") as $ver
     | (($entry.urls[0]? // "") | sub("/[^/]+$"; "")) as $repoUrl
     | {
         schemaSpec: ($spec
           | .properties = ({
-              name: { type: "string", title: "Name", description: "Name for the installed blueprint (the CompositionDefinition)" }
+              name: { type: "string", title: "Name", description: "Name for the installed blueprint (the CompositionDefinition)" },
+              namespace: { type: "string", title: "Namespace", description: "Namespace to install the blueprint into", enum: $namespaces }
             } + (.properties // {}))
-          | .required = (["name"] + (.required // []))),
+          | .required = (["name", "namespace"] + (.required // []))),
         initialValues: {
           name: $bp,
+          namespace: "{{ .Release.Namespace }}",
           chart: { url: $repoUrl, repo: $bp, version: $ver }
         },
         apiVersion: "core.krateo.io/v1alpha1",
