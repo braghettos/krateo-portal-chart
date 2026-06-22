@@ -37,20 +37,23 @@ spec:
         namespaceFrom: .metadata.namespace
       filter: >
         [.comps.items[]? | {name: .metadata.name, ns: .metadata.namespace}]
-    # blueprints — every self-registered Marketplace Card (mirrors blueprints-cards).
-    - name: cards
-      path: /apis/widgets.templates.krateo.io/v1beta1/cards
+    # blueprints — the INSTALLABLE catalog from the braghettos helm index (mirrors
+    # blueprints-catalog), so search finds installable blueprints, not just installed ones.
+    # Requires snowplow >= 1.4.0 (external YAML fetch). Each entry's version list is newest
+    # -first → .value[0]. continueOnError so a missing index degrades to compositions-only.
+    - name: catalog
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/blueprints/index.yaml
       verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
       continueOnError: true
-      userAccessFilter:
-        verb: list
-        group: widgets.templates.krateo.io
-        resource: cards
-        namespaceFrom: .metadata.namespace
+      errorKey: catalogError
       filter: >
-        [.cards.items[]?
-         | select((.metadata.labels // {})["krateo.io/portal-page"] == "blueprints")
-         | {name: .metadata.name, ns: .metadata.namespace, title: (.spec.widgetData.title // .metadata.name)}]
+        [ ((.catalog.entries) // {}) | to_entries[] | .value[0]
+          | {name: .name, category: (((.annotations // {})["krateo.io/category"]) // (.keywords[0]) // "uncategorized")} ]
   # Merge both sources into one result list, then filter by the `q` extra
   # (case-insensitive substring on the title). Empty/absent q → return all.
   filter: >
@@ -63,11 +66,11 @@ spec:
               type: "composition",
               link: ("/compositions/" + (.ns // "") + "/" + (.name // ""))
             } ]
-          + [ (.cards // [])[] | {
-              title: (.title // .name // ""),
-              subtitle: ("Blueprint · " + (.ns // "")),
+          + [ (.catalog // [])[] | {
+              title: (.name // ""),
+              subtitle: ("Blueprint · " + (.category // "")),
               type: "blueprint",
-              link: ("/marketplace/" + (.ns // "") + "/" + (.name // "") + "/new")
+              link: ((.category // "uncategorized") as $c | if $c == "uncategorized" then "/marketplace" else "/marketplace?category=" + $c end)
             } ]
         )
         | map(select($q == "" or ((.title | ascii_downcase) | contains($q))))

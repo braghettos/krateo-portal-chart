@@ -32,8 +32,9 @@ spec:
       iconVariant: tile
       icon: '{icon}'
       primaryText: '{name}'
-      subPrimaryText: 'v{version}'
-      subSecondaryText: '{maturity}'
+      # Footer-left = the helm chart version (subSecondaryText → card-foot left); the top keeps
+      # just name + category tag. Maturity dropped (not in the mockup).
+      subSecondaryText: 'v{version}'
       secondaryText: '{category}'
       secondaryTextAsTag: true
       description: '{description}'
