@@ -13,7 +13,7 @@ spec:
     shapeField: smooth
     area: true
     legend: true
-    height: 220
+    height: 150
     # Zero-anchored INTEGER y-axis (no fractional 0..1 ticks for a count) with a marker
     # on each bucket. NO domainMax: it is a hard CAP, not a floor — it clipped real
     # peaks (a day with 15 rendered as 3). zero+nice auto-scale to the real max and
@@ -38,8 +38,23 @@ spec:
   widgetDataTemplate:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
+  # Window must align to dashboard-data's ROLLING filter (ts >= now-window) so nothing in the
+  # window is dropped. The naive 24-slot window (anchored at the CURRENT hour, going back) ends
+  # one hour short of the cutoff, so a burst in the oldest hour vanishes — observed live: 22 of
+  # 23 comps shared one clock-hour just past the edge, and the chart rendered only 1 stray comp.
+  # Daily ranges fix this with window/step + 1 buckets (oldest partial day + today) — safe because
+  # "%b %d" dates never repeat in these windows. The HOURLY (24h) case CANNOT add a 25th slot:
+  # "%H:00" would then repeat (two "13:00"), and G2 collapses same-label points -> wrong tooltip
+  # ("Created: 0") + peak marker/now-line on the wrong band. So 24h keeps 24 DISTINCT hours but
+  # shifts the window back one step (endShift:1) to END at the last COMPLETE hour, which makes the
+  # oldest slot the cutoff hour where the burst lands. Net: full window coverage, no label clash.
   - forPath: data
-    expression: '${ . as $r | ($r.range // "all") as $range | (if $range=="24h" then {n:24,step:3600,fmt:"%H:00"} elif $range=="7d" then {n:7,step:86400,fmt:"%b %d"} elif $range=="30d" then {n:30,step:86400,fmt:"%b %d"} else {n:14,step:86400,fmt:"%b %d"} end) as $cfg | (now|floor) as $now | ($now - ($now % $cfg.step)) as $cur | (reduce ($r.list[]?) as $it ({}; (($it.ts // "") | (fromdateiso8601? // null)) as $e | if ($e|type) != "number" then . else ($e - ($e % $cfg.step)) as $b | .[($b|tostring)] = ((.[($b|tostring)] // 0) + 1) end)) as $counts | [ range(0; $cfg.n) | ($cur - (. * $cfg.step)) as $b | { t: ($b|gmtime|strftime($cfg.fmt)), series: "Created", v: ($counts[($b|tostring)] // 0) } ] | reverse }'
+    expression: '${ . as $r | ($r.range // "all") as $range | (if $range=="24h" then {n:24,step:3600,fmt:"%H:00",endShift:1} elif $range=="7d" then {n:8,step:86400,fmt:"%b %d",endShift:0} elif $range=="30d" then {n:31,step:86400,fmt:"%b %d",endShift:0} else {n:15,step:86400,fmt:"%b %d",endShift:0} end) as $cfg | (now|floor) as $now | (($now - ($now % $cfg.step)) - ($cfg.endShift * $cfg.step)) as $end | (reduce ($r.list[]?) as $it ({}; (($it.ts // "") | (fromdateiso8601? // null)) as $e | if ($e|type) != "number" then . else ($e - ($e % $cfg.step)) as $b | .[($b|tostring)] = ((.[($b|tostring)] // 0) + 1) end)) as $counts | [ range(0; $cfg.n) | ($end - (. * $cfg.step)) as $b | { t: ($b|gmtime|strftime($cfg.fmt)), series: "Created", v: ($counts[($b|tostring)] // 0) } ] | reverse }'
+  # Annotations: a peak `point` marker (amber, at the busiest bucket) + a dashed "now" `lineX`
+  # at the latest bucket — recomputes the same buckets as `data` (forPath exprs don't chain) and
+  # derives peak (max_by v) + now (last). Honest: marks the real busiest hour + the current edge.
+  - forPath: annotations
+    expression: '${ . as $r | ($r.range // "all") as $range | (if $range=="24h" then {n:24,step:3600,fmt:"%H:00",endShift:1} elif $range=="7d" then {n:8,step:86400,fmt:"%b %d",endShift:0} elif $range=="30d" then {n:31,step:86400,fmt:"%b %d",endShift:0} else {n:15,step:86400,fmt:"%b %d",endShift:0} end) as $cfg | (now|floor) as $now | (($now - ($now % $cfg.step)) - ($cfg.endShift * $cfg.step)) as $end | (reduce ($r.list[]?) as $it ({}; (($it.ts // "") | (fromdateiso8601? // null)) as $e | if ($e|type) != "number" then . else ($e - ($e % $cfg.step)) as $b | .[($b|tostring)] = ((.[($b|tostring)] // 0) + 1) end)) as $counts | ([ range(0; $cfg.n) | ($end - (. * $cfg.step)) as $b | { t: ($b|gmtime|strftime($cfg.fmt)), v: ($counts[($b|tostring)] // 0) } ] | reverse) as $d | ($d | max_by(.v)) as $peak | ($d | last) as $nowb | [ {type:"point", data:[{t:$peak.t, v:$peak.v}], encode:{x:"t", y:"v"}, scale:{color:{type:"identity"}}, style:{fill:"#F2A33C", stroke:"#070C12", lineWidth:2, r:6}, size:9, tooltip:false}, {type:"lineX", data:[$nowb.t], style:{stroke:"#F2A33C", strokeOpacity:0.5, lineDash:[4,4]}} ] }'
   apiRef:
     name: dashboard-data
     namespace: {{ .Release.Namespace }}

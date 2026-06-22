@@ -20,7 +20,7 @@ spec:
     - eventlists
     - lists
     vertical: true
-    gap: large
+    gap: middle
     items:
     - resourceRefId: header-row
     - resourceRefId: stats-row

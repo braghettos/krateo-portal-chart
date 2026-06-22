@@ -20,7 +20,7 @@ spec:
     legend: true
     # Mockup status-breakdown: legend stacked to the RIGHT of the donut (not below).
     legendPosition: right
-    height: 220
+    height: 150
     # Semantic slice colors (matches the stat-card status tags).
     colorMap:
       Healthy: green
