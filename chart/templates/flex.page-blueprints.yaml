@@ -12,12 +12,12 @@ spec:
   widgetData:
     allowedResources:
     - flexes
-    - tables
+    - lists
     vertical: true
     gap: large
     items:
     - resourceRefId: blueprints-header
-    - resourceRefId: blueprints-table
+    - resourceRefId: blueprints-grid
   resourcesRefs:
     items:
     - id: blueprints-header
@@ -26,9 +26,9 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: blueprints-table
+    - id: blueprints-grid
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: blueprints-table
+      name: blueprints-grid
       namespace: {{ .Release.Namespace }}
-      resource: tables
+      resource: lists
       verb: GET
