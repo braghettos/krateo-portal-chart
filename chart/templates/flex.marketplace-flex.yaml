@@ -15,7 +15,7 @@ spec:
       - lists
     items:
       - resourceRefId: marketplace-header
-      - resourceRefId: marketplace-filters
+      - resourceRefId: marketplace-category-group
       - resourceRefId: marketplace-grid
   resourcesRefs:
     items:
@@ -25,11 +25,11 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
-      - id: marketplace-filters
+      - id: marketplace-category-group
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-filters
+        name: marketplace-category-group
         namespace: {{ .Release.Namespace }}
-        resource: filters
+        resource: flexes
         verb: GET
       - id: marketplace-grid
         apiVersion: widgets.templates.krateo.io/v1beta1

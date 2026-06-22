@@ -48,7 +48,9 @@ spec:
       filter: '[.compdefs.items[]? | {name: .metadata.name, version: (.spec.chart.version // "")}]'
   filter: >
     ( [ (.compdefs // [])[] | {key: .name, value: .version} ] | from_entries ) as $inst
+    | ((.category) // "all") as $sel
     | {
+        selectedCategory: $sel,
         cards: [
           (((.catalog // {}).entries) // {}) | to_entries[] | .value[0]
           | ( ((.annotations // {})["krateo.io/category"]) // (.keywords[0]) // "uncategorized" ) as $cat
@@ -57,6 +59,7 @@ spec:
               description: (.description // ""),
               category: $cat,
               tags: [ $cat ],
+              icon: ({"compute":"fa-microchip","network":"fa-network-wired","database":"fa-database","application":"fa-cubes","security":"fa-shield-halved","observability":"fa-chart-line","storage":"fa-hard-drive","generator":"fa-wand-magic-sparkles"}[$cat] // "fa-cube"),
               maturity: ((.annotations // {})["krateo.io/maturity"] // ""),
               version: (.version // ""),
               url: (.urls[0] // ""),
@@ -64,5 +67,5 @@ spec:
               installed: ($inst[.name] != null),
               installedVersion: ($inst[.name] // "")
             }
-        ] | sort_by(.name)
+        ] | map(select($sel == "all" or .category == $sel)) | sort_by(.name)
       }
