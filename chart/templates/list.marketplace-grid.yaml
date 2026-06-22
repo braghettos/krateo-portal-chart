@@ -1,11 +1,11 @@
 # Marketplace content — antd `List` in 3-col grid mode, ONE templated tile per
-# blueprint (CompositionDefinition), iterated over `blueprints-cards`. Replaces the
-# retired per-blueprint Card-CR fanout (resourcesRefsTemplate → one widget per
-# blueprint): now a single itemTemplate renders every tile from the catalog's flat
-# data — icon + name + version + a soft-tint category (tier) pill — and the whole
-# tile navigates to the blueprint's create flow (Install → Create). `prefix`
-# wires the marketplace category filter. Honest fields only (name/version/category
-# off the CompositionDefinition); no invented ratings/install-counts.
+# INSTALLABLE blueprint, iterated over `blueprints-catalog` (the braghettos helm-repo
+# index, ~311 charts). A single itemTemplate renders every tile from the catalog's flat
+# data — name + version·maturity + a soft-tint category pill. `prefix` wires the
+# marketplace category facet. Honest fields only (name/version/category/maturity off
+# the helm index); no invented ratings/install-counts. Each tile's ⋯ kebab has an Install
+# action (rowActions → `install`) that POSTs a CompositionDefinition in proper helm-repo
+# form (chart.url = repo base, chart.repo = name, chart.version = version).
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: List
 metadata:
@@ -15,7 +15,7 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   apiRef:
-    name: blueprints-cards
+    name: blueprints-catalog
     namespace: {{ .Release.Namespace }}
   widgetData:
     prefix: marketplace-filters
@@ -26,12 +26,50 @@ spec:
     itemTemplate:
       icon: fa-cube
       primaryText: '{name}'
-      subPrimaryText: 'v{version}'
+      subPrimaryText: 'v{version} · {maturity}'
       secondaryText: '{category}'
       secondaryTextAsTag: true
-      navigateTo: '/marketplace/{namespace}/{name}/new'
+      # Per-tile Install (⋯ kebab) — fires the `install` action below with THIS row's
+      # card data as customPayload (.json.*).
+      rowActions:
+        - actionId: install
+          label: Install
+          icon: fa-download
+    actions:
+      rest:
+        - id: install
+          type: rest
+          resourceRefId: install-blueprint
+          headers:
+            - 'Content-Type: application/json'
+          requireConfirmation: true
+          successMessage: Blueprint install requested
+          loading:
+            display: true
+          # Build a CompositionDefinition in PROPER HELM-REPO form from the card:
+          #   chart.url  = the repo base (index.yaml dir) — derived in the RA (repoUrl)
+          #   chart.repo = the chart name within that repo (the helm "repo name" field)
+          #   chart.version = the desired chart version
+          # snowplow infers apiVersion/kind from the install-blueprint ref's URL; the body
+          # supplies metadata + spec. metadata.namespace comes from the static payload.
+          payload:
+            apiVersion: core.krateo.io/v1alpha1
+            kind: CompositionDefinition
+            metadata:
+              namespace: {{ .Release.Namespace }}
+          payloadToOverride:
+            - { name: metadata.name, value: '${ .json.name }' }
+            - { name: spec, value: '${ { chart: { url: .json.repoUrl, repo: .json.name, version: .json.version } } }' }
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[] | { name: .metadata.name, namespace: .metadata.namespace, version: .version, category: .category } ] }'
+      expression: '${ [ .cards[] | { name: .name, version: .version, category: .category, tags: .tags, maturity: .maturity, installed: .installed, repoUrl: .repoUrl } ] }'
   resourcesRefs:
-    items: []
+    items:
+      # POST target for the Install rowAction: create a CompositionDefinition. POST to the
+      # collection (no name) — snowplow reads apiVersion/resource/namespace here and the
+      # name/spec from the action payload.
+      - id: install-blueprint
+        apiVersion: core.krateo.io/v1alpha1
+        resource: compositiondefinitions
+        namespace: {{ .Release.Namespace }}
+        verb: POST

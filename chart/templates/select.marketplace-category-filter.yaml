@@ -1,8 +1,8 @@
-# Category facet control. Options are DERIVED from the live blueprint Cards' `tags`
-# (via blueprints-cards) — each blueprint repo's GitHub topics. No hardcoded taxonomy:
-# the dropdown shows exactly the topics present among registered blueprints. `name:
-# tags` binds the filter to each card's `tags`; the Filters engine matches by
-# case-insensitive substring, so a card with multiple topics matches any of them.
+# Category facet control. Options are DERIVED from the catalog cards' `tags` (via
+# blueprints-catalog) — the `krateo.io/category` annotation of each indexed blueprint.
+# No hardcoded taxonomy: the dropdown shows exactly the categories present in the
+# helm-repo index. `name: tags` binds the filter to each card's `tags`; the Filters
+# engine matches by case-insensitive substring.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: Select
 metadata:
@@ -10,7 +10,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   apiRef:
-    name: blueprints-cards
+    name: blueprints-catalog
     namespace: {{ .Release.Namespace }}
   widgetData:
     name: tags
