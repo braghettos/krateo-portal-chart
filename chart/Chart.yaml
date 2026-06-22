@@ -19,11 +19,16 @@ version: CHART_VERSION
 
 appVersion: CHART_VERSION
 home: https://krateo.io
-icon: https://github.com/krateoplatformops/krateo/blob/main/docs/media/logo.svg
+icon: https://raw.githubusercontent.com/krateoplatformops/krateo/main/docs/media/logo.svg
 keywords:
   - krateo
   - platformops
   - portal
   - blueprint
+  - composable
 sources:
   - https://github.com/braghettos/portal
+annotations:
+  krateo.io/category: application
+  krateo.io/maturity: stable
+  krateoSupportedVersion: ">= 2.5.1"
