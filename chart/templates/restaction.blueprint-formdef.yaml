@@ -25,6 +25,22 @@ spec:
       verb: GET
       headers:
         - 'Accept: application/json'
+    # Raw values.schema.json (authoring order intact) from the per-version jsonschema
+    # ConfigMap the core-provider/cdc publishes: <resource>-<version>-jsonschema-configmap
+    # (resource = the plural from the compdef status; version = the apiVersion's v-segment).
+    # It is read as a STRING and string-spliced into `stringSchema` below — never parsed and
+    # re-emitted server-side, so the field order survives (the CRD's openAPIV3Schema, by
+    # contrast, is a Go map serialized alphabetically). continueOnError: a blueprint without
+    # the CM simply yields no stringSchema and the Form falls back to the (alphabetical) schemaSpec.
+    - name: jsonschema
+      path: ${ "/api/v1/namespaces/{{ .Release.Namespace }}/configmaps/" + .compdef.status.resource + "-" + (.compdef.status.apiVersion | split("/")[1]) + "-jsonschema-configmap" }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      dependsOn:
+        name: compdef
+      continueOnError: true
+      errorKey: jsonschemaError
     - name: crd
       dependsOn:
         name: compdef
@@ -88,7 +104,26 @@ spec:
     # so the encoder is happy. Non-objects (corrupt draft) fall back to {}.
     | (try (((.drafts.data[$draftKey]) // "") | fromjson) catch {}) as $draftParsed
     | (if ($draftParsed | type) == "object" then ($draftParsed | walk(if type == "number" then . + 0 else . end)) else {} end) as $draft
+    # stringSchema (authoring order): the blueprint's raw values.schema.json (from the jsonschema
+    # CM) with name/namespace identity STRING-spliced in as the first properties and a top-level
+    # required injected. Kept as a STRING — never parsed/re-emitted — so JSON key order survives
+    # to the client (which JSON.parses it). null when the CM is absent or has no "properties": —
+    # the Form then falls back to schemaSpec. $namespaces feeds the namespace enum, as in schemaSpec.
+    | ((.jsonschema.data["values.schema.json"]) // null) as $raw
+    | (if $raw == null then null
+       else ("\"properties\": ") as $n
+         | ($raw | index($n)) as $pi
+         | (if $pi == null then null
+            else ($raw[0:($pi + ($n | length))]) as $pfx
+              | ($raw[($pi + ($n | length)):]) as $rst
+              | ({ name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
+                   namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces } } | tojson) as $id
+              | ($pfx + $id[:-1] + "," + $rst[1:]) as $spliced
+              | "{\"required\":[\"name\",\"namespace\"]," + ($spliced | ltrimstr("{"))
+            end)
+       end) as $stringSchema
     | {
+        stringSchema: $stringSchema,
         schemaSpec: ($spec
           | .properties = ({
               name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },

@@ -17,8 +17,11 @@ spec:
     size: small
     items:
       - title: Blueprint
+        eyebrow: Step 1
         description: Selected
       - title: Configure
+        eyebrow: Step 2
         description: Set parameters
       - title: Review
+        eyebrow: Step 3
         description: Review & create

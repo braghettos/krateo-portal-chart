@@ -39,11 +39,9 @@ spec:
     schema: {}
     buttonConfig:
       primary:
-        # Honest label: this submit CREATES the composition directly (there is no
-        # separate Review page yet), and the success toast already says "Composition
-        # created" — so the action keeps its name through the whole flow. (A real
-        # Configure→Review step is a planned enhancement; until it ships the button
-        # must not promise a review it doesn't perform.)
+        # The Configure-step label is "Review →" (Form.tsx default) — the trailing arrow
+        # glyph is already the mockup's right-side affordance, so NO leading FA icon (it
+        # would double the arrow and sit on the wrong side).
         label: Create composition
       secondary:
         label: Cancel
@@ -51,6 +49,8 @@ spec:
         navigateTo: /marketplace
       draft:
         label: Save draft
+        # Disk on Save-draft (mockup `.actionbar` left).
+        icon: fa-floppy-disk
     actions:
       rest:
         - id: submit
@@ -85,6 +85,12 @@ spec:
   widgetDataTemplate:
     - forPath: schema
       expression: '${ .schemaSpec }'
+    # Order-preserving schema (authoring order): the raw values.schema.json as a STRING; the
+    # Form prefers `stringSchema` over `schema` and JSON.parses it client-side (key insertion
+    # order survives), so fields render in the blueprint's authoring order, not the CRD's
+    # alphabetized map. null when the jsonschema CM is absent → Form falls back to `schema`.
+    - forPath: stringSchema
+      expression: '${ .stringSchema }'
     - forPath: propertiesToHide
       expression: '${ .propertiesToHide }'
     # Resume: a saved draft (+ the __owner key) pre-fills the form. Form merges these
