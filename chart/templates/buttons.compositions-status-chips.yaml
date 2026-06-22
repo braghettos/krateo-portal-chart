@@ -13,7 +13,8 @@
 # counts are echoed by compositions-list (the RA's `.list` is untouched, so the dashboard
 # widgets that share this RA are unaffected). Cost: one compositions-list resolution per
 # chip — chosen for the live counts.
-{{- $opts := list (dict "k" "all" "l" "All") (dict "k" "healthy" "l" "Healthy") (dict "k" "pending" "l" "Pending") (dict "k" "failed" "l" "Failed") }}
+{{- /* `c` = the leading status-dot palette colour (mockup ●cy/●am/●cr); "all" has no dot. */}}
+{{- $opts := list (dict "k" "all" "l" "All" "c" "") (dict "k" "healthy" "l" "Healthy" "c" "green") (dict "k" "pending" "l" "Pending" "c" "orange") (dict "k" "failed" "l" "Failed" "c" "red") }}
 {{- range $opts }}
 ---
 apiVersion: widgets.templates.krateo.io/v1beta1
@@ -29,6 +30,10 @@ spec:
     size: small
     type: default
     variant: outlined
+    {{- if .c }}
+    icon: fa-circle
+    iconColor: {{ .c }}
+    {{- end }}
     clickActionId: set-status-{{ .k }}
     actions:
       navigate:

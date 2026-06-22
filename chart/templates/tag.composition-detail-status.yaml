@@ -1,5 +1,8 @@
 # Status pill next to the title. The conditions→label/color logic lives HERE
 # (widget representation), not in the RA: the RA just supplies the raw object.
+# Honest rollup: a Ready=True comp whose Synced=False is DRIFTED, not Healthy —
+# surface "Drift" (magenta) so a reconcile-paused/diverged comp isn't mislabelled
+# green. Mirrors the compositions-list state language (Healthy/Drift/Degraded/Pending).
 kind: Tag
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -16,8 +19,8 @@ spec:
     color: default
   widgetDataTemplate:
     - forPath: label
-      expression: '${ (.detail.status.conditions // []) as $c | if ($c | length) == 0 then "Unknown" elif ($c | map(select(.type == "Ready" and .status == "True")) | length) > 0 then "Healthy" elif ($c | map(select(.status == "False")) | length) > 0 then "Degraded" else "Pending" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | (($c | map(select(.type == "Ready" and .status == "True")) | length) > 0) as $ready | (($c | map(select(.type == "Synced" and .status == "False")) | length) > 0) as $unsynced | if ($c | length) == 0 then "Unknown" elif $ready and $unsynced then "Drift" elif $ready then "Healthy" elif ($c | map(select(.status == "False")) | length) > 0 then "Degraded" else "Pending" end }'
     - forPath: color
-      expression: '${ (.detail.status.conditions // []) as $c | if ($c | length) == 0 then "default" elif ($c | map(select(.type == "Ready" and .status == "True")) | length) > 0 then "green" elif ($c | map(select(.status == "False")) | length) > 0 then "red" else "gold" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | (($c | map(select(.type == "Ready" and .status == "True")) | length) > 0) as $ready | (($c | map(select(.type == "Synced" and .status == "False")) | length) > 0) as $unsynced | if ($c | length) == 0 then "default" elif $ready and $unsynced then "magenta" elif $ready then "green" elif ($c | map(select(.status == "False")) | length) > 0 then "red" else "gold" end }'
   resourcesRefs:
     items: []

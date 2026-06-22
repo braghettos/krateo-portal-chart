@@ -8,9 +8,6 @@ metadata:
 spec:
   widgetData:
     variant: outlined
-    icon:
-      name: fa-clock
-      color: orange
     items:
     - resourceRefId: stat-reconciles
     - resourceRefId: delta-reconciles

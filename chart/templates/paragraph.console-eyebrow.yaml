@@ -1,0 +1,16 @@
+# Mockup sider `.nav-eyebrow` "Console" — the mono uppercase section caption above the
+# nav items. Static UI label (names the nav section), not data. Renders via the Paragraph
+# `variant: eyebrow` treatment. Global (the sider shows on every page).
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: console-eyebrow
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: Console
+    variant: eyebrow
+  resourcesRefs:
+    items: []

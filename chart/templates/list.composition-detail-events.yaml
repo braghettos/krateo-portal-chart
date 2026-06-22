@@ -1,0 +1,42 @@
+# "Events" feed — this composition's recent events as an antd List (NOT the
+# bespoke non-antd EventList, which is retired under the antd-only widget registry
+# rule). Fed by the composition-events RA (.list = events the sse-proxy >= 1.1.0
+# tagged with THIS composition's krateo.io/composition-id, schema-shaped + capped).
+# Each row = a status dot (by event type) + message + involvedObject ref +
+# reason · relative-time — the mockup `.event` row. Live in-card append was an
+# EventList/SSE concern; live events still surface globally via the SSE bell.
+kind: List
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: list-composition-detail-events
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-events
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    dataSource: []
+    itemLayout: horizontal
+    split: false
+    itemTemplate:
+      iconVariant: dot
+      color:
+        value: '{type}'
+        map:
+          Normal: green
+          Warning: red
+      primaryText: '{message}'
+      subPrimaryText: '{ref}'
+      # Render the involvedObject ref (Kind/name) as a mono bordered pill (mockup `.event` chip).
+      subPrimaryTextMono: true
+      secondaryText: '{reason}'
+      subSecondaryText: '{ts}'
+      formats:
+        subSecondaryText: relative
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ (.list // []) | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.involvedObject.kind // "") + "/" + (.involvedObject.name // "")), ts: (.lastTimestamp // .firstTimestamp // .eventTime // "") }) }'
+  resourcesRefs:
+    items: []

@@ -10,6 +10,10 @@ spec:
     title: Compositions created
     titleVariant: eyebrow
     variant: outlined
+    # LIVE badge — honest: throughput-chart carries a `watch` (refetches when any
+    # composition it counts changes), so the panel auto-updates. Mirrors the mockup's
+    # throughput LIVE pill + the activity-card's live flag.
+    live: true
     # Timeframe + frequency shown inline (top-right of the header) rather than as a
     # body sub-line — removes the dead gap above the chart.
     extra: 'per day · last 14 days'

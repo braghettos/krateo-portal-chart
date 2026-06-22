@@ -2,18 +2,20 @@
 # krateo composition-events source (events flow k8s -> OTel -> ClickHouse ->
 # sse-proxy), NOT raw k8s core events.
 #
-# This page is generic/runtime (the reference blueprint bakes compositionId at
-# Helm time). We GET ALL recent events from the presenter, then scope to THIS
-# composition in the FINAL filter by involvedObject (name+namespace, also uid when
-# resolved) — matching where `?extras` (.name/.namespace) is reliably in scope
-# (the resolve dict is seeded with extras; a per-STEP filter is NOT a safe place
-# to read them, so the discovery + scoping both live in the final filter). The
-# composition's uid is discovered for `compositionId` (used by the EventList's
-# SSE sseEndpoint). exportJwt forwards the user's JWT to the presenter.
-# NOTE: sse-proxy v0.1.0 ignores ?composition_id (returns all); server-side
-# filtering arrives with the enhanced proxy — the client-side scope here is correct
-# regardless. DEPENDS ON the platform's `events-presenter-endpoint` Endpoint + the
-# krateo-sse-proxy stack; absent it, getEvents fails gracefully (continueOnError).
+# This page is generic/runtime. `found` discovers THIS composition's
+# `krateo.io/composition-id` LABEL (the krateo composition-id, NOT the k8s uid) —
+# that is the id the OTel→ClickHouse pipeline tags events with. `getEvents` then
+# asks the presenter to filter SERVER-SIDE via ?composition_id=<that label>
+# (sse-proxy >= 1.1.0, PR #1: bound as a ClickHouse param against
+# LogAttributes['krateo.io/composition-id']). So `list` is already scoped to this
+# composition (incl. its managed resources) — no client-side involvedObject scope
+# needed; we only guard list=[] when the id can't be resolved (else the presenter
+# would return ALL events unfiltered). `compositionId` (the label) also drives the
+# EventList SSE topic/endpoint. Path templates read extras+`.found` safely (full
+# dict); a per-STEP filter does NOT see extras. exportJwt forwards the user's JWT
+# (the proxy validates it only when JWT_SIGN_KEY is set). DEPENDS ON the
+# `sse-proxy-internal-endpoint` Endpoint + the krateo-sse-proxy stack; absent it,
+# getEvents fails gracefully (continueOnError).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -39,11 +41,15 @@ spec:
       headers:
         - 'Accept: application/json'
       continueOnError: true
-      filter: "[.found.items[]? | {name: .metadata.name, namespace: .metadata.namespace, uid: .metadata.uid}]"
+      filter: "[.found.items[]? | {name: .metadata.name, namespace: .metadata.namespace, uid: .metadata.uid, compositionId: (.metadata.labels[\"krateo.io/composition-id\"] // \"\")}]"
     - name: getEvents
       endpointRef:
-        name: events-presenter-endpoint
+        name: sse-proxy-internal-endpoint
         namespace: {{ .Release.Namespace }}
+      # Static path (no dependsOn / dynamic template — those tripped a 400). We GET
+      # recent events and scope to THIS composition CLIENT-SIDE in the final filter
+      # by the `compositionId` field that sse-proxy >= 1.1.0 stamps on every event
+      # (from LogAttributes['krateo.io/composition-id']).
       path: /events?limit=200
       verb: GET
       headers:
@@ -53,12 +59,25 @@ spec:
   filter: >
     (.name) as $n
     | (.namespace) as $ns
-    | ([ .found[]? | select(.name == $n and .namespace == $ns) ][0].uid // "") as $uid
+    | ([ .found[]? | select(.name == $n and .namespace == $ns) ][0].compositionId // "") as $cid
     | ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end ) as $all
     | {
-        list: [
-          $all[]?
-          | select((.involvedObject.name == $n and .involvedObject.namespace == $ns) or (($uid != "") and (.involvedObject.uid == $uid)))
-        ],
-        compositionId: $uid
+        list: (if $cid == "" then []
+               else ( [ $all[]?
+                        | select((.compositionId // "") == $cid)
+                        # conform to the EventList schema (type is enum Normal|Warning,
+                        # required metadata/involvedObject/reason/message/type/source;
+                        # drop the extra compositionId field) — else snowplow 400s.
+                        | { metadata: (.metadata // {}),
+                            involvedObject: (.involvedObject // {}),
+                            reason: (.reason // ""),
+                            message: (.message // ""),
+                            type: (if (.type // "") == "Warning" then "Warning" else "Normal" end),
+                            source: (.source // {}),
+                            firstTimestamp: (.firstTimestamp // .eventTime),
+                            lastTimestamp: (.lastTimestamp // .eventTime),
+                            eventTime: (.eventTime) } ]
+                      | .[0:20] )
+               end),
+        compositionId: $cid
       }

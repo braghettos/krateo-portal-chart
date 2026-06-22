@@ -10,8 +10,14 @@ spec:
     title: Compositions status breakdown
     titleVariant: eyebrow
     variant: outlined
+    # mockup `.badge mono` "N total" readout, top-right of the panel head (Card.extra).
+    extra: ''
     items:
     - resourceRefId: status-donut
+  widgetDataTemplate:
+  - forPath: extra
+    expression: '${ ((.list // []) | length | tostring) + " total" }'
+  apiRef: { name: compositions-list, namespace: {{ .Release.Namespace }} }
   resourcesRefs:
     items:
     - id: status-donut

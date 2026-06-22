@@ -1,4 +1,6 @@
-# "Events" card → this composition's recent k8s Events, as an EventList.
+# "Events" card → this composition's recent events, as an antd List feed (the
+# non-antd EventList is retired). "Live" badge stays (live events flow via the
+# global SSE bell); the in-card feed is the composition-events historical snapshot.
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -9,15 +11,16 @@ metadata:
 spec:
   widgetData:
     title: Events
-    # SSE-backed feed — "Live" badge renders inline with the title.
+    titleVariant: eyebrow
+    variant: outlined
     live: true
     items:
-      - resourceRefId: eventlist-composition-detail-events
+      - resourceRefId: list-composition-detail-events
   resourcesRefs:
     items:
-      - id: eventlist-composition-detail-events
+      - id: list-composition-detail-events
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: eventlist-composition-detail-events
+        name: list-composition-detail-events
         namespace: {{ .Release.Namespace }}
-        resource: eventlists
+        resource: lists
         verb: GET

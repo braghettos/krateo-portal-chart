@@ -13,10 +13,17 @@ spec:
     - paragraphs
     vertical: true
     items:
+    - resourceRefId: marketplace-eyebrow
     - resourceRefId: marketplace-title
     - resourceRefId: marketplace-subtitle
   resourcesRefs:
     items:
+    - id: marketplace-eyebrow
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: marketplace-eyebrow
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
     - id: marketplace-title
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: marketplace-title

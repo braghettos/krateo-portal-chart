@@ -8,9 +8,6 @@ metadata:
 spec:
   widgetData:
     variant: outlined
-    icon:
-      name: fa-triangle-exclamation
-      color: red
     # Whole-card CTA: clicking the Failed stat jumps to the compositions list already
     # filtered to the failed ones (?status=failed read by compositions-list from extras).
     clickActionId: view-failed

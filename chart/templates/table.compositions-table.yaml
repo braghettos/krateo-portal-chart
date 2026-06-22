@@ -21,6 +21,8 @@ spec:
       title: Namespace
     - valueKey: status
       title: Status
+    - valueKey: reconcile
+      title: Reconcile
     - valueKey: age
       title: Created
     dataSource: []
@@ -31,9 +33,10 @@ spec:
   widgetDataTemplate:
   # Rows come from `.filtered` (compositions-list applies the toolbar's status + time
   # filters server-side via ?status/?range/?from/?to); `.list` stays the dashboard's
-  # full set. Status cell uses the pre-derived `.state` from the RA.
+  # full set. Status cell uses the pre-derived `.railState` (4 states incl. drift) so
+  # a Ready-but-Synced=false composition reads magenta "Drift", not gold "Pending".
   - forPath: dataSource
-    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"tag",stringValue:( .state | if .=="healthy" then "Healthy" elif .=="failed" then "Failed" else "Pending" end ),color:( .state | if .=="healthy" then "green" elif .=="failed" then "red" else "gold" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"tag",stringValue:( .railState | if .=="healthy" then "Healthy" elif .=="failed" then "Failed" elif .=="drift" then "Drift" else "Pending" end ),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "gold" end )}, {valueKey:"reconcile",kind:"bar",stringValue:(.healthPercent|tostring),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   apiRef:

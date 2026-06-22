@@ -1,7 +1,9 @@
+# Title + subtitle stack for the /settings page head (mirrors compositions-title-stack).
+# Settings mockup .pg-head has no eyebrow — just H1 + subtitle.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
-  name: header-greeting-flex
+  name: settings-title-stack
   namespace: {{ .Release.Namespace }}
   annotations:
     "krateo.io/verbose": "true"
@@ -11,26 +13,19 @@ spec:
     - paragraphs
     vertical: true
     items:
-    - resourceRefId: greeting-eyebrow
-    - resourceRefId: greeting-title
-    - resourceRefId: greeting-subtitle
+    - resourceRefId: settings-title
+    - resourceRefId: settings-subtitle
   resourcesRefs:
     items:
-    - id: greeting-eyebrow
+    - id: settings-title
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: greeting-eyebrow
+      name: settings-title
       namespace: {{ .Release.Namespace }}
       resource: paragraphs
       verb: GET
-    - id: greeting-title
+    - id: settings-subtitle
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: greeting-title
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: greeting-subtitle
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: greeting-subtitle
+      name: settings-subtitle
       namespace: {{ .Release.Namespace }}
       resource: paragraphs
       verb: GET

@@ -20,13 +20,21 @@ spec:
       - tags
       - selects
       - menus
+      - paragraphs
     items:
       - resourceRefId: brand
       - resourceRefId: tenant-chip
       - resourceRefId: project-select
+      - resourceRefId: console-eyebrow
       - resourceRefId: nav
   resourcesRefs:
     items:
+      - id: console-eyebrow
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: console-eyebrow
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET
       - id: brand
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: brand-logo

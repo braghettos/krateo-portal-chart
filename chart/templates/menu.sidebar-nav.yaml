@@ -71,7 +71,7 @@ spec:
         verb: GET
       - id: settings
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: settings-admin
+        name: page-settings
         namespace: {{ .Release.Namespace }}
-        resource: tabs
+        resource: flexes
         verb: GET

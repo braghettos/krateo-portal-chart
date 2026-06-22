@@ -1,0 +1,35 @@
+# Reconciliation band (detail page signature element) — wraps the per-resource
+# rail List. Eyebrow title + a state badge (CONVERGED / N DRIFT / N DEGRADED /
+# RECONCILING) derived from the composition-resources aggregate. Mirrors the
+# mockup `.rail-panel` placed directly under the title, above the 2-col grid.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-composition-detail-rail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Reconciliation · desired vs actual
+    titleVariant: eyebrow
+    variant: outlined
+    extra: ''
+    extraVariant: badge
+    extraStatus: processing
+    items:
+    - resourceRefId: list-composition-detail-rail
+  widgetDataTemplate:
+  - forPath: extra
+    expression: '${ if .converged then "CONVERGED" elif (.failedCount > 0) then ((.failedCount | tostring) + " DEGRADED") elif (.driftCount > 0) then ((.driftCount | tostring) + " DRIFT") else "RECONCILING" end }'
+  - forPath: extraStatus
+    expression: '${ if .converged then "processing" elif (.failedCount > 0) then "error" elif (.driftCount > 0) then "warning" else "default" end }'
+  apiRef: { name: composition-resources, namespace: {{ .Release.Namespace }} }
+  resourcesRefs:
+    items:
+    - id: list-composition-detail-rail
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: list-composition-detail-rail
+      namespace: {{ .Release.Namespace }}
+      resource: lists
+      verb: GET

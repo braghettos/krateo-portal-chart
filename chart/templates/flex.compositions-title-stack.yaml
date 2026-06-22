@@ -13,10 +13,17 @@ spec:
     - paragraphs
     vertical: true
     items:
+    - resourceRefId: compositions-eyebrow
     - resourceRefId: compositions-title
     - resourceRefId: compositions-subtitle
   resourcesRefs:
     items:
+    - id: compositions-eyebrow
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-eyebrow
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
     - id: compositions-title
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: compositions-title

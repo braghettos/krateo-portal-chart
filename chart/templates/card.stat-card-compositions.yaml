@@ -8,9 +8,6 @@ metadata:
 spec:
   widgetData:
     variant: outlined
-    icon:
-      name: fa-layer-group
-      color: primary
     items:
     - resourceRefId: stat-compositions
     - resourceRefId: delta-compositions

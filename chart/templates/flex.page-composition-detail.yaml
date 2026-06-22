@@ -18,8 +18,10 @@ spec:
     allowedResources:
       - flexes
       - rows
+      - cards
     items:
       - resourceRefId: composition-detail-header-block
+      - resourceRefId: card-composition-detail-rail
       - resourceRefId: composition-detail-grid
   resourcesRefs:
     items:
@@ -28,6 +30,12 @@ spec:
         name: composition-detail-header-block
         namespace: {{ .Release.Namespace }}
         resource: flexes
+        verb: GET
+      - id: card-composition-detail-rail
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-rail
+        namespace: {{ .Release.Namespace }}
+        resource: cards
         verb: GET
       - id: composition-detail-grid
         apiVersion: widgets.templates.krateo.io/v1beta1

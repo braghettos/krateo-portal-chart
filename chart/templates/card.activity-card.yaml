@@ -10,16 +10,16 @@ spec:
     title: Recent activity
     titleVariant: eyebrow
     variant: outlined
-    # SSE-backed feed — "Live" badge renders inline with the title.
+    # Live events surface via the global SSE bell; this is the recent-activity snapshot.
     live: true
     extra: View all
     items:
-    - resourceRefId: activity-events
+    - resourceRefId: list-activity-events
   resourcesRefs:
     items:
-    - id: activity-events
+    - id: list-activity-events
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: activity-events
+      name: list-activity-events
       namespace: {{ .Release.Namespace }}
-      resource: eventlists
+      resource: lists
       verb: GET

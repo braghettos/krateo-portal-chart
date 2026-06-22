@@ -1,0 +1,127 @@
+# Per-resource reconciliation rail data (detail page signature). Resolves the
+# target composition's managed resources (from ?extras .name/.namespace) and
+# FETCHES each to read its live ready state.
+#
+# Snowplow execution contract (verified against source): a step `filter` sees
+# ONLY that step's response (NOT extras); the `iterator` expression is evaluated
+# against the FULL dict (extras + prior stages) and must yield a JSON array; the
+# `path` template is evaluated per yielded element. So:
+#   crds      → list composition.krateo.io CRDs.
+#   found     → per CRD, emit EVERY composition's managed entries (the step
+#               filter can't see extras), each TAGGED with its parent name/ns
+#               (_cn/_cns) + a reconstructed fetchable GET path (_getpath).
+#               Krateo's .status.managed[].path omits the namespace for
+#               namespaced kinds (→404), so inject /namespaces/<compNs>/;
+#               cluster-scoped kinds keep .path.
+#   resources → ITERATOR (full dict) filters _cn/_cns to the target (only the
+#               target's ~N resources are fetched), GETs each at _getpath, and
+#               its filter shapes the live object to {kind,name,ns,conditions}.
+# Final filter derives per-resource state (Ready×Synced / Available / ready-by-
+# presence) + aggregate. Nothing hardcoded (the cluster-scoped kind list is
+# static k8s API scoping, not derived data).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: composition-resources
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: crds
+      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0]}]"
+      continueOnError: true
+    - name: found
+      dependsOn:
+        name: crds
+        iterator: .crds
+      path: ${ "/apis/composition.krateo.io/" + (.version) + "/" + (.plural) }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      # Emit ALL managed entries (every composition of this kind), each tagged
+      # with parent _cn/_cns + reconstructed _getpath. No extras here (the step
+      # filter can't see them) — the resources iterator selects the target.
+      filter: >
+        (["clusterroles","clusterrolebindings","namespaces","customresourcedefinitions","clusterissuers","persistentvolumes","storageclasses","nodes","priorityclasses","validatingwebhookconfigurations","mutatingwebhookconfigurations","apiservices","certificatesigningrequests","podsecuritypolicies","ingressclasses","runtimeclasses","csidrivers","csinodes","volumeattachments"]) as $clusterKinds
+        | [ .found.items[]?
+            | . as $comp
+            | ($comp.metadata.name) as $cn
+            | ($comp.metadata.namespace) as $cns
+            | ($comp.status.managed // [])[]
+            | . as $m
+            | ($m.path | split("/")) as $p
+            | ($p[-2]) as $res | ($p[-1]) as $nm | ($p[0:-2] | join("/")) as $pre
+            | ($clusterKinds | index($res)) as $cluster
+            | { _cn: $cn, _cns: $cns, _kind: $res, _name: $nm,
+                _getpath: (if $cluster != null then $m.path
+                           else ($pre + "/namespaces/" + $cns + "/" + $res + "/" + $nm) end) } ]
+    - name: resources
+      dependsOn:
+        name: found
+        # full-dict context: bind extras then select this composition's entries.
+        iterator: '.name as $n | .namespace as $ns | [ .found[] | select(._cn == $n and ._cns == $ns) ]'
+      path: ${ ._getpath }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: resErr
+      # Shape each fetched live object to {rkind,rname,rns,conditions} (1-elem
+      # array; 404s/Status drop to []). (.resources // .) tolerates either
+      # dict-keyed or root-bound response shapes across dispatch paths.
+      filter: >
+        [ (.resources // .)
+          | select(type == "object" and (.kind // "") != "Status" and (.metadata.name // "") != "")
+          | { rkind: (.kind // ""), rname: .metadata.name, rns: (.metadata.namespace // ""), conditions: (.status.conditions // []) } ]
+  # Authoritative row list = the composition's DECLARED managed resources (.found,
+  # target-filtered) → total is always the true managed count, independent of
+  # whether every per-resource GET round-tripped (the informer dispatch can drop
+  # core kinds). Live state is JOINED from the fetched objects (.resources) by
+  # name(+ns); kind prefers the fetched object's kind, falls back to the managed
+  # plural. A managed resource with no fetched conditions = healthy-by-presence.
+  filter: >
+    (.name) as $n | (.namespace) as $ns
+    | ({"serviceaccounts":"ServiceAccount","configmaps":"ConfigMap","secrets":"Secret","services":"Service","endpoints":"Endpoints","persistentvolumeclaims":"PersistentVolumeClaim","deployments":"Deployment","replicasets":"ReplicaSet","statefulsets":"StatefulSet","daemonsets":"DaemonSet","pods":"Pod","jobs":"Job","cronjobs":"CronJob","clusterroles":"ClusterRole","clusterrolebindings":"ClusterRoleBinding","roles":"Role","rolebindings":"RoleBinding","ingresses":"Ingress","networkpolicies":"NetworkPolicy","namespaces":"Namespace"}) as $kindMap
+    | ( [ .found[]? | select(._cn == $n and ._cns == $ns) ] ) as $managed
+    | ( [ .resources ] | flatten | map(select(type == "object" and (.rname // "") != "")) ) as $fetched
+    | ( $managed | map(
+          . as $m
+          | ( [ $fetched[] | select(.rname == $m._name and ((.rns == $m._cns) or (.rns == ""))) ][0] ) as $obj
+          | (($obj.conditions) // []) as $c
+          | ([ $c[]? | select(.type == "Ready" or .type == "Available") ][0]) as $rc
+          | ($rc.status == "True") as $ready
+          | ($rc.status == "False") as $notready
+          | (any($c[]?; .type == "Synced" and .status == "False")) as $unsynced
+          | (($c | length) == 0) as $noconds
+          | {
+              kind: ($kindMap[$m._kind] // (if (($obj.rkind) // "") != "" then $obj.rkind else (($m._kind | .[0:1] | ascii_upcase) + ($m._kind[1:] | sub("s$"; ""))) end)),
+              name: $m._name,
+              ns: $m._cns,
+              state: (if $noconds then "healthy"
+                      elif $ready and ($unsynced | not) then "healthy"
+                      elif $ready and $unsynced then "drift"
+                      elif $notready then "failed"
+                      else "pending" end),
+              healthPercent: (if $noconds or ($ready and ($unsynced|not)) then 100
+                              elif $ready and $unsynced then 70
+                              elif $notready then 20 else 50 end)
+            } )
+      ) as $rows
+    | ($rows | length) as $total
+    | ($rows | map(select(.state == "healthy")) | length) as $healthy
+    | {
+        resources: $rows,
+        total: $total,
+        healthyCount: $healthy,
+        driftCount: ($rows | map(select(.state == "drift")) | length),
+        failedCount: ($rows | map(select(.state == "failed")) | length),
+        pendingCount: ($rows | map(select(.state == "pending")) | length),
+        convergencePercent: (if $total > 0 then (($healthy * 100 / $total) | floor) else 0 end),
+        converged: ($total > 0 and $healthy == $total)
+      }
