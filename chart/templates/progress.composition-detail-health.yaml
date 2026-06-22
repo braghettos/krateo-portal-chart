@@ -22,10 +22,17 @@ spec:
     # strokeColor enum maps via getColorCode → Petrol hexes: green=#34D6C8 (cyan),
     # violet=#D86BC4 (magenta/drift), orange=#F2A33C (amber/pending), red=crimson.
     strokeColor: green
+    # ring-label (state · % converged, tinted strokeColor) + ring-sub (M-of-N, graphite)
+    label: ""
+    description: ""
   widgetDataTemplate:
     - forPath: percent
       expression: '${ (.detail.status.conditions // []) as $c | if ($c | length) > 0 then (($c | map(select(.status == "True")) | length) * 100 / ($c | length) | floor) else 0 end }'
     - forPath: strokeColor
       expression: '${ (.detail.status.conditions // []) as $c | (($c | map(select(.type == "Ready" and .status == "True")) | length) > 0) as $ready | (($c | map(select(.type == "Synced" and .status == "False")) | length) > 0) as $unsynced | if $ready and $unsynced then "violet" elif $ready then "green" elif ($c | map(select(.status == "False")) | length) > 0 then "red" else "orange" end }'
+    - forPath: label
+      expression: '${ (.detail.status.conditions // []) as $c | (($c | map(select(.type == "Ready" and .status == "True")) | length) > 0) as $ready | (($c | map(select(.type == "Synced" and .status == "False")) | length) > 0) as $unsynced | (if ($c | length) == 0 then "Unknown" elif $ready and $unsynced then "Drift" elif $ready then "Healthy" elif ($c | map(select(.status == "False")) | length) > 0 then "Degraded" else "Pending" end) as $state | (if ($c | length) > 0 then (($c | map(select(.status == "True")) | length) * 100 / ($c | length) | floor) else 0 end) as $pct | ($state + " · " + ($pct | tostring) + "% converged") }'
+    - forPath: description
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.status == "True")) | length) as $t | ($c | length) as $n | (if $n == 0 then "no conditions reported" elif $t == $n then "all conditions True" else ($t | tostring) + " of " + ($n | tostring) + " conditions True" end) }'
   resourcesRefs:
     items: []
