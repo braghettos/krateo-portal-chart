@@ -3,9 +3,9 @@
 # index, ~311 charts). A single itemTemplate renders every tile from the catalog's flat
 # data — name + version·maturity + a soft-tint category pill. `prefix` wires the
 # marketplace category facet. Honest fields only (name/version/category/maturity off
-# the helm index); no invented ratings/install-counts. Each tile's ⋯ kebab has an Install
-# action (rowActions → `install`) that POSTs a CompositionDefinition in proper helm-repo
-# form (chart.url = repo base, chart.repo = name, chart.version = version).
+# the helm index); no invented ratings/install-counts. Each tile's footer Install button
+# (rowActions → `install`, a navigate action) opens the install form at
+# /marketplace/{name}/install, which renders the CompositionDefinition CRD and deploys it.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: List
 metadata:
@@ -50,47 +50,20 @@ spec:
           application: amber
           generator: cyan
         default: gray
-      # Per-tile Install — rendered as a VISIBLE footer button (card variant) — fires the
-      # `install` action with THIS row's card data as customPayload (.json.*).
+      # Per-tile Install — a VISIBLE footer button (card variant). It NAVIGATES to the install
+      # form for THIS row (${name} interpolated from the card's customPayload), where the user
+      # reviews the CompositionDefinition (CRD schema, chart pre-filled) and deploys it.
       rowActions:
         - actionId: install
           label: Install
           icon: fa-download
     actions:
-      rest:
+      navigate:
         - id: install
-          type: rest
-          resourceRefId: install-blueprint
-          headers:
-            - 'Content-Type: application/json'
-          requireConfirmation: true
-          successMessage: Blueprint install requested
-          loading:
-            display: true
-          # Build a CompositionDefinition in PROPER HELM-REPO form from the card:
-          #   chart.url  = the repo base (index.yaml dir) — derived in the RA (repoUrl)
-          #   chart.repo = the chart name within that repo (the helm "repo name" field)
-          #   chart.version = the desired chart version
-          # snowplow infers apiVersion/kind from the install-blueprint ref's URL; the body
-          # supplies metadata + spec. metadata.namespace comes from the static payload.
-          payload:
-            apiVersion: core.krateo.io/v1alpha1
-            kind: CompositionDefinition
-            metadata:
-              namespace: {{ .Release.Namespace }}
-          payloadToOverride:
-            - { name: metadata.name, value: '${ .json.name }' }
-            - { name: spec, value: '${ { chart: { url: .json.repoUrl, repo: .json.name, version: .json.version } } }' }
+          type: navigate
+          path: /marketplace/${name}/install
   widgetDataTemplate:
     - forPath: dataSource
       expression: '${ [ .cards[] | { name: .name, version: .version, category: .category, tags: .tags, maturity: .maturity, installed: .installed, repoUrl: .repoUrl, icon: .icon, description: .description } ] }'
   resourcesRefs:
-    items:
-      # POST target for the Install rowAction: create a CompositionDefinition. POST to the
-      # collection (no name) — snowplow reads apiVersion/resource/namespace here and the
-      # name/spec from the action payload.
-      - id: install-blueprint
-        apiVersion: core.krateo.io/v1alpha1
-        resource: compositiondefinitions
-        namespace: {{ .Release.Namespace }}
-        verb: POST
+    items: []

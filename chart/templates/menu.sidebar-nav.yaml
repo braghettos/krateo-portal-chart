@@ -37,6 +37,9 @@ spec:
       # (compositions-panels RA) since the route param rides through as extras.
       - { order: 905, path: "/compositions/{namespace}",          page: compositions }
       - { order: 910, path: "/marketplace/{namespace}/{name}/new", page: blueprint-create }
+      # Install a blueprint = deploy a CompositionDefinition (the marketplace card's Install
+      # navigates here with the blueprint name; the form renders the CompositionDefinition CRD).
+      - { order: 915, path: "/marketplace/{name}/install", page: blueprint-install }
   resourcesRefs:
     items:
       - id: dashboard
