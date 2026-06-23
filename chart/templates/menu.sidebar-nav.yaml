@@ -33,8 +33,8 @@ spec:
       # {param} braces would otherwise be read as YAML flow mappings.
       - { order: 900, path: "/compositions/{namespace}/{name}",   page: composition-detail }
       # per-namespace compositions list — the namespace breadcrumb crumb links here.
-      # Reuses page-compositions; its datagrid self-filters by ?extras.namespace
-      # (compositions-panels RA) since the route param rides through as extras.
+      # Reuses page-compositions; its compositions-table self-filters by ?extras.namespace
+      # (compositions-list RA) since the route param rides through as extras.
       - { order: 905, path: "/compositions/{namespace}",          page: compositions }
       - { order: 910, path: "/blueprints/{namespace}/{name}/new", page: blueprint-create }
       # Install a blueprint = deploy a CompositionDefinition (the marketplace card's Install
