@@ -3,7 +3,7 @@
 # deduped/sorted, NOT composition-filtered). Each row = a status dot (by type) +
 # message + involvedObject ref + reason · relative-time. Live append was an
 # EventList/SSE concern; live events surface globally via the SSE bell.
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: list-activity-events

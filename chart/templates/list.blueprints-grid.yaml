@@ -6,7 +6,7 @@
 # The card body shows "provisions · <composition kind>" (status.kind, e.g. KrateoAuthn) — what the
 # blueprint deploys (mockup `.prov`); falls back to the chart source for any compdef with no kind.
 apiVersion: widgets.templates.krateo.io/v1beta1
-kind: List
+kind: Listy
 metadata:
   name: blueprints-grid
   namespace: {{ .Release.Namespace }}

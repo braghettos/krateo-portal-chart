@@ -6,7 +6,7 @@
 # (compositions → /compositions/{ns}/{name}; blueprints → /marketplace/{ns}/{name}/new),
 # so a hit SPA-navigates to its detail/create route (the §A per-row navigate slice).
 # A leading dot colors by result type (composition vs blueprint) for scannability.
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: search-results

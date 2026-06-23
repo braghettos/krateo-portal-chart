@@ -4,7 +4,7 @@
 # Honest-data: there is no backable per-blueprint "installs" metric, so the
 # mockup's install counts are dropped; we show the 5 most-recently-registered
 # blueprints with their real tags as the category line.
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: blueprints-list

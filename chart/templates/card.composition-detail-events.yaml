@@ -22,5 +22,5 @@ spec:
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: list-composition-detail-events
         namespace: {{ .Release.Namespace }}
-        resource: lists
+        resource: listies
         verb: GET

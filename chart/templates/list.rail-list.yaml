@@ -5,7 +5,7 @@
 # Non-healthy compositions sort first (a paused/drifting composition surfaces at
 # the top). Per-composition (cheap, composition-level Ready×Synced); the per-
 # managed-resource rail lives on the detail page (composition-resources RA).
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: rail-list
