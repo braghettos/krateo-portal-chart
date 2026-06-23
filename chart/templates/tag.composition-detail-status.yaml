@@ -17,10 +17,12 @@ spec:
   widgetData:
     label: Unknown
     color: default
+  # Title tag = the composition's REAL `Ready` condition (not a derived Healthy/Drift label):
+  # Ready=True → "Ready" (cyan), Ready=False → "Not Ready" (red/crimson), absent → "Unknown" (gray).
   widgetDataTemplate:
     - forPath: label
-      expression: '${ (.detail.status.conditions // []) as $c | (($c | map(select(.type == "Ready" and .status == "True")) | length) > 0) as $ready | (($c | map(select(.type == "Synced" and .status == "False")) | length) > 0) as $unsynced | if ($c | length) == 0 then "Unknown" elif $ready and $unsynced then "Drift" elif $ready then "Healthy" elif ($c | map(select(.status == "False")) | length) > 0 then "Degraded" else "Pending" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if $r == null then "Unknown" elif $r.status == "True" then "Ready" else "Not Ready" end }'
     - forPath: color
-      expression: '${ (.detail.status.conditions // []) as $c | (($c | map(select(.type == "Ready" and .status == "True")) | length) > 0) as $ready | (($c | map(select(.type == "Synced" and .status == "False")) | length) > 0) as $unsynced | if ($c | length) == 0 then "default" elif $ready and $unsynced then "magenta" elif $ready then "green" elif ($c | map(select(.status == "False")) | length) > 0 then "red" else "gold" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if $r == null then "gray" elif $r.status == "True" then "cyan" else "red" end }'
   resourcesRefs:
     items: []

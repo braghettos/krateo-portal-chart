@@ -1,0 +1,42 @@
+# Blueprints category filter — always-visible toggle chips, mirroring the marketplace
+# category-chip mechanism (buttons.marketplace-category-chips) but with the taxonomy the
+# INSTALLED blueprints actually carry: the krateo.io/tier set (platform / observability) plus
+# the "blueprint" fallback bucket, + "All". Each chip NAVIGATES to /blueprints?category=<k>
+# (the `category` extras the blueprints-cards RA reads to filter server-side); the active chip
+# reads back `.selectedCategory` (echoed by the RA) → solid amber (type:primary), the rest stay
+# outlined. NOTE: the installed blueprints are krateo platform components categorized by tier,
+# a different taxonomy from the marketplace's index krateo.io/category (compute/network/...),
+# so the chip set differs by design — it matches the real data on each page.
+{{- $cats := list (dict "k" "all" "l" "All") (dict "k" "platform" "l" "Platform") (dict "k" "observability" "l" "Observability") (dict "k" "blueprint" "l" "Blueprint") }}
+{{- range $cats }}
+---
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Button
+metadata:
+  name: bp-cat-btn-{{ .k }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: {{ .l | quote }}
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: set-cat-{{ .k }}
+    actions:
+      navigate:
+        - id: set-cat-{{ .k }}
+          type: navigate
+          path: {{ if eq .k "all" }}/blueprints{{ else }}/blueprints?category={{ .k }}{{ end }}
+  widgetDataTemplate:
+    - forPath: type
+      expression: '${ if (.selectedCategory // "all") == {{ .k | quote }} then "primary" else "default" end }'
+    - forPath: variant
+      expression: '${ if (.selectedCategory // "all") == {{ .k | quote }} then "filled" else "outlined" end }'
+  apiRef:
+    name: blueprints-cards
+    namespace: {{ $.Release.Namespace }}
+  resourcesRefs:
+    items: []
+{{- end }}

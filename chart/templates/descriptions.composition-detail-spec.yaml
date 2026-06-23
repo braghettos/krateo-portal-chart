@@ -16,11 +16,16 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     column: 1
-    bordered: true
+    # Form-style (read-only mirror of the create Form): connector-rail label/value fields grouped
+    # into sections — top-level scalars ungrouped, each nested object becomes its own labelled section.
+    variant: form
+    bordered: false
     size: small
     items: []
   widgetDataTemplate:
+    # Each scalar leaf → { section, label, value }: a top-level scalar (path length 1) has no section;
+    # a nested scalar groups under its FIRST path segment, with the remaining path as the label.
     - forPath: items
-      expression: '${ (.detail.spec // {}) as $s | [ $s | paths(scalars) as $p | { label: ($p | map(tostring) | join(".")), value: ($s | getpath($p) | tostring) } ] }'
+      expression: '${ (.detail.spec // {}) as $s | [ $s | paths(scalars) as $p | { section: (if ($p|length) > 1 then ($p[0]|tostring) else "" end), label: (if ($p|length) > 1 then ($p[1:] | map(tostring) | join(".")) else ($p[0]|tostring) end), value: ($s | getpath($p) | tostring) } ] }'
   resourcesRefs:
     items: []

@@ -10,12 +10,14 @@ spec:
     label: New composition
     type: primary
     icon: fa-plus
-    # Navigate to the Marketplace (the blueprint picker) → Install → Create flow.
+    # A composition is created ONLY from an installed blueprint → navigate to /blueprints
+    # (the installed-blueprint catalog); pick one → its detail page → Create. The Marketplace
+    # is for INSTALLING blueprints (deploying CompositionDefinitions), not creating compositions.
     clickActionId: new-composition-nav
     actions:
       navigate:
         - id: new-composition-nav
-          path: /marketplace
+          path: /blueprints
           type: navigate
   resourcesRefs:
     items: []

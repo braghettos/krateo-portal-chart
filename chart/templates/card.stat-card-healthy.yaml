@@ -8,6 +8,13 @@ metadata:
 spec:
   widgetData:
     variant: outlined
+    # D4: whole-card CTA → compositions filtered to the healthy ones (?status=healthy).
+    clickActionId: view-healthy
+    widgetActions:
+      navigate:
+        - id: view-healthy
+          type: navigate
+          path: /compositions?status=healthy
     items:
     - resourceRefId: stat-healthy
     - resourceRefId: delta-healthy

@@ -9,7 +9,7 @@ metadata:
 spec:
   widgetData:
     vertical: true
-    gap: middle
+    gap: small
     allowedResources:
       - cards
     items:

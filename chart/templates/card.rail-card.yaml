@@ -12,7 +12,9 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Reconciliation rail · desired vs actual
+    # Title names WHAT each bar is (D2: users couldn't tell the rows were compositions,
+    # not CompositionDefinitions). Each row = one composition's Ready×Synced convergence.
+    title: Reconciliation rail · per composition · desired vs actual
     titleVariant: eyebrow
     variant: outlined
     # Explicit false (not omitted) so `kubectl apply` merges OFF the prior live:true

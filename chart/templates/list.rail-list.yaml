@@ -23,6 +23,8 @@ spec:
     itemTemplate:
       primaryText: '{name}'
       subPrimaryText: '{ns}'
+      # D4: each rail row is clickable → that composition's detail page (logs/manifest/relations).
+      navigateTo: '/compositions/{ns}/{name}'
       bar:
         percent: '{healthPercent}'
         color:

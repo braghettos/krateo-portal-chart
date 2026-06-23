@@ -8,6 +8,13 @@ metadata:
 spec:
   widgetData:
     variant: outlined
+    # D4: whole-card CTA → the compositions list (reconcile activity → the live set).
+    clickActionId: view-all-reconciles
+    widgetActions:
+      navigate:
+        - id: view-all-reconciles
+          type: navigate
+          path: /compositions
     items:
     - resourceRefId: stat-reconciles
     - resourceRefId: delta-reconciles

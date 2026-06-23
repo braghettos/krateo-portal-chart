@@ -9,7 +9,7 @@ spec:
   widgetData:
     allowedResources: []
     bordered: false
-    size: middle
+    size: small
     # Row click → the composition detail page ({ns}/{name} from the row's cells).
     rowNavigateTo: /compositions/{ns}/{name}
     columns:
@@ -36,7 +36,7 @@ spec:
   # full set. Status cell uses the pre-derived `.railState` (4 states incl. drift) so
   # a Ready-but-Synced=false composition reads magenta "Drift", not gold "Pending".
   - forPath: dataSource
-    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"tag",stringValue:( .railState | if .=="healthy" then "Healthy" elif .=="failed" then "Failed" elif .=="drift" then "Drift" else "Pending" end ),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "gold" end )}, {valueKey:"reconcile",kind:"bar",stringValue:(.healthPercent|tostring),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"conditions",stringValue:(((.conditions // []) | map({type:.type, status:.status})) | tojson)}, {valueKey:"reconcile",kind:"bar",stringValue:(.healthPercent|tostring),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   apiRef:

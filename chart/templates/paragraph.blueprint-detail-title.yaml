@@ -1,0 +1,21 @@
+# Blueprint detail page title — the blueprint's name as an H2 (Paragraph `level`), mirroring
+# composition-detail-header. Text is the blueprint name resolved server-side from ?extras.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprint-detail-title
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprint-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: Blueprint
+    level: 2
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .name }'
+  resourcesRefs:
+    items: []

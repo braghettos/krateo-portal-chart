@@ -42,10 +42,19 @@ spec:
              },
              version: (.spec.chart.version // ""),
              chart: (.spec.chart.url // ""),
+             provisions: (.status.kind // .status.managed.kind // ""),
              category: $cat,
              tags: [ $cat ]
            }]
+  # `category` arrives via ?extras (the /blueprints?category=<k> chip navigation). Echo it as
+  # selectedCategory (the active-chip read-back) and filter the cards by the blueprint tier
+  # (platform/observability/blueprint). "all" / no param shows every blueprint. The dashboard
+  # "Top blueprints" reuse passes no ?category, so $sel defaults to "all" → unfiltered.
   filter: >
-    {
-      cards: ((.compdefs // []) | sort_by(.metadata.name // ""))
-    }
+    ((.category) // "all") as $sel
+    | {
+        selectedCategory: $sel,
+        cards: ((.compdefs // [])
+          | sort_by(.metadata.name // "")
+          | map(select($sel == "all" or .category == $sel)))
+      }

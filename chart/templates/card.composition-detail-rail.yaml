@@ -19,12 +19,15 @@ spec:
     extraStatus: processing
     items:
     - resourceRefId: list-composition-detail-rail
+  # Badge = the composition's REAL `Synced` condition (not a derived CONVERGED/RECONCILING label):
+  # Synced=True → "SYNCED" (cyan/success), False → "NOT SYNCED" (crimson/error), absent → "UNKNOWN".
+  # (The per-resource bars below still come from composition-resources via the rail List's own apiRef.)
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ if .converged then "CONVERGED" elif (.failedCount > 0) then ((.failedCount | tostring) + " DEGRADED") elif (.driftCount > 0) then ((.driftCount | tostring) + " DRIFT") else "RECONCILING" end }'
+    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if $s == null then "UNKNOWN" elif $s.status == "True" then "SYNCED" else "NOT SYNCED" end }'
   - forPath: extraStatus
-    expression: '${ if .converged then "processing" elif (.failedCount > 0) then "error" elif (.driftCount > 0) then "warning" else "default" end }'
-  apiRef: { name: composition-resources, namespace: {{ .Release.Namespace }} }
+    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if $s == null then "default" elif $s.status == "True" then "success" else "error" end }'
+  apiRef: { name: composition-detail, namespace: {{ .Release.Namespace }} }
   resourcesRefs:
     items:
     - id: list-composition-detail-rail

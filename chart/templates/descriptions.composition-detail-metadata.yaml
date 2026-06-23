@@ -13,11 +13,14 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     column: 1
-    bordered: true
+    # Form-style (read-only mirror of the create Form): connector-rail fields grouped into sections —
+    # Namespace/UID/Created ungrouped at the top, the object's labels under a "labels" section.
+    variant: form
+    bordered: false
     size: small
     items: []
   widgetDataTemplate:
     - forPath: items
-      expression: '${ [ { label: "Namespace", value: (.detail.metadata.namespace // "") }, { label: "UID", value: (.detail.metadata.uid // "") }, { label: "Created", value: (.detail.metadata.creationTimestamp // "") } ] + ((.detail.metadata.labels // {}) | to_entries | map({ label: ("label/" + .key), value: .value })) }'
+      expression: '${ [ { label: "Namespace", value: (.detail.metadata.namespace // "") }, { label: "UID", value: (.detail.metadata.uid // "") }, { label: "Created", value: (.detail.metadata.creationTimestamp // "") } ] + ((.detail.metadata.labels // {}) | to_entries | map({ section: "labels", label: .key, value: .value })) }'
   resourcesRefs:
     items: []

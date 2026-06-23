@@ -8,6 +8,13 @@ metadata:
 spec:
   widgetData:
     variant: outlined
+    # D4: whole-card CTA → the full compositions list (total count → all rows).
+    clickActionId: view-all
+    widgetActions:
+      navigate:
+        - id: view-all
+          type: navigate
+          path: /compositions
     items:
     - resourceRefId: stat-compositions
     - resourceRefId: delta-compositions

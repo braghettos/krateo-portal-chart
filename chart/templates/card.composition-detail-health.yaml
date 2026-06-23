@@ -1,4 +1,6 @@
-# "Health" card → a Progress derived from the composition's status.conditions.
+# "Conditions" card → the composition's REAL status.conditions (all of them), each coloured by
+# its own status (True=cyan / False=crimson) — replaces the derived "% converged / Healthy" ring,
+# which invented a single label/number out of the raw conditions.
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -8,14 +10,14 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Health
+    title: Conditions
     items:
-      - resourceRefId: progress-composition-detail-health
+      - resourceRefId: list-composition-detail-conditions
   resourcesRefs:
     items:
-      - id: progress-composition-detail-health
+      - id: list-composition-detail-conditions
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: progress-composition-detail-health
+        name: list-composition-detail-conditions
         namespace: {{ .Release.Namespace }}
-        resource: progresses
+        resource: lists
         verb: GET

@@ -14,14 +14,16 @@ metadata:
 spec:
   widgetData:
     vertical: true
-    gap: large
+    gap: middle
     allowedResources:
       - flexes
       - rows
       - cards
     items:
       - resourceRefId: composition-detail-header-block
-      - resourceRefId: card-composition-detail-rail
+      # Rail wrapped in a full-width Row (composition-detail-rail-row) so it shares the grid's
+      # gutter inset and aligns with the Spec/Health cards below (was a bare full-width card).
+      - resourceRefId: composition-detail-rail-row
       - resourceRefId: composition-detail-grid
   resourcesRefs:
     items:
@@ -31,11 +33,11 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
-      - id: card-composition-detail-rail
+      - id: composition-detail-rail-row
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-composition-detail-rail
+        name: composition-detail-rail-row
         namespace: {{ .Release.Namespace }}
-        resource: cards
+        resource: rows
         verb: GET
       - id: composition-detail-grid
         apiVersion: widgets.templates.krateo.io/v1beta1

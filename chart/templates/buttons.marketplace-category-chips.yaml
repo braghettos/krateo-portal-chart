@@ -31,7 +31,7 @@ spec:
     - forPath: type
       expression: '${ if (.selectedCategory // "all") == {{ .k | quote }} then "primary" else "default" end }'
     - forPath: variant
-      expression: '${ if (.selectedCategory // "all") == {{ .k | quote }} then "solid" else "outlined" end }'
+      expression: '${ if (.selectedCategory // "all") == {{ .k | quote }} then "filled" else "outlined" end }'
   apiRef:
     name: blueprints-catalog
     namespace: {{ $.Release.Namespace }}

@@ -10,9 +10,9 @@ spec:
     label: 0%
     color: red
     style:
-      fontSize: '18px'
+      fontSize: '22px'
       fontWeight: 700
-      lineHeight: '24px'
+      lineHeight: '26px'
   widgetDataTemplate:
   - forPath: label
     expression: '${ (if (.list|length)>0 then ((([.list[]|select((.conditions//[])|any(.type=="Ready" and .status=="False"))]|length)*100/(.list|length))|floor) else 0 end | tostring) + "%" }'

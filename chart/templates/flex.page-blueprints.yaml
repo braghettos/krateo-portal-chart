@@ -17,12 +17,19 @@ spec:
     gap: large
     items:
     - resourceRefId: blueprints-header
+    - resourceRefId: blueprints-category-group
     - resourceRefId: blueprints-grid
   resourcesRefs:
     items:
     - id: blueprints-header
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: blueprints-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: blueprints-category-group
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: blueprints-category-group
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET

@@ -1,0 +1,32 @@
+# Header action row for the blueprint detail page — Create (primary, instantiate) + Delete
+# (danger, uninstall), side by side. The version update is a separate Form lower on the page.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprint-detail-actions
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - buttons
+    vertical: false
+    gap: small
+    items:
+      - resourceRefId: blueprint-detail-create
+      - resourceRefId: blueprint-detail-delete
+  resourcesRefs:
+    items:
+      - id: blueprint-detail-create
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-detail-create
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
+      - id: blueprint-detail-delete
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-detail-delete
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET

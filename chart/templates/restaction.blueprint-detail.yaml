@@ -1,0 +1,83 @@
+# Blueprint DETAIL data source — resolves ONE installed blueprint (its CompositionDefinition,
+# from ?extras .namespace/.name = route /blueprints/{namespace}/{name}) and joins the braghettos
+# helm index to discover the AVAILABLE versions (for the version-picker / update). Returns ONLY
+# raw, server-shaped data; each detail widget slices its own view from this:
+#   detail            : the full CompositionDefinition (managedFields stripped)
+#   name / namespace  : identity (echoed from the object, falling back to extras)
+#   chart             : the chart name (spec.chart.repo) or its url
+#   currentVersion    : spec.chart.version (installed)
+#   availableVersions : every version the helm index lists for this chart (+ current), unique
+#   latestVersion / updateAvailable : best-effort newest vs installed
+#   ready / synced / created : status surface
+#   versionSchema / versionInitial : the update Form's JSON schema (version enum) + initial value
+#   gvr               : PATCH/DELETE target (always core.krateo.io compositiondefinitions)
+# Needs snowplow >= 1.4.0 for the external helm-index YAML fetch (GKE is on 1.4.1).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: blueprint-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    # The installed blueprint = its CompositionDefinition (core.krateo.io). Identity from extras.
+    # NOTE: no per-step filter — a per-step filter's output REPLACES this step's key, so a
+    # `del(.compdef…)` (which returns the whole accumulated root) would nest it as
+    # {compdef:{compdef:…}}. The managedFields strip happens in the top-level filter instead.
+    - name: compdef
+      path: ${ "/apis/core.krateo.io/v1alpha1/namespaces/" + .namespace + "/compositiondefinitions/" + .name }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+    # The helm index — used to enumerate the chart's available versions (update picker).
+    - name: catalog
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/blueprints/index.yaml
+      verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
+      continueOnError: true
+      errorKey: catalogError
+  filter: |
+    .name as $n
+    | .namespace as $ns
+    | ((.compdef // {}) | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])) as $d
+    | ($d.spec.chart // {}) as $chart
+    | ($chart.repo // "") as $bp
+    | ($chart.version // "") as $cur
+    | ([ (.catalog.entries[$bp]? // [])[] | .version | select(. != null and . != "") ]) as $idxVers
+    | (($idxVers + [$cur]) | map(select(. != "")) | unique) as $avail
+    | (if ($idxVers | length) > 0 then ($idxVers | sort | last) else $cur end) as $latest
+    | ([ $d.status.conditions[]? | select(.type == "Ready") ][0].status // "Unknown") as $ready
+    | ([ $d.status.conditions[]? | select(.type == "Synced") ][0].status // "Unknown") as $synced
+    | {
+        detail: $d,
+        name: ($d.metadata.name // $n),
+        namespace: ($d.metadata.namespace // $ns),
+        chart: ($chart.repo // ($chart.url // "")),
+        chartUrl: ($chart.url // ""),
+        currentVersion: $cur,
+        availableVersions: $avail,
+        latestVersion: $latest,
+        updateAvailable: ($latest != $cur and $latest != ""),
+        ready: $ready,
+        synced: $synced,
+        created: ($d.metadata.creationTimestamp // ""),
+        versionSchema: {
+          type: "object",
+          required: ["version"],
+          properties: {
+            version: { type: "string", title: "Chart version", description: "Select a version to update the blueprint to", enum: $avail }
+          }
+        },
+        versionInitial: { version: $cur },
+        gvr: {
+          apiVersion: "core.krateo.io/v1alpha1",
+          resource: "compositiondefinitions",
+          name: ($d.metadata.name // $n),
+          namespace: ($d.metadata.namespace // $ns)
+        }
+      }

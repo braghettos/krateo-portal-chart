@@ -14,7 +14,7 @@ spec:
     - flexes
     - tables
     vertical: true
-    gap: large
+    gap: middle
     items:
     - resourceRefId: compositions-header
     - resourceRefId: compositions-toolbar

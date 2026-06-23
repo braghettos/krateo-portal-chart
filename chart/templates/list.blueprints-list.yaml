@@ -23,8 +23,11 @@ spec:
       icon: fa-cube
       primaryText: '{name}'
       secondaryText: '{category}'
+  # D3: sort by creationTimestamp DESC → the genuinely most-recently-registered 5 (honest
+  # "Recent blueprints"), not the alphabetical first-5 that blueprints-cards' name-sort gave.
+  # `created` rides along only for the sort; the itemTemplate renders name + category.
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[]? | { name: .metadata.name, category: (if ((.tags // []) | length) > 0 then (.tags | join(" · ")) else "blueprint" end) } ] | .[0:5] }'
+      expression: '${ [ .cards[]? | { name: .metadata.name, category: (if ((.tags // []) | length) > 0 then (.tags | join(" · ")) else "blueprint" end), created: (.metadata.creationTimestamp // "") } ] | sort_by(.created) | reverse | .[0:5] }'
   resourcesRefs:
     items: []

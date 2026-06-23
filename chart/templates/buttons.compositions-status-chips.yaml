@@ -46,7 +46,7 @@ spec:
     - forPath: type
       expression: '${ if (.status // "all") == {{ .k | quote }} then "primary" else "default" end }'
     - forPath: variant
-      expression: '${ if (.status // "all") == {{ .k | quote }} then "solid" else "outlined" end }'
+      expression: '${ if (.status // "all") == {{ .k | quote }} then "filled" else "outlined" end }'
   apiRef:
     name: compositions-list
     namespace: {{ $.Release.Namespace }}

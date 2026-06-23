@@ -16,7 +16,9 @@ spec:
   widgetData:
     label: Sync
     icon: fa-arrows-rotate
-    type: default
+    # Sync is the primary action in the detail header cluster (mockup amber-primary);
+    # Pause/Edit stay default (bordered secondary), Delete stays danger.
+    type: primary
     size: small
     clickActionId: sync
     actions:

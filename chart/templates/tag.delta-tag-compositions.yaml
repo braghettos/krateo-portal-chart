@@ -11,9 +11,9 @@ spec:
     color: cyan
     # Sized to match (slightly exceed) the caption so the delta number is legible.
     style:
-      fontSize: '18px'
+      fontSize: '22px'
       fontWeight: 700
-      lineHeight: '24px'
+      lineHeight: '26px'
   widgetDataTemplate:
   - forPath: label
     expression: '${ "▲ +" + ((.list | length) | tostring) }'

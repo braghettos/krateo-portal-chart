@@ -7,7 +7,10 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Top blueprints
+    # "Recent", not "Top" (D3): there is no per-blueprint usage/popularity metric, so the
+    # list is the most-recently-registered blueprints (sorted creationTimestamp desc in
+    # blueprints-list). "Top" falsely implied a ranking that no real signal backs.
+    title: Recent blueprints
     titleVariant: eyebrow
     variant: outlined
     # No timeframe label: this list isn't range-scoped, so a "This month" badge would

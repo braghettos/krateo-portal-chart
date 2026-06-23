@@ -1,8 +1,10 @@
 # Blueprints (installed) as a CARD GRID — the same card UI as the Marketplace, but sourced from
 # the cluster's INSTALLED CompositionDefinitions (blueprints-cards), per the design "blueprints
 # and marketplace are the same page, distinguished only by source (installed vs installable)".
-# Each tile's Create action navigates to the blueprint's create form (instantiate a composition).
-# Compdefs carry no helm description, so the description line shows the chart source (.chart).
+# Clicking a tile opens the blueprint DETAIL page (/blueprints/{namespace}/{name}), where Create
+# (instantiate) / Delete (uninstall) / version-update live.
+# The card body shows "provisions · <composition kind>" (status.kind, e.g. KrateoAuthn) — what the
+# blueprint deploys (mockup `.prov`); falls back to the chart source for any compdef with no kind.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: List
 metadata:
@@ -24,10 +26,21 @@ spec:
       iconVariant: tile
       icon: fa-cube
       primaryText: '{name}'
-      subSecondaryText: 'v{version}'
+      # version → the bordered ver-badge in the meta row beside the name (was miswired to
+      # the footer); namespace → the footer-left slot (mockup tile-foot ns).
+      subPrimaryText: 'v{version}'
       secondaryText: '{category}'
       secondaryTextAsTag: true
-      description: '{chart}'
+      subSecondaryText: '{namespace}'
+      description: '{desc}'
+      # Whole-card click → the blueprint detail page (Delete / version-update live there).
+      navigateTo: '/blueprints/{namespace}/{name}'
+      # "Configure" — a footer action button in the SAME style as the Marketplace "Install" button
+      # (amber primary). It opens the create-composition form for THIS blueprint.
+      rowActions:
+        - actionId: configure
+          label: Configure
+          icon: fa-sliders
       color:
         value: '{category}'
         map:
@@ -35,18 +48,13 @@ spec:
           observability: cyan
           blueprint: magenta
         default: gray
-      # Installed → Create a composition from it (the blueprint-create form, per-blueprint).
-      rowActions:
-        - actionId: create
-          label: Create
-          icon: fa-plus
     actions:
       navigate:
-        - id: create
+        - id: configure
           type: navigate
-          path: /marketplace/${namespace}/${name}/new
+          path: /blueprints/${namespace}/${name}/new
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[] | { name: .metadata.name, namespace: .metadata.namespace, version: .version, category: .category, chart: .chart } ] }'
+      expression: '${ [ .cards[] | { name: .metadata.name, namespace: .metadata.namespace, version: .version, category: .category, desc: ((.provisions // "") as $p | if $p != "" then ("provisions · " + $p) else .chart end) } ] }'
   resourcesRefs:
     items: []

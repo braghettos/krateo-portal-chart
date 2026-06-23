@@ -7,22 +7,24 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Compositions status breakdown
+    title: Condition coverage
     titleVariant: eyebrow
     variant: outlined
     # mockup `.badge mono` "N total" readout, top-right of the panel head (Card.extra).
     extra: ''
+    # Per-condition coverage gauges off the REAL status.conditions (Ready N/M, Synced N/M),
+    # replacing the invented Healthy/Pending/Failed donut.
     items:
-    - resourceRefId: status-donut
+    - resourceRefId: dashboard-conditions
   widgetDataTemplate:
   - forPath: extra
     expression: '${ ((.list // []) | length | tostring) + " total" }'
   apiRef: { name: compositions-list, namespace: {{ .Release.Namespace }} }
   resourcesRefs:
     items:
-    - id: status-donut
+    - id: dashboard-conditions
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: status-donut
+      name: dashboard-conditions
       namespace: {{ .Release.Namespace }}
-      resource: piecharts
+      resource: lists
       verb: GET
