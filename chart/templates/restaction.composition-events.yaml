@@ -30,7 +30,7 @@ spec:
       verb: GET
       headers:
         - 'Accept: application/json'
-      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: .status.storedVersions[0]}]"
+      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: ((([.spec.versions[] | select(.served and .storage)])[0]) // (([.spec.versions[] | select(.served)])[0])).name}]"
       continueOnError: true
     - name: found
       dependsOn:
