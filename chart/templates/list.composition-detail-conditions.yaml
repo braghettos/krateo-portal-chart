@@ -2,7 +2,7 @@
 # Every condition is shown (Ready, Synced, …) with its type + status (True/False) + reason·message;
 # a leading dot and a right-aligned status Tag are BOTH coloured cyan (status True) / crimson (False).
 # Honest: the raw k8s conditions, all of them, coloured by their own truth value.
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: list-composition-detail-conditions

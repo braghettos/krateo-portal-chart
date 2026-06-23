@@ -7,7 +7,7 @@
 # (rowActions → `install`, a navigate action) opens the install form at
 # /marketplace/{name}/install, which renders the CompositionDefinition CRD and deploys it.
 apiVersion: widgets.templates.krateo.io/v1beta1
-kind: List
+kind: Listy
 metadata:
   name: marketplace-grid
   namespace: {{ .Release.Namespace }}

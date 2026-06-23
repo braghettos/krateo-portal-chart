@@ -34,5 +34,5 @@ spec:
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: rail-list
       namespace: {{ .Release.Namespace }}
-      resource: lists
+      resource: listies
       verb: GET

@@ -5,7 +5,7 @@
 # Relations card (same RA). Nothing hardcoded: convergencePercent + state derive
 # server-side from every managed resource's Ready×Synced / Available / ready-by-
 # presence. Reuses the Petrol `bar.variant: rail` engine (cyan fill + amber tick).
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: list-composition-detail-rail
