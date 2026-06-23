@@ -1,0 +1,26 @@
+# Install page — the route /marketplace/{name}/install renders here (page-<slug> convention).
+# Hosts the blueprint-install Form, which deploys a CompositionDefinition from the CRD schema.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-blueprint-install
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - flexes
+      - forms
+    vertical: true
+    gap: large
+    items:
+      - resourceRefId: blueprint-install-form
+  resourcesRefs:
+    items:
+      - id: blueprint-install-form
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-install
+        namespace: {{ .Release.Namespace }}
+        resource: forms
+        verb: GET

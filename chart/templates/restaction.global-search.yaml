@@ -1,0 +1,77 @@
+# Global search aggregator — feeds the header Search field's results view.
+# Returns a unified list of compositions + blueprints whose title matches the
+# search term `q`, which the frontend forwards as ?extras={"q":"..."} on the
+# widget /call. The term is read in the top-level `spec.filter` — snowplow
+# >= 1.1.0 (extras-to-widgets / PR #27, Fix-1) forwards request `extras` into a
+# widget's apiRef RESTAction jq dict. Filtering is server-side (jq) because the
+# k8s API has no free-text search; UAF prunes to what the caller may list.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: global-search
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    # compositions — discover composition CRDs, then list each cluster-wide
+    # (mirrors compositions-list).
+    - name: crds
+      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
+      verb: GET
+      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: ((([.spec.versions[] | select(.served and .storage)])[0]) // (([.spec.versions[] | select(.served)])[0])).name}]"
+      continueOnError: true
+      errorKey: crdsError
+    - name: comps
+      dependsOn:
+        name: crds
+        iterator: ".crds"
+      path: ${ "/apis/composition.krateo.io/" + (.version) + "/" + (.plural) }
+      verb: GET
+      continueOnError: true
+      errorKey: compsError
+      userAccessFilter:
+        verb: list
+        group: composition.krateo.io
+        resourcesFrom: "[ (.crds // [])[] | .plural ]"
+        namespaceFrom: .metadata.namespace
+      filter: >
+        [.comps.items[]? | {name: .metadata.name, ns: .metadata.namespace}]
+    # blueprints — the INSTALLABLE catalog from the braghettos helm index (mirrors
+    # blueprints-catalog), so search finds installable blueprints, not just installed ones.
+    # Requires snowplow >= 1.4.0 (external YAML fetch). Each entry's version list is newest
+    # -first → .value[0]. continueOnError so a missing index degrades to compositions-only.
+    - name: catalog
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/blueprints/index.yaml
+      verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
+      continueOnError: true
+      errorKey: catalogError
+      filter: >
+        [ ((.catalog.entries) // {}) | to_entries[] | .value[0]
+          | {name: .name, category: (((.annotations // {})["krateo.io/category"]) // (.keywords[0]) // "uncategorized")} ]
+  # Merge both sources into one result list, then filter by the `q` extra
+  # (case-insensitive substring on the title). Empty/absent q → return all.
+  filter: >
+    (.q // "" | ascii_downcase) as $q
+    | {
+        items: (
+          [ (.comps // [])[] | {
+              title: (.name // ""),
+              subtitle: ("Composition · " + (.ns // "")),
+              type: "composition",
+              link: ("/compositions/" + (.ns // "") + "/" + (.name // ""))
+            } ]
+          + [ (.catalog // [])[] | {
+              title: (.name // ""),
+              subtitle: ("Blueprint · " + (.category // "")),
+              type: "blueprint",
+              link: ((.category // "uncategorized") as $c | if $c == "uncategorized" then "/marketplace" else "/marketplace?category=" + $c end)
+            } ]
+        )
+        | map(select($q == "" or ((.title | ascii_downcase) | contains($q))))
+      }

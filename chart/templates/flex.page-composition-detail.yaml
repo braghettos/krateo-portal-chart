@@ -1,0 +1,47 @@
+# Convention page root for /compositions/{namespace}/{name}. Matches the
+# enterprise-detail mockup: a pagehead (title + status Tag + subtitle) over a
+# 2-column grid (Row, 1.7fr:1fr ≈ size 15/9): left = Specification/Events/Manifest,
+# right = Health/Relations/Metadata. Every field is shaped server-side by the
+# composition-detail RA. Deferred: back-link + Sync/Edit action buttons (need
+# real reconcile/edit endpoints); object-level live-refresh.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-composition-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - flexes
+      - rows
+      - cards
+    items:
+      - resourceRefId: composition-detail-header-block
+      # Rail wrapped in a full-width Row (composition-detail-rail-row) so it shares the grid's
+      # gutter inset and aligns with the Spec/Health cards below (was a bare full-width card).
+      - resourceRefId: composition-detail-rail-row
+      - resourceRefId: composition-detail-grid
+  resourcesRefs:
+    items:
+      - id: composition-detail-header-block
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-header-block
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: composition-detail-rail-row
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-rail-row
+        namespace: {{ .Release.Namespace }}
+        resource: rows
+        verb: GET
+      - id: composition-detail-grid
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-grid
+        namespace: {{ .Release.Namespace }}
+        resource: rows
+        verb: GET

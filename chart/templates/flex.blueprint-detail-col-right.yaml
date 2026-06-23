@@ -1,0 +1,31 @@
+# Right column (narrower): Update version (form card) + Metadata.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprint-detail-col-right
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - cards
+    items:
+      - resourceRefId: card-blueprint-detail-update
+      - resourceRefId: card-blueprint-detail-metadata
+  resourcesRefs:
+    items:
+      - id: card-blueprint-detail-update
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-blueprint-detail-update
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-blueprint-detail-metadata
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-blueprint-detail-metadata
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET

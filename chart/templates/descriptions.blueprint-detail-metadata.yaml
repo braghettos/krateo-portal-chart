@@ -1,0 +1,24 @@
+# CompositionDefinition metadata (namespace / uid / created + labels) as label/value rows.
+# Shaped server-side by the blueprint-detail RA (.detail.metadata). Mirrors
+# descriptions-composition-detail-metadata.
+kind: Descriptions
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: descriptions-blueprint-detail-metadata
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprint-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    column: 1
+    bordered: true
+    size: small
+    items: []
+  widgetDataTemplate:
+    - forPath: items
+      expression: '${ [ { label: "Namespace", value: (.detail.metadata.namespace // "") }, { label: "UID", value: (.detail.metadata.uid // "") }, { label: "Created", value: (.detail.metadata.creationTimestamp // "") } ] + ((.detail.metadata.labels // {}) | to_entries | map({ label: ("label/" + .key), value: .value })) }'
+  resourcesRefs:
+    items: []

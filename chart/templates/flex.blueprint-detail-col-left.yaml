@@ -1,0 +1,24 @@
+# Left column (wider): the Details card (chart / versions / status / synced / created).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprint-detail-col-left
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - cards
+    items:
+      - resourceRefId: card-blueprint-detail-info
+  resourcesRefs:
+    items:
+      - id: card-blueprint-detail-info
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-blueprint-detail-info
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET

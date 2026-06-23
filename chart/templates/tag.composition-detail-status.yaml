@@ -1,0 +1,28 @@
+# Status pill next to the title. The conditions→label/color logic lives HERE
+# (widget representation), not in the RA: the RA just supplies the raw object.
+# Honest rollup: a Ready=True comp whose Synced=False is DRIFTED, not Healthy —
+# surface "Drift" (magenta) so a reconcile-paused/diverged comp isn't mislabelled
+# green. Mirrors the compositions-list state language (Healthy/Drift/Degraded/Pending).
+kind: Tag
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-status
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: Unknown
+    color: default
+  # Title tag = the composition's REAL `Ready` condition (not a derived Healthy/Drift label):
+  # Ready=True → "Ready" (cyan), Ready=False → "Not Ready" (red/crimson), absent → "Unknown" (gray).
+  widgetDataTemplate:
+    - forPath: label
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if $r == null then "Unknown" elif $r.status == "True" then "Ready" else "Not Ready" end }'
+    - forPath: color
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if $r == null then "gray" elif $r.status == "True" then "cyan" else "red" end }'
+  resourcesRefs:
+    items: []

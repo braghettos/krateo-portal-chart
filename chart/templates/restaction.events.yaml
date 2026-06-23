@@ -1,0 +1,36 @@
+# Dashboard recent-activity — real events from the events-presenter (krateo-sse-proxy),
+# the canonical krateo events source (k8s -> OTel -> ClickHouse -> sse-proxy), NOT raw
+# k8s core events. No composition filter here: the dashboard shows ALL recent activity.
+# Thin/generic: raw GET + exportJwt; the EventList shapes/caps. DEPENDS ON the platform's
+# `sse-proxy-internal-endpoint` Endpoint + the sse-proxy stack; absent that, getEvents fails
+# gracefully (continueOnError) and the card is empty.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: events
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: getEvents
+      endpointRef:
+        name: sse-proxy-internal-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /events
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      exportJwt: true
+      continueOnError: true
+  filter: >
+    {
+      list: (
+        ( .getEvents | if type == "array" then . elif type == "object" then (.resources // .items // []) else [] end )
+        | group_by((.involvedObject.uid // "") + "|" + (.reason // "") + "|" + (.message // ""))
+        | map(max_by(.lastTimestamp // .eventTime // .firstTimestamp // ""))
+        | sort_by(.lastTimestamp // .eventTime // .firstTimestamp // "")
+        | reverse
+        | .[0:50]
+      )
+    }

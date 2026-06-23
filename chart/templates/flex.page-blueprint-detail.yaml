@@ -1,0 +1,38 @@
+# Blueprint detail page — route /blueprints/{namespace}/{name} (page-<slug> convention).
+# Same layout as the composition detail page: a pagehead (back-link + name + status Tag +
+# subtitle on the left, Create/Delete actions on the right) over a 2-column grid (Row 15:9):
+#   left  = Details (chart / versions / status / synced / created)
+#   right = Update version (version picker form) + Metadata
+# Every widget reads the shared blueprint-detail RA (installed CompositionDefinition + helm
+# index versions, resolved from ?extras).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-blueprint-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: large
+    allowedResources:
+      - flexes
+      - rows
+    items:
+      - resourceRefId: blueprint-detail-header-block
+      - resourceRefId: blueprint-detail-grid
+  resourcesRefs:
+    items:
+      - id: blueprint-detail-header-block
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-detail-header-block
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: blueprint-detail-grid
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-detail-grid
+        namespace: {{ .Release.Namespace }}
+        resource: rows
+        verb: GET

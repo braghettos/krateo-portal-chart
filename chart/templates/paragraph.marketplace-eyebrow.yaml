@@ -1,0 +1,18 @@
+# Mockup `.greet .eyebrow` — the mono uppercase context caption above the Marketplace H1.
+# Honest text: "Catalog · curated". The mockup's "policy-approved" was deliberately dropped
+# from the subtitle (policy approval isn't enforced here); "curated" matches the existing
+# subtitle copy and is accurate (the catalog is a selected blueprint set). Renders via the
+# Paragraph `variant: eyebrow` treatment (IBM Plex Mono, letter-spaced, muted, uppercased).
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-eyebrow
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: 'Catalog · curated'
+    variant: eyebrow
+  resourcesRefs:
+    items: []

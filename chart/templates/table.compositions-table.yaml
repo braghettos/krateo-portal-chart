@@ -1,0 +1,46 @@
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: compositions-table
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: small
+    # Row click → the composition detail page ({ns}/{name} from the row's cells).
+    rowNavigateTo: /compositions/{ns}/{name}
+    columns:
+    - valueKey: name
+      title: Name
+    - valueKey: kind
+      title: Type
+    - valueKey: ns
+      title: Namespace
+    - valueKey: status
+      title: Status
+    - valueKey: reconcile
+      title: Reconcile
+    - valueKey: age
+      title: Created
+    dataSource: []
+    # Live-refresh: watch the composition kinds this table lists. Computed from the
+    # data (the distinct apiVersion/kind in .list) — NOT a hardcoded kind list — so it
+    # refetches when any composition it shows changes, and generalizes to any blueprint.
+    watch: []
+  widgetDataTemplate:
+  # Rows come from `.filtered` (compositions-list applies the toolbar's status + time
+  # filters server-side via ?status/?range/?from/?to); `.list` stays the dashboard's
+  # full set. Status cell uses the pre-derived `.railState` (4 states incl. drift) so
+  # a Ready-but-Synced=false composition reads magenta "Drift", not gold "Pending".
+  - forPath: dataSource
+    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"conditions",stringValue:(((.conditions // []) | map({type:.type, status:.status})) | tojson)}, {valueKey:"reconcile",kind:"bar",stringValue:(.healthPercent|tostring),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+  - forPath: watch
+    expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
+  apiRef:
+    name: compositions-list
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

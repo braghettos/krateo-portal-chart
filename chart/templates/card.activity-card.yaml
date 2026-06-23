@@ -1,0 +1,25 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: activity-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Recent activity
+    titleVariant: eyebrow
+    variant: outlined
+    # Live events surface via the global SSE bell; this is the recent-activity snapshot.
+    live: true
+    extra: View all
+    items:
+    - resourceRefId: list-activity-events
+  resourcesRefs:
+    items:
+    - id: list-activity-events
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: list-activity-events
+      namespace: {{ .Release.Namespace }}
+      resource: lists
+      verb: GET

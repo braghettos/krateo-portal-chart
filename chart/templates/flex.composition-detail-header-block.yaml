@@ -1,0 +1,34 @@
+# Page header block — a space-between row matching enterprise-detail.html:
+#   [ title-stack (name + status + subtitle) ]      [ actions (Sync · Pause · Edit · Delete) ]
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-header-block
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: false
+    justify: space-between
+    align: flex-start
+    gap: middle
+    allowedResources:
+      - flexes
+    items:
+      - resourceRefId: composition-detail-title-stack
+      - resourceRefId: composition-detail-actions
+  resourcesRefs:
+    items:
+      - id: composition-detail-title-stack
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-title-stack
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: composition-detail-actions
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-actions
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET

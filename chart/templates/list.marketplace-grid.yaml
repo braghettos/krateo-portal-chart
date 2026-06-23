@@ -1,0 +1,69 @@
+# Marketplace content — antd `List` in 3-col grid mode, ONE templated tile per
+# INSTALLABLE blueprint, iterated over `blueprints-catalog` (the braghettos helm-repo
+# index, ~311 charts). A single itemTemplate renders every tile from the catalog's flat
+# data — name + version·maturity + a soft-tint category pill. `prefix` wires the
+# marketplace category facet. Honest fields only (name/version/category/maturity off
+# the helm index); no invented ratings/install-counts. Each tile's footer Install button
+# (rowActions → `install`, a navigate action) opens the install form at
+# /marketplace/{name}/install, which renders the CompositionDefinition CRD and deploys it.
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: List
+metadata:
+  name: marketplace-grid
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprints-catalog
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    prefix: marketplace-filters
+    grid:
+      gutter: 16
+      column: 3
+    dataSource: []
+    # `card` rowVariant: each grid cell is a full antd Card — icon-tile + name + version
+    # badge (subPrimaryText) + category tag (secondaryText) + 2-line description + a footer
+    # (maturity left, visible Install button right). Per-category icon (from the RA) + colour
+    # map tint the tile + tag.
+    itemTemplate:
+      rowVariant: card
+      iconVariant: tile
+      icon: '{icon}'
+      primaryText: '{name}'
+      # Footer-left = the helm chart version (subSecondaryText → card-foot left); the top keeps
+      # just name + category tag. Maturity dropped (not in the mockup).
+      subSecondaryText: 'v{version}'
+      secondaryText: '{category}'
+      secondaryTextAsTag: true
+      description: '{description}'
+      color:
+        value: '{category}'
+        map:
+          database: cyan
+          compute: amber
+          storage: magenta
+          network: cyan
+          security: red
+          observability: magenta
+          application: amber
+          generator: cyan
+        default: gray
+      # Per-tile Install — a VISIBLE footer button (card variant). It NAVIGATES to the install
+      # form for THIS row (${name} interpolated from the card's customPayload), where the user
+      # reviews the CompositionDefinition (CRD schema, chart pre-filled) and deploys it.
+      rowActions:
+        - actionId: install
+          label: Install
+          icon: fa-download
+    actions:
+      navigate:
+        - id: install
+          type: navigate
+          path: /marketplace/${name}/install
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ [ .cards[] | { name: .name, version: .version, category: .category, tags: .tags, maturity: .maturity, installed: .installed, repoUrl: .repoUrl, icon: .icon, description: .description } ] }'
+  resourcesRefs:
+    items: []

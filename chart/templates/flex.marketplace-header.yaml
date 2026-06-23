@@ -1,0 +1,38 @@
+# Page header (H1 + subtitle) for /marketplace — mirrors the dashboard greeting pattern
+# (vertical Flex wrapping a strong title + a secondary subtitle Paragraph).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-header
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - paragraphs
+    vertical: true
+    items:
+    - resourceRefId: marketplace-eyebrow
+    - resourceRefId: marketplace-title
+    - resourceRefId: marketplace-subtitle
+  resourcesRefs:
+    items:
+    - id: marketplace-eyebrow
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: marketplace-eyebrow
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: marketplace-title
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: marketplace-title
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: marketplace-subtitle
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: marketplace-subtitle
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET

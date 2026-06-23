@@ -1,0 +1,23 @@
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: new-composition
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: New composition
+    type: primary
+    icon: fa-plus
+    # A composition is created ONLY from an installed blueprint → navigate to /blueprints
+    # (the installed-blueprint catalog); pick one → its detail page → Create. The Marketplace
+    # is for INSTALLING blueprints (deploying CompositionDefinitions), not creating compositions.
+    clickActionId: new-composition-nav
+    actions:
+      navigate:
+        - id: new-composition-nav
+          path: /blueprints
+          type: navigate
+  resourcesRefs:
+    items: []

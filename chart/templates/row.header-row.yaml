@@ -1,0 +1,30 @@
+kind: Row
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: header-row
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    items:
+    - resourceRefId: header-greeting-flex
+      size: 16
+    - resourceRefId: header-actions-flex
+      size: 8
+  resourcesRefs:
+    items:
+    - id: header-greeting-flex
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: header-greeting-flex
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: header-actions-flex
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: header-actions-flex
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET

@@ -1,0 +1,34 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: stat-card-reconciles
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    variant: outlined
+    # D4: whole-card CTA → the compositions list (reconcile activity → the live set).
+    clickActionId: view-all-reconciles
+    widgetActions:
+      navigate:
+        - id: view-all-reconciles
+          type: navigate
+          path: /compositions
+    items:
+    - resourceRefId: stat-reconciles
+    - resourceRefId: delta-reconciles
+  resourcesRefs:
+    items:
+    - id: stat-reconciles
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: stat-reconciles
+      namespace: {{ .Release.Namespace }}
+      resource: statistics
+      verb: GET
+    - id: delta-reconciles
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-reconciles
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET

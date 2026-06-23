@@ -1,0 +1,83 @@
+# Sidebar nav — antd Menu hosted in the app-shell Sider; the SINGLE route source (no RoutesLoader).
+# Each inline item is a folded nav entry (widget-taxonomy-and-layout.md §H):
+#  - items with a `label` → a visible sidebar entry AND a route;
+#  - label-less items → route-only (hidden), e.g. the templated detail/create routes;
+#  - content endpoint precedence: `resourceRefId` (via resourcesRefs, RBAC-aware)
+#    → the `flexes/page-<slug>` convention (`page:` overrides the path-derived slug).
+# Templated `{param}` segments become :param and reach the page widget via ?extras.
+kind: Menu
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: sidebar-nav
+  namespace: {{ .Release.Namespace }}
+spec:
+  widgetData:
+    mode: inline
+    theme: light
+    # NOTE: stale — predates the convention; the menu now references flexes/tables, not
+    # navmenuitems/pages. Kept until the Menu.schema.json allowedResources enum is updated.
+    allowedResources:
+      - navmenuitems
+      - pages
+    items:
+      - { label: Dashboard,    icon: fa-gauge,       order: 1, path: /dashboard,    resourceRefId: dashboard }
+      - { label: Compositions, icon: fa-cubes,       order: 2, path: /compositions, resourceRefId: compositions }
+      # Blueprints → page-blueprints (header + the now-selectable catalog table).
+      - { label: Blueprints,   icon: fa-layer-group, order: 4, path: /blueprints,   resourceRefId: blueprints }
+      - { label: Marketplace,  icon: fa-store,       order: 5, path: /marketplace,  resourceRefId: marketplace }
+      - { label: Settings,     icon: fa-gear,        order: 6, path: /settings,     resourceRefId: settings }
+      # route-only (no label → hidden). /search renders the search-results List; its
+      # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
+      - { order: 800, path: /search, resourceRefId: search-results }
+      # Templated detail + create routes via the convention. Paths are quoted — the
+      # {param} braces would otherwise be read as YAML flow mappings.
+      - { order: 900, path: "/compositions/{namespace}/{name}",   page: composition-detail }
+      # per-namespace compositions list — the namespace breadcrumb crumb links here.
+      # Reuses page-compositions; its compositions-table self-filters by ?extras.namespace
+      # (compositions-list RA) since the route param rides through as extras.
+      - { order: 905, path: "/compositions/{namespace}",          page: compositions }
+      - { order: 910, path: "/blueprints/{namespace}/{name}/new", page: blueprint-create }
+      # Install a blueprint = deploy a CompositionDefinition (the marketplace card's Install
+      # navigates here with the blueprint name; the form renders the CompositionDefinition CRD).
+      - { order: 915, path: "/marketplace/{name}/install", page: blueprint-install }
+      # Installed-blueprint detail — a Blueprints card click lands here. Shows chart/version/status
+      # and hosts Create (instantiate) / Delete (uninstall) / version-update.
+      - { order: 920, path: "/blueprints/{namespace}/{name}", page: blueprint-detail }
+  resourcesRefs:
+    items:
+      - id: dashboard
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: dashboard-flex
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: compositions
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-compositions
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: blueprints
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-blueprints
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: marketplace
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-flex
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: search-results
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: search-results
+        namespace: {{ .Release.Namespace }}
+        resource: lists
+        verb: GET
+      - id: settings
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-settings
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET

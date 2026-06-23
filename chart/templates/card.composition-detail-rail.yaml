@@ -1,0 +1,38 @@
+# Reconciliation band (detail page signature element) — wraps the per-resource
+# rail List. Eyebrow title + a state badge (CONVERGED / N DRIFT / N DEGRADED /
+# RECONCILING) derived from the composition-resources aggregate. Mirrors the
+# mockup `.rail-panel` placed directly under the title, above the 2-col grid.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-composition-detail-rail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Reconciliation · desired vs actual
+    titleVariant: eyebrow
+    variant: outlined
+    extra: ''
+    extraVariant: badge
+    extraStatus: processing
+    items:
+    - resourceRefId: list-composition-detail-rail
+  # Badge = the composition's REAL `Synced` condition (not a derived CONVERGED/RECONCILING label):
+  # Synced=True → "SYNCED" (cyan/success), False → "NOT SYNCED" (crimson/error), absent → "UNKNOWN".
+  # (The per-resource bars below still come from composition-resources via the rail List's own apiRef.)
+  widgetDataTemplate:
+  - forPath: extra
+    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if $s == null then "UNKNOWN" elif $s.status == "True" then "SYNCED" else "NOT SYNCED" end }'
+  - forPath: extraStatus
+    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if $s == null then "default" elif $s.status == "True" then "success" else "error" end }'
+  apiRef: { name: composition-detail, namespace: {{ .Release.Namespace }} }
+  resourcesRefs:
+    items:
+    - id: list-composition-detail-rail
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: list-composition-detail-rail
+      namespace: {{ .Release.Namespace }}
+      resource: lists
+      verb: GET

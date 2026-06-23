@@ -1,0 +1,23 @@
+# "← Back to compositions" link above the detail title (mockup pagehead). A link-style
+# Button that navigates (SPA) to the compositions list.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-back
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: Back to compositions
+    type: link
+    size: small
+    icon: fa-arrow-left
+    clickActionId: back-nav
+    actions:
+      navigate:
+        - id: back-nav
+          path: /compositions
+          type: navigate
+  resourcesRefs:
+    items: []

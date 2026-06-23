@@ -1,0 +1,33 @@
+# Dashboard "Recent blueprints" — real, no hardcoded data. Fed from the SAME
+# blueprints-cards RA the marketplace uses (self-registered blueprint Cards), so
+# the dashboard and the marketplace agree on the blueprint set + categories.
+# Honest-data: there is no backable per-blueprint "installs" metric, so the
+# mockup's install counts are dropped; we show the 5 most-recently-registered
+# blueprints with their real tags as the category line.
+kind: List
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprints-list
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprints-cards
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    itemLayout: horizontal
+    split: false
+    dataSource: []
+    itemTemplate:
+      icon: fa-cube
+      primaryText: '{name}'
+      secondaryText: '{category}'
+  # D3: sort by creationTimestamp DESC → the genuinely most-recently-registered 5 (honest
+  # "Recent blueprints"), not the alphabetical first-5 that blueprints-cards' name-sort gave.
+  # `created` rides along only for the sort; the itemTemplate renders name + category.
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ [ .cards[]? | { name: .metadata.name, category: (if ((.tags // []) | length) > 0 then (.tags | join(" · ")) else "blueprint" end), created: (.metadata.creationTimestamp // "") } ] | sort_by(.created) | reverse | .[0:5] }'
+  resourcesRefs:
+    items: []

@@ -1,0 +1,29 @@
+# Category chip row — hosts the marketplace category filter chips (mockup `.chip-group`)
+# horizontally, wrapping. Replaces the Select+Apply Filters control in the marketplace layout.
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: marketplace-category-group
+  namespace: {{ .Release.Namespace }}
+spec:
+  widgetData:
+    vertical: false
+    gap: small
+    wrap: true
+    allowedResources:
+      - buttons
+    items:
+{{- $cats := list "all" "compute" "network" "database" "application" "security" "observability" "storage" "generator" }}
+{{- range $cats }}
+      - resourceRefId: mp-cat-btn-{{ . }}
+{{- end }}
+  resourcesRefs:
+    items:
+{{- range $cats }}
+      - id: mp-cat-btn-{{ . }}
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: mp-cat-btn-{{ . }}
+        namespace: {{ $.Release.Namespace }}
+        resource: buttons
+        verb: GET
+{{- end }}

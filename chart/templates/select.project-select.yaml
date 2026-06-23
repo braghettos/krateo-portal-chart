@@ -1,0 +1,29 @@
+# Project (= namespace) scope selector for the shell sider. A URL-query-bound
+# Select (queryParam: project): picking a project writes ?project=<ns>, which the
+# frontend forwards into extras; compositions-list (and every widget that shares it
+# — dashboard stats/donut/rail, compositions table) reads `.project` and scopes to
+# that namespace server-side. allowClear / the "All projects" option clear the
+# param → cluster-wide. Options come from the `projects` RA (UAF-gated namespaces).
+kind: Select
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: project-select
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    name: project
+    queryParam: project
+    placeholder: All projects
+    size: small
+    allowClear: true
+    options: []
+  widgetDataTemplate:
+    - forPath: options
+      expression: '${ .options }'
+  apiRef:
+    name: projects
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

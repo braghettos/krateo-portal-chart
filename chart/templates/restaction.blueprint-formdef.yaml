@@ -1,0 +1,138 @@
+# GENERIC blueprint create-form schema source — ONE RESTAction for ALL blueprints
+# (replaces per-blueprint formdef RAs). The blueprint identity arrives via ?extras
+# (.namespace / .name = route params from /marketplace/{namespace}/{name}/new). It
+# discovers the composition CRD purely from data — no hardcoded GVR:
+#   1. GET the blueprint's CompositionDefinition (core.krateo.io).
+#   2. Its status carries the generated CRD's GVR: apiVersion (group/version),
+#      kind, resource (plural). CRD name = <resource>.<group>.
+#   3. GET that CRD; its openAPIV3Schema.properties.spec IS the form's JSON schema.
+# Returns { schemaSpec, apiVersion, kind, resource } — schema for the fields, GVR for
+# the create POST target. Needs the core-provider CRDs + a CompositionDefinition whose
+# status carries the generated GVR. VERIFIED on kind-krateo-dash after installing the
+# core-provider CRDs and populating a CompositionDefinition status (the controller itself
+# needs a newer k8s — MutatingAdmissionPolicy — than that demo cluster has).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: blueprint-formdef
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: compdef
+      path: ${ "/apis/core.krateo.io/v1alpha1/namespaces/" + .namespace + "/compositiondefinitions/" + .name }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+    # Raw values.schema.json (authoring order intact) from the per-version jsonschema
+    # ConfigMap the core-provider/cdc publishes: <resource>-<version>-jsonschema-configmap
+    # (resource = the plural from the compdef status; version = the apiVersion's v-segment).
+    # It is read as a STRING and string-spliced into `stringSchema` below — never parsed and
+    # re-emitted server-side, so the field order survives (the CRD's openAPIV3Schema, by
+    # contrast, is a Go map serialized alphabetically). continueOnError: a blueprint without
+    # the CM simply yields no stringSchema and the Form falls back to the (alphabetical) schemaSpec.
+    - name: jsonschema
+      path: ${ "/api/v1/namespaces/{{ .Release.Namespace }}/configmaps/" + .compdef.status.resource + "-" + (.compdef.status.apiVersion | split("/")[1]) + "-jsonschema-configmap" }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      dependsOn:
+        name: compdef
+      continueOnError: true
+      errorKey: jsonschemaError
+    - name: crd
+      dependsOn:
+        name: compdef
+      path: ${ "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/" + .compdef.status.resource + "." + (.compdef.status.apiVersion | split("/")[0]) }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+    # Namespaces fed into the form's Namespace field as a select (enum), RBAC-filtered
+    # to the namespaces where the USER can `create` this composition. Uses snowplow's
+    # native userAccessFilter (the SubjectAccessReview the user-bearer token is appended
+    # to on non-UAF stages — api/resolve.go); cleaner than the reference's per-namespace
+    # SSAR fan-out. group is the shared composition.krateo.io; resource is the blueprint's
+    # (from the CompositionDefinition status); namespaceFrom is each namespace's own name.
+    - name: namespaces
+      path: /api/v1/namespaces
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      dependsOn:
+        name: crd
+      userAccessFilter:
+        verb: create
+        group: composition.krateo.io
+        resourcesFrom: "[.compdef.status.resource]"
+        namespaceFrom: .metadata.name
+      filter: "[.namespaces.items[] | .metadata.name]"
+    # The shared blueprint-drafts ConfigMap (Tier C #11): a previously-saved draft for
+    # THIS user + THIS blueprint pre-fills the form (resume). continueOnError so an
+    # absent CM / no-RBAC simply yields no draft — the form still renders.
+    - name: drafts
+      path: /api/v1/namespaces/{{ .Release.Namespace }}/configmaps/blueprint-drafts
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      dependsOn:
+        name: namespaces
+      continueOnError: true
+      errorKey: draftsError
+  # The returned schemaSpec is the CRD's spec schema with two synthetic fields PREPENDED:
+  # `name` + `namespace` — the instance identity the user enters. The Form routes them to
+  # metadata.* via payloadToOverride and excludes them from spec (del). This is the create
+  # form's schema, so owning the instance-identity fields here is intentional.
+  filter: |
+    (.compdef.status.apiVersion | split("/")[1]) as $ver
+    | .namespaces as $namespaces
+    | (.crd.spec.versions[]? | select(.name == $ver) | .schema.openAPIV3Schema.properties.spec) as $spec
+    # Fields the blueprint marks hidden (title contains "(should be hidden)") are
+    # omitted from the generated form — propertiesToHide derived from the schema, not hardcoded.
+    | ([ ($spec.properties // {}) | to_entries[] | select((.value.title // "") | test("should be hidden"; "i")) | .key ]) as $hidden
+    # Draft resume (Tier C #11): the key is per-user (extras.username) + per-blueprint
+    # (extras.namespace/.name), sanitized to the ConfigMap-key charset [-._a-zA-Z0-9].
+    # __owner is the key itself — it rides in the form store (initialValues) so the
+    # save-draft action knows where to write, WITHOUT recomputing identity client-side
+    # (identity is never trusted from the client). A saved draft (JSON string under that
+    # key) overlays the schema defaults; absent → just __owner, a clean form.
+    | (((.username // "anon") | gsub("[^a-zA-Z0-9_.-]"; "-"))
+        + "__" + ((.namespace // "") | gsub("[^a-zA-Z0-9_.-]"; "-"))
+        + "__" + ((.name // "") | gsub("[^a-zA-Z0-9_.-]"; "-"))) as $draftKey
+    # fromjson yields numbers as json.Number, which snowplow's jq encoder can't
+    # serialize (it panics); `+ 0` via walk coerces every number to a native float
+    # so the encoder is happy. Non-objects (corrupt draft) fall back to {}.
+    | (try (((.drafts.data[$draftKey]) // "") | fromjson) catch {}) as $draftParsed
+    | (if ($draftParsed | type) == "object" then ($draftParsed | walk(if type == "number" then . + 0 else . end)) else {} end) as $draft
+    # stringSchema (authoring order): the blueprint's raw values.schema.json (from the jsonschema
+    # CM) with name/namespace identity STRING-spliced in as the first properties and a top-level
+    # required injected. Kept as a STRING — never parsed/re-emitted — so JSON key order survives
+    # to the client (which JSON.parses it). null when the CM is absent or has no "properties": —
+    # the Form then falls back to schemaSpec. $namespaces feeds the namespace enum, as in schemaSpec.
+    | ((.jsonschema.data["values.schema.json"]) // null) as $raw
+    | (if $raw == null then null
+       else ("\"properties\": ") as $n
+         | ($raw | index($n)) as $pi
+         | (if $pi == null then null
+            else ($raw[0:($pi + ($n | length))]) as $pfx
+              | ($raw[($pi + ($n | length)):]) as $rst
+              | ({ name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
+                   namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces } } | tojson) as $id
+              | ($pfx + $id[:-1] + "," + $rst[1:]) as $spliced
+              | "{\"required\":[\"name\",\"namespace\"]," + ($spliced | ltrimstr("{"))
+            end)
+       end) as $stringSchema
+    | {
+        stringSchema: $stringSchema,
+        schemaSpec: ($spec
+          | .properties = ({
+              name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
+              namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces }
+            } + (.properties // {}))
+          | .required = (["name", "namespace"] + (.required // []))),
+        propertiesToHide: $hidden,
+        initialValues: ($draft + { __owner: $draftKey }),
+        apiVersion: .compdef.status.apiVersion,
+        kind: .compdef.status.kind,
+        resource: .compdef.status.resource
+      }

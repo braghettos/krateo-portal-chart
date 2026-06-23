@@ -1,0 +1,40 @@
+# Dashboard time-range options. The range is URL state (?range=24h|7d|30d|all): each
+# chip NAVIGATES to /dashboard?range=<k>, which the frontend forwards into the request
+# `extras` — so every range-scoped widget (stats, donut, throughput, greeting) and the
+# chips' own selected-state read `.range` from extras SYNCHRONOUSLY, per request. No
+# ConfigMap, no write-then-read: selecting a range updates the whole dashboard at once
+# (the previous ConfigMap PATCH lagged snowplow's informer read, so the chip + data
+# stayed on the old range until a manual refresh).
+{{- $opts := list (dict "k" "24h" "l" "24h") (dict "k" "7d" "l" "7d") (dict "k" "30d" "l" "30d") (dict "k" "all" "l" "All") }}
+{{- range $opts }}
+---
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Button
+metadata:
+  name: range-btn-{{ .k }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: {{ .l | quote }}
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: set-range-{{ .k }}
+    actions:
+      navigate:
+        - id: set-range-{{ .k }}
+          type: navigate
+          path: /dashboard?range={{ .k }}
+  # Selected-state reads the active range from `extras` (no apiRef needed — snowplow
+  # merges request extras into a no-apiRef widget's widgetDataTemplate data source).
+  # Default 24h when the URL carries no ?range.
+  widgetDataTemplate:
+    - forPath: type
+      expression: '${ if (.range // "24h") == {{ .k | quote }} then "primary" else "default" end }'
+    - forPath: variant
+      expression: '${ if (.range // "24h") == {{ .k | quote }} then "solid" else "outlined" end }'
+  resourcesRefs:
+    items: []
+{{- end }}

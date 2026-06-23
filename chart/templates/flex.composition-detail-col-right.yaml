@@ -1,0 +1,38 @@
+# Right column (narrower): Health, Relations, Metadata.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-col-right
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: small
+    allowedResources:
+      - cards
+    items:
+      - resourceRefId: card-composition-detail-health
+      - resourceRefId: card-composition-detail-relations
+      - resourceRefId: card-composition-detail-metadata
+  resourcesRefs:
+    items:
+      - id: card-composition-detail-health
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-health
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-composition-detail-relations
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-relations
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-composition-detail-metadata
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-metadata
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET

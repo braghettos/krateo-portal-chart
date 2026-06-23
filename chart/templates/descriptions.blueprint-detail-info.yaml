@@ -1,0 +1,24 @@
+# Blueprint info rows (chart / installed version / latest version / status / synced / created),
+# shaped server-side by the blueprint-detail RA. Hosted inside card-blueprint-detail-info (the
+# Flex allowedResources enum has no `descriptions`, so it must be nested in a Card).
+kind: Descriptions
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: descriptions-blueprint-detail-info
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprint-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    column: 1
+    bordered: true
+    size: small
+    items: []
+  widgetDataTemplate:
+    - forPath: items
+      expression: '${ [ { label: "Chart", value: (.chart // "") }, { label: "Installed version", value: (.currentVersion // "") }, { label: "Latest version", value: (.latestVersion // "") }, { label: "Status", value: (.ready // "Unknown") }, { label: "Synced", value: (.synced // "Unknown") }, { label: "Created", value: (.created // "") } ] }'
+  resourcesRefs:
+    items: []

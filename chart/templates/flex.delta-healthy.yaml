@@ -1,0 +1,31 @@
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: delta-healthy
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - tags
+    - paragraphs
+    align: baseline
+    gap: 4
+    items:
+    - resourceRefId: delta-tag-healthy
+    - resourceRefId: delta-cap-healthy
+  resourcesRefs:
+    items:
+    - id: delta-tag-healthy
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-tag-healthy
+      namespace: {{ .Release.Namespace }}
+      resource: tags
+      verb: GET
+    - id: delta-cap-healthy
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: delta-cap-healthy
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET

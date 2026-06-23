@@ -1,0 +1,71 @@
+# Marketplace catalog — the INSTALLABLE blueprints, sourced from the braghettos
+# helm-repo index (https://braghettos.github.io/charts/blueprints/index.yaml, ~311
+# charts). This is the mockup's "installable catalog" source, replacing the old
+# blueprints-cards (which listed only the cluster's ALREADY-INSTALLED Composition
+# Definitions). Honest fields straight off the index: name/description/version/url +
+# the curated `krateo.io/category` and `krateo.io/maturity` annotations (fallback to
+# the first keyword / "uncategorized"). Each entry's value is the version list newest
+# -first (helm convention) → `.value[0]` is the latest.
+#
+# REQUIRES snowplow >= 1.4.0: the external `endpointRef` GET returns text/yaml, which
+# snowplow converts YAML->JSON (external_fetch.go) before the jq filter runs. On 1.3.0
+# the YAML body would be 406'd by the old JSON content-type gate.
+#
+# A second api-step LISTs the installed CompositionDefinitions and the top-level filter
+# LEFT-JOINs them by chart name → `installed` + `installedVersion`, so a tile can mark
+# blueprints already present on the cluster. `continueOnError` everywhere: a missing
+# index endpoint or a UAF-denied compdef list degrades to an empty/partial catalog, not
+# a broken page.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: blueprints-catalog
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: catalog
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/blueprints/index.yaml
+      verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
+      continueOnError: true
+      errorKey: catalogError
+    - name: compdefs
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
+      verb: GET
+      continueOnError: true
+      errorKey: compdefsError
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: compositiondefinitions
+        namespaceFrom: .metadata.namespace
+      filter: '[.compdefs.items[]? | {name: .metadata.name, version: (.spec.chart.version // "")}]'
+  filter: >
+    ( [ (.compdefs // [])[] | {key: .name, value: .version} ] | from_entries ) as $inst
+    | ((.category) // "all") as $sel
+    | {
+        selectedCategory: $sel,
+        cards: [
+          (((.catalog // {}).entries) // {}) | to_entries[] | .value[0]
+          | ( ((.annotations // {})["krateo.io/category"]) // (.keywords[0]) // "uncategorized" ) as $cat
+          | {
+              name: .name,
+              description: (.description // ""),
+              category: $cat,
+              tags: [ $cat ],
+              icon: ({"compute":"fa-microchip","network":"fa-network-wired","database":"fa-database","application":"fa-cubes","security":"fa-shield-halved","observability":"fa-chart-line","storage":"fa-hard-drive","generator":"fa-wand-magic-sparkles"}[$cat] // "fa-cube"),
+              maturity: ((.annotations // {})["krateo.io/maturity"] // ""),
+              version: (.version // ""),
+              url: (.urls[0] // ""),
+              repoUrl: ((.urls[0] // "") | sub("/[^/]+$"; "")),
+              installed: ($inst[.name] != null),
+              installedVersion: ($inst[.name] // "")
+            }
+        ] | map(select($sel == "all" or .category == $sel)) | sort_by(.name)
+      }

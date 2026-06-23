@@ -1,0 +1,38 @@
+# Settings page — the admin console, converted from the krateoplatformops-blueprints
+# portal-admin-page (TabList → my antd Tabs; Column/Panel → tab content widgets).
+# Scoped to the two genuinely-admin tabs: Krateo status + Users (Blueprints and
+# Compositions already have their own nav pages; FinOps dropped). Each tab's
+# content resolves through resourcesRefs, rendered by the Tabs widget's nested
+# WidgetRenderer.
+kind: Tabs
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: settings-admin
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - tables
+    items:
+      - label: Krateo
+        title: Krateo and cluster status
+        resourceRefId: settings-krateo-status
+      - label: Users
+        title: Local users, groups, and permissions
+        resourceRefId: settings-users
+  resourcesRefs:
+    items:
+      - id: settings-krateo-status
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: settings-krateo-status
+        namespace: {{ .Release.Namespace }}
+        resource: tables
+        verb: GET
+      - id: settings-users
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: settings-users
+        namespace: {{ .Release.Namespace }}
+        resource: tables
+        verb: GET

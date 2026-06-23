@@ -1,0 +1,41 @@
+# Time-range chip group + custom range picker (right side of the compositions toolbar).
+# The preset chips (24h/7d/30d/all) and the custom from/to RangePicker both drive the
+# same compositions-list time window via the URL; the picker (comp-date-range) sets
+# ?from/?to which take precedence over a preset ?range.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: compositions-range-group
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - buttons
+    - rangepickers
+    gap: small
+    align: center
+    wrap: true
+    items:
+    - resourceRefId: comp-range-btn-24h
+    - resourceRefId: comp-range-btn-7d
+    - resourceRefId: comp-range-btn-30d
+    - resourceRefId: comp-range-btn-all
+    - resourceRefId: comp-date-range
+  resourcesRefs:
+    items:
+    {{- range (list "24h" "7d" "30d" "all") }}
+    - id: comp-range-btn-{{ . }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: comp-range-btn-{{ . }}
+      namespace: {{ $.Release.Namespace }}
+      resource: buttons
+      verb: GET
+    {{- end }}
+    - id: comp-date-range
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: comp-date-range
+      namespace: {{ $.Release.Namespace }}
+      resource: rangepickers
+      verb: GET
