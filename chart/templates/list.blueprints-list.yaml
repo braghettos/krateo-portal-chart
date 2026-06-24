@@ -22,12 +22,19 @@ spec:
     itemTemplate:
       icon: fa-cube
       primaryText: '{name}'
+      # version badge (mono pill) + category as a colour tag — mirrors the Blueprints-page
+      # tile elements; row click → the blueprint detail page (like the Blueprints grid).
+      subPrimaryText: 'v{version}'
+      subPrimaryTextMono: true
       secondaryText: '{category}'
+      secondaryTextAsTag: true
+      navigateTo: '/blueprints/{namespace}/{name}'
   # D3: sort by creationTimestamp DESC → the genuinely most-recently-registered 5 (honest
   # "Recent blueprints"), not the alphabetical first-5 that blueprints-cards' name-sort gave.
-  # `created` rides along only for the sort; the itemTemplate renders name + category.
+  # `created` rides along only for the sort; the itemTemplate renders name + version + category
+  # tag. version (.spec.chart.version) + namespace ride along for the badge + row navigateTo.
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[]? | { name: .metadata.name, category: (if ((.tags // []) | length) > 0 then (.tags | join(" · ")) else "blueprint" end), created: (.metadata.creationTimestamp // "") } ] | sort_by(.created) | reverse | .[0:5] }'
+      expression: '${ [ .cards[]? | { name: .metadata.name, namespace: .metadata.namespace, version: (.version // ""), category: (if ((.tags // []) | length) > 0 then (.tags | join(" · ")) else "blueprint" end), created: (.metadata.creationTimestamp // "") } ] | sort_by(.created) | reverse | .[0:5] }'
   resourcesRefs:
     items: []
