@@ -49,6 +49,7 @@ spec:
   filter: >
     ( [ (.compdefs // [])[] | {key: .name, value: .version} ] | from_entries ) as $inst
     | ((.category) // "all") as $sel
+    | ((.q // "") | ascii_downcase) as $q
     | {
         selectedCategory: $sel,
         cards: [
@@ -67,5 +68,5 @@ spec:
               installed: ($inst[.name] != null),
               installedVersion: ($inst[.name] // "")
             }
-        ] | map(select($sel == "all" or .category == $sel)) | sort_by(.name)
+        ] | map(select(($sel == "all" or .category == $sel) and ($q == "" or ((.name // "") | ascii_downcase | contains($q)) or ((.description // "") | ascii_downcase | contains($q))))) | sort_by(.name)
       }

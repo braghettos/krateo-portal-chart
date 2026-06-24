@@ -52,9 +52,10 @@ spec:
   # "Top blueprints" reuse passes no ?category, so $sel defaults to "all" → unfiltered.
   filter: >
     ((.category) // "all") as $sel
+    | ((.q // "") | ascii_downcase) as $q
     | {
         selectedCategory: $sel,
         cards: ((.compdefs // [])
           | sort_by(.metadata.name // "")
-          | map(select($sel == "all" or .category == $sel)))
+          | map(select(($sel == "all" or .category == $sel) and ($q == "" or ((.metadata.name // "") | ascii_downcase | contains($q)) or ((.provisions // "") | ascii_downcase | contains($q))))))
       }
