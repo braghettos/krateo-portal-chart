@@ -53,9 +53,12 @@ spec:
   filter: >
     ((.category) // "all") as $sel
     | ((.q // "") | ascii_downcase) as $q
+    | ((.projects // "") | split(",") | map(select(. != ""))) as $projects
     | {
         selectedCategory: $sel,
         cards: ((.compdefs // [])
           | sort_by(.metadata.name // "")
-          | map(select(($sel == "all" or .category == $sel) and ($q == "" or ((.metadata.name // "") | ascii_downcase | contains($q)) or ((.provisions // "") | ascii_downcase | contains($q))))))
+          | map(select(($sel == "all" or .category == $sel)
+              and ($q == "" or ((.metadata.name // "") | ascii_downcase | contains($q)) or ((.provisions // "") | ascii_downcase | contains($q)))
+              and (($projects | length) == 0 or (([.metadata.namespace] - $projects) | length == 0)))))
       }
