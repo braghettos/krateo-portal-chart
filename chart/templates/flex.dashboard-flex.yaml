@@ -18,7 +18,7 @@ spec:
     - linecharts
     - piecharts
     - eventlists
-    - lists
+    - listies
     vertical: true
     gap: middle
     items:
