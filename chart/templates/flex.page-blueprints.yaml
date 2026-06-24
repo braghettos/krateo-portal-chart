@@ -12,7 +12,7 @@ spec:
   widgetData:
     allowedResources:
     - flexes
-    - lists
+    - listies
     vertical: true
     gap: large
     items:

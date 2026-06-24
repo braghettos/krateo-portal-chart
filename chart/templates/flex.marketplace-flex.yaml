@@ -12,7 +12,7 @@ spec:
     allowedResources:
       - flexes
       - filters
-      - lists
+      - listies
     items:
       - resourceRefId: marketplace-header
       - resourceRefId: marketplace-category-group
