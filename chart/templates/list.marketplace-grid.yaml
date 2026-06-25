@@ -54,11 +54,17 @@ spec:
       # form for THIS row (${name} interpolated from the card's customPayload), where the user
       # reviews the CompositionDefinition (CRD schema, chart pre-filled) and deploys it.
       rowActions:
+        - actionId: details
+          label: Details
+          icon: fa-circle-info
         - actionId: install
           label: Install
           icon: fa-download
     actions:
       navigate:
+        - id: details
+          type: navigate
+          path: /marketplace/${name}
         - id: install
           type: navigate
           path: /marketplace/${name}/install
