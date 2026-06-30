@@ -30,6 +30,7 @@ spec:
       filter: >
         [.compdefs.items[]?
          | ((.metadata.labels // {})["krateo.io/tier"] // "blueprint") as $cat
+         | (([.status.conditions[]? | select(.type == "Ready") | .status][0]) // "Unknown") as $ready
          | {
              apiVersion,
              kind,
@@ -43,6 +44,9 @@ spec:
              version: (.spec.chart.version // ""),
              chart: (.spec.chart.url // ""),
              provisions: (.status.kind // .status.managed.kind // ""),
+             readyReason: (([.status.conditions[]? | select(.type == "Ready") | .reason][0]) // ""),
+             readyIcon: (if $ready == "True" then "fa-circle-check" elif $ready == "False" then "fa-circle-xmark" else "fa-clock" end),
+             readyColor: (if $ready == "True" then "green" elif $ready == "False" then "red" else "gold" end),
              category: $cat,
              tags: [ $cat ]
            }]
