@@ -22,3 +22,10 @@ enableCyberjokerUser: true
 # default: true
 # @schema
 enableDemoSystemNamespace: true
+
+# @schema
+# description: Display name of the platform tenant — shown in the sider tenant chip and the page eyebrows (dashboard greeting, compositions, observability). A deployer-set label, not derived data; defaults to krateo-enterprise.
+# type: string
+# default: krateo-enterprise
+# @schema
+tenant: krateo-enterprise
