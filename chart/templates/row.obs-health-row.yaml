@@ -1,0 +1,34 @@
+# Health overview — condition-coverage gauges (left, wide) + the overall reconciliation
+# health summary (right). Both off compositions-list. Mirrors the dashboard charts-row
+# split (wide panel + narrow panel), cards enum already used there.
+kind: Row
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-health-row
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - cards
+    alignment: stretch
+    items:
+    - resourceRefId: obs-conditions-card
+      size: 16
+    - resourceRefId: obs-reconcile-card
+      size: 8
+  resourcesRefs:
+    items:
+    - id: obs-conditions-card
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-conditions-card
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
+    - id: obs-reconcile-card
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-reconcile-card
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
