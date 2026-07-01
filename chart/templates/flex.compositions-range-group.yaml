@@ -14,6 +14,7 @@ spec:
     allowedResources:
     - buttons
     - rangepickers
+    - inputs
     gap: small
     align: center
     wrap: true
@@ -23,6 +24,7 @@ spec:
     - resourceRefId: comp-range-btn-30d
     - resourceRefId: comp-range-btn-all
     - resourceRefId: comp-date-range
+    - resourceRefId: comp-search
   resourcesRefs:
     items:
     {{- range (list "24h" "7d" "30d" "all") }}
@@ -38,4 +40,10 @@ spec:
       name: comp-date-range
       namespace: {{ $.Release.Namespace }}
       resource: rangepickers
+      verb: GET
+    - id: comp-search
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-search
+      namespace: {{ $.Release.Namespace }}
+      resource: inputs
       verb: GET

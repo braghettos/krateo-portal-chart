@@ -1,7 +1,8 @@
 # Compositions search box — a STANDALONE, URL-query-bound Input.Search (queryParam: q).
 # Submitting writes ?q=<text> into the URL → request extras → the compositions-list RA jq
-# filters its rows server-side by name/kind ($q). Clearing removes the param. Sits between
-# the page header and the status/range toolbar in flex.page-compositions.
+# filters its rows server-side by name/kind ($q). Clearing removes the param. Sits IN the
+# compositions toolbar's range group, right after the custom date picker (needs `inputs` in
+# the Flex allowedResources enum, which was added to the Flex widget CRD).
 kind: Input
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -13,8 +14,8 @@ spec:
   widgetData:
     name: q
     queryParam: q
-    placeholder: Search compositions by name…
+    placeholder: Search by name or type…
     allowClear: true
-    size: middle
+    size: small
   resourcesRefs:
     items: []
