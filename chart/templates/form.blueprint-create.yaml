@@ -31,10 +31,11 @@ spec:
     # read-only Review of the entered values; only the Review step's button creates.
     reviewBeforeSubmit: true
     submitActionId: submit
-    # Save draft (Tier C #11): persists the CURRENT field values un-validated, so an
-    # incomplete form survives. The Form reads them with getFieldsValue(true) — which
-    # includes __owner (the per-user draft key seeded into initialValues but never
-    # rendered/validated), so the real submit (onFinish, registered fields only) stays clean.
+    # Save draft: persists the CURRENT field values un-validated to the BROWSER (localStorage),
+    # so an incomplete form survives a reload with NO backend persistence. The Form keys the
+    # draft by __owner (the per-user/blueprint key seeded into initialValues but never
+    # rendered/validated) and resumes it on mount; the real submit (onFinish, registered fields
+    # only) stays clean. draftActionId only ENABLES the button now — no REST action backs it.
     draftActionId: save-draft
     schema: {}
     buttonConfig:
@@ -58,7 +59,10 @@ spec:
           resourceRefId: create-composition
           headers:
             - 'Content-Type: application/json'
-          onSuccessNavigateTo: /compositions
+          # Redirect to the NEW composition's DETAIL page (not the list). resolveJq sees the
+          # built request body as `.json`, which carries metadata.name + metadata.namespace
+          # (set by payloadToOverride below).
+          onSuccessNavigateTo: '${ "/compositions/" + .json.metadata.namespace + "/" + .json.metadata.name }'
           successMessage: Composition created
           # All from {json} (the form values) — the only context payloadToOverride jq sees.
           # __owner is absent here (onFinish yields only registered fields), so it can't leak.
@@ -66,22 +70,6 @@ spec:
             - { name: metadata.name,      value: '${ .json.name }' }
             - { name: metadata.namespace, value: '${ .json.namespace }' }
             - { name: spec,               value: '${ .json | del(.name) | del(.namespace) }' }
-        # Merge-patch the shared blueprint-drafts CM at the user's key. metadata.* targets
-        # the CM (the engine builds ?name=&namespace= from payload.metadata); data.<__owner>
-        # = the in-progress form as a JSON string. merge-patch ⇒ other users'/blueprints'
-        # keys are untouched. The CM pre-exists (Helm), so no create-on-first-save is needed.
-        - id: save-draft
-          type: rest
-          resourceRefId: draft-cm
-          headers:
-            - 'Content-Type: application/merge-patch+json'
-          successMessage: Draft saved
-          payload:
-            metadata:
-              name: blueprint-drafts
-              namespace: {{ .Release.Namespace }}
-          payloadToOverride:
-            - { name: data, value: '${ { (.json.__owner): (.json | del(.__owner) | tojson) } }' }
   widgetDataTemplate:
     - forPath: schema
       expression: '${ .schemaSpec }'
@@ -98,15 +86,10 @@ spec:
     - forPath: initialValues
       expression: '${ .initialValues }'
   resourcesRefs:
-    items:
-      # Static (name known at Helm time): the shared drafts CM. snowplow resolves `allowed`
-      # via the user's RBAC; verb PATCH = merge-patch the user's key.
-      - id: draft-cm
-        apiVersion: v1
-        name: blueprint-drafts
-        namespace: {{ .Release.Namespace }}
-        resource: configmaps
-        verb: PATCH
+    # No static resourcesRefs: the create POST target is built per-blueprint in
+    # resourcesRefsTemplate below, and the draft no longer writes anything (it lives in the
+    # browser's localStorage), so there is no draft ConfigMap ref here.
+    items: []
   resourcesRefsTemplate:
     - template:
         id: create-composition
