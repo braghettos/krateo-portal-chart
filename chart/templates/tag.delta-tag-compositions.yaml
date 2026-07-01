@@ -14,7 +14,12 @@ spec:
       fontSize: '13px'
       fontWeight: 700
       lineHeight: '18px'
+    # live-refresh: watch the composition kinds so the delta updates with the count Statistic
+    # (which already watches) — keeps count + delta consistent without a reload. Computed, not hardcoded.
+    watch: []
   widgetDataTemplate:
+  - forPath: watch
+    expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: label
     expression: '${ "▲+" + ((.list | length) | tostring) }'
   apiRef:

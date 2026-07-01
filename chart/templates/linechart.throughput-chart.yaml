@@ -16,7 +16,9 @@ spec:
       Created: cyan
     shapeField: smooth
     area: true
-    legend: true
+    # Single "Created" series — the card title already says "Compositions created", so the
+    # one-item legend was redundant. Hidden.
+    legend: false
     height: 150
     # x values are emitted as UNIX epoch SECONDS (below) and formatted to a label in the
     # BROWSER's local timezone by the LineChart widget — so a 21:00-Rome bucket reads "21:00",
