@@ -1,0 +1,28 @@
+# Marketplace category facet — a DATA-DRIVEN row of navigable chip pills, one per keyword the
+# catalog actually carries. The blueprints-catalog RA emits `.categories` (the popular keywords
+# with count + an `active` flag + a combinable `route`); this Listy renders each as a `chip`
+# rowVariant pill. Replaces the old hardcoded krateo.io/category Button chips — the facet now
+# mirrors the live catalog. Each chip navigates to its `route` (which preserves the current
+# source/q filter); the active chip renders solid amber.
+kind: Listy
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-category-chips
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: blueprints-catalog
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    itemTemplate:
+      rowVariant: chip
+      primaryText: '{label}'
+      navigateTo: '{route}'
+    dataSource: []
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ .categories }'
+  resourcesRefs:
+    items: []
