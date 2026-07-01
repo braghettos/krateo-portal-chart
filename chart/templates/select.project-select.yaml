@@ -16,6 +16,9 @@ spec:
   widgetData:
     name: projects
     queryParam: projects
+    # `label` is the switcher PANEL header eyebrow (mockup `.sw-head` "Projects · namespaces"),
+    # distinct from the "All projects" master row (which comes from `placeholder`).
+    label: 'Projects · namespaces'
     mode: multiple
     placeholder: All projects
     size: small

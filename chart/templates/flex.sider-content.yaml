@@ -1,9 +1,8 @@
-# Declarative Sider content: brand logo → context strip (tenant chip + project
-# selector) → nav Menu. The context strip makes the platform model visible — TENANT
-# = cluster (tenant-chip, deployer config), PROJECT = namespace (project-select, a
-# ?project= URL→extras scope that filters compositions/dashboard server-side). This
-# is what makes the brand+scope declarative — the engine injects no hardcoded chrome.
-# (The user footer is still engine-injected — per-user identity, not data.)
+# Declarative Sider content: brand logo → nav Menu. The tenant chip + project (= namespace)
+# selector moved OUT to the app-shell HEADER (flex.header-context, mounted by the frontend
+# HeaderChrome) per the multitenancy screenshot — the scope control sits in the topbar, so the
+# sider is now just the brand + navigation. The CONSOLE / SCOPE · PROJECTS eyebrows were dropped
+# with the scope strip. (The user footer is still engine-injected — per-user identity, not data.)
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -17,41 +16,17 @@ spec:
     gap: middle
     allowedResources:
       - images
-      - tags
-      - selects
       - menus
-      - paragraphs
     items:
       - resourceRefId: brand
-      - resourceRefId: tenant-chip
-      - resourceRefId: project-select
-      - resourceRefId: console-eyebrow
       - resourceRefId: nav
   resourcesRefs:
     items:
-      - id: console-eyebrow
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: console-eyebrow
-        namespace: {{ .Release.Namespace }}
-        resource: paragraphs
-        verb: GET
       - id: brand
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: brand-logo
         namespace: {{ .Release.Namespace }}
         resource: images
-        verb: GET
-      - id: tenant-chip
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: tenant-chip
-        namespace: {{ .Release.Namespace }}
-        resource: tags
-        verb: GET
-      - id: project-select
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: project-select
-        namespace: {{ .Release.Namespace }}
-        resource: selects
         verb: GET
       - id: nav
         apiVersion: widgets.templates.krateo.io/v1beta1
