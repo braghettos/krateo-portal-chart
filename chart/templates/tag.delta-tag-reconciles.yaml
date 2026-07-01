@@ -10,10 +10,15 @@ spec:
     label: 0%
     color: orange
     style:
-      fontSize: '22px'
+      fontSize: '13px'
       fontWeight: 700
-      lineHeight: '26px'
+      lineHeight: '18px'
+    # live-refresh: watch the composition kinds so the % updates with the count Statistic
+    # (which already watches) — keeps count + % consistent without a reload. Computed, not hardcoded.
+    watch: []
   widgetDataTemplate:
+  - forPath: watch
+    expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: label
     expression: '${ (if (.list|length)>0 then ((([.list[]|select((.conditions//[])|(any(.type=="Ready" and (.status=="True" or .status=="False"))|not))]|length)*100/(.list|length))|floor) else 0 end | tostring) + "%" }'
   apiRef:

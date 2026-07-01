@@ -54,10 +54,24 @@ spec:
       filter: >
         [ ((.catalog.entries) // {}) | to_entries[] | .value[0]
           | {name: .name, category: (((.annotations // {})["krateo.io/category"]) // (.keywords[0]) // "uncategorized")} ]
+    # installed CompositionDefinitions — used to decide a blueprint hit's destination: already
+    # on the cluster → open its DETAIL page; only installable → the Marketplace (spotlighted).
+    - name: compdefs
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
+      verb: GET
+      continueOnError: true
+      errorKey: compdefsError
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: compositiondefinitions
+        namespaceFrom: .metadata.namespace
+      filter: '[.compdefs.items[]? | {name: .metadata.name, ns: .metadata.namespace}]'
   # Merge both sources into one result list, then filter by the `q` extra
   # (case-insensitive substring on the title). Empty/absent q → return all.
   filter: >
     (.q // "" | ascii_downcase) as $q
+    | [ (.compdefs // [])[] | .name ] as $instNames
     | {
         items: (
           [ (.comps // [])[] | {
@@ -66,11 +80,19 @@ spec:
               type: "composition",
               link: ("/compositions/" + (.ns // "") + "/" + (.name // ""))
             } ]
-          + [ (.catalog // [])[] | {
+          + [ (.compdefs // [])[] | {
               title: (.name // ""),
+              subtitle: "Blueprint · installed",
+              type: "blueprint",
+              installed: true,
+              link: ("/blueprints/" + (.ns // "") + "/" + (.name // ""))
+            } ]
+          + [ (.catalog // [])[] | .name as $cn | select(any($instNames[]; . == $cn) | not) | {
+              title: ($cn // ""),
               subtitle: ("Blueprint · " + (.category // "")),
               type: "blueprint",
-              link: ((.category // "uncategorized") as $c | if $c == "uncategorized" then "/marketplace" else "/marketplace?category=" + $c end)
+              installed: false,
+              link: ("/marketplace?q=" + ($cn // "") + "&spotlight=" + ($cn // ""))
             } ]
         )
         | map(select($q == "" or ((.title | ascii_downcase) | contains($q))))

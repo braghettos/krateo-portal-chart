@@ -1,0 +1,36 @@
+# Header context strip (multitenancy screenshot topbar): the TENANT label + the PROJECT
+# switcher, moved OUT of the sider into the app-shell header so the scope control sits in the
+# topbar next to the wordmark. Rendered by the frontend HeaderChrome via WidgetRenderer (the
+# header is engine chrome — the Layout widget falls back to the frontend header slot, which now
+# mounts this flex). Horizontal + compact so tenant + project sit inline in the ~50px header.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: header-context
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    gap: small
+    align: center
+    allowedResources:
+      - tags
+      - selects
+    items:
+      - resourceRefId: tenant-chip
+      - resourceRefId: project-select
+  resourcesRefs:
+    items:
+      - id: tenant-chip
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: tenant-chip
+        namespace: {{ .Release.Namespace }}
+        resource: tags
+        verb: GET
+      - id: project-select
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: project-select
+        namespace: {{ .Release.Namespace }}
+        resource: selects
+        verb: GET

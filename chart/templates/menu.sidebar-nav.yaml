@@ -21,6 +21,9 @@ spec:
       - pages
     items:
       - { label: Dashboard,    icon: fa-gauge,       order: 1, path: /dashboard,    resourceRefId: dashboard }
+      # Observability → page-observability: aggregates compositions health, reconciliation,
+      # by-kind/by-project distribution, inventory and recent activity into one view.
+      - { label: Observability, icon: fa-chart-line, order: 3, path: /observability, resourceRefId: observability }
       - { label: Compositions, icon: fa-cubes,       order: 2, path: /compositions, resourceRefId: compositions }
       # Blueprints → page-blueprints (header + the now-selectable catalog table).
       - { label: Blueprints,   icon: fa-layer-group, order: 4, path: /blueprints,   resourceRefId: blueprints }
@@ -40,6 +43,9 @@ spec:
       # Install a blueprint = deploy a CompositionDefinition (the marketplace card's Install
       # navigates here with the blueprint name; the form renders the CompositionDefinition CRD).
       - { order: 915, path: "/marketplace/{name}/install", page: blueprint-install }
+      # Marketplace blueprint detail — a catalog tile's "Details" lands here (and Autopilot can
+      # navigate here). Shows the helm-index metadata (description / versions / links) + Install.
+      - { order: 912, path: "/marketplace/{name}", page: marketplace-detail }
       # Installed-blueprint detail — a Blueprints card click lands here. Shows chart/version/status
       # and hosts Create (instantiate) / Delete (uninstall) / version-update.
       - { order: 920, path: "/blueprints/{namespace}/{name}", page: blueprint-detail }
@@ -48,6 +54,12 @@ spec:
       - id: dashboard
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: dashboard-flex
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: observability
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-observability
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET

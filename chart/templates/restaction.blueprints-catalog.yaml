@@ -1,21 +1,20 @@
-# Marketplace catalog — the INSTALLABLE blueprints, sourced from the braghettos
-# helm-repo index (https://braghettos.github.io/charts/blueprints/index.yaml, ~311
-# charts). This is the mockup's "installable catalog" source, replacing the old
-# blueprints-cards (which listed only the cluster's ALREADY-INSTALLED Composition
-# Definitions). Honest fields straight off the index: name/description/version/url +
-# the curated `krateo.io/category` and `krateo.io/maturity` annotations (fallback to
-# the first keyword / "uncategorized"). Each entry's value is the version list newest
-# -first (helm convention) → `.value[0]` is the latest.
+# Marketplace catalog — the INSTALLABLE items, merged from TWO braghettos helm-repo
+# indexes: /charts/blueprints/index.yaml (~311 CompositionDefinition blueprints) AND
+# /charts/operators/index.yaml (~18 Kubernetes operators). Every entry is stamped with
+# `source: blueprint|operator` so the grid can tell them apart (badge + tinted icon) and
+# a type toggle can filter them. Honest fields straight off each index: name/description/
+# version/url. Categories are NOT a curated annotation any more — each card's `tags` are
+# its raw helm `keywords` (multi-tag: a card lives under EVERY one of its keywords), and
+# the `categories` array (distinct keyword + count, the popular ones) drives the chips
+# data-driven. `?category=<kw>` keeps a card if <kw> is in its keywords; `?source=<src>`
+# filters by type; `?q=` matches name/description/keywords.
 #
 # REQUIRES snowplow >= 1.4.0: the external `endpointRef` GET returns text/yaml, which
-# snowplow converts YAML->JSON (external_fetch.go) before the jq filter runs. On 1.3.0
-# the YAML body would be 406'd by the old JSON content-type gate.
+# snowplow converts YAML->JSON (external_fetch.go) before the jq filter runs.
 #
-# A second api-step LISTs the installed CompositionDefinitions and the top-level filter
-# LEFT-JOINs them by chart name → `installed` + `installedVersion`, so a tile can mark
-# blueprints already present on the cluster. `continueOnError` everywhere: a missing
-# index endpoint or a UAF-denied compdef list degrades to an empty/partial catalog, not
-# a broken page.
+# A compdefs api-step LISTs installed CompositionDefinitions and the filter LEFT-JOINs them
+# by chart name → `installed` + `installedVersion`. `continueOnError` everywhere: a missing
+# index or a UAF-denied compdef list degrades to an empty/partial catalog, not a broken page.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -35,6 +34,16 @@ spec:
         - 'Accept: application/x-yaml, text/yaml, application/json'
       continueOnError: true
       errorKey: catalogError
+    - name: operators
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/operators/index.yaml
+      verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
+      continueOnError: true
+      errorKey: operatorsError
     - name: compdefs
       path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
       verb: GET
@@ -47,25 +56,67 @@ spec:
         namespaceFrom: .metadata.namespace
       filter: '[.compdefs.items[]? | {name: .metadata.name, version: (.spec.chart.version // "")}]'
   filter: >
+    def qstr($p): ([ $p | to_entries[] | select(.value != null and .value != "") | (.key + "=" + .value) ] | join("&")) as $s
+      | (if $s == "" then "/marketplace" else "/marketplace?" + $s end);
     ( [ (.compdefs // [])[] | {key: .name, value: .version} ] | from_entries ) as $inst
     | ((.category) // "all") as $sel
-    | {
-        selectedCategory: $sel,
-        cards: [
-          (((.catalog // {}).entries) // {}) | to_entries[] | .value[0]
-          | ( ((.annotations // {})["krateo.io/category"]) // (.keywords[0]) // "uncategorized" ) as $cat
+    | ((.source) // "all") as $src
+    | ((.q) // "") as $q
+    | ($q | ascii_downcase) as $ql
+    | (
+        [ (((.catalog // {}).entries) // {}) | to_entries[] | (.value[0] + {source: "blueprint"}) ]
+        + [ (((.operators // {}).entries) // {}) | to_entries[] | (.value[0] + {source: "operator"}) ]
+      ) as $raw
+    | ( [ $raw[]
           | {
               name: .name,
               description: (.description // ""),
-              category: $cat,
-              tags: [ $cat ],
-              icon: ({"compute":"fa-microchip","network":"fa-network-wired","database":"fa-database","application":"fa-cubes","security":"fa-shield-halved","observability":"fa-chart-line","storage":"fa-hard-drive","generator":"fa-wand-magic-sparkles"}[$cat] // "fa-cube"),
+              keywords: (.keywords // []),
+              tags: (.keywords // []),
+              source: .source,
+              typeLabel: (if .source == "operator" then "Operator" else "Blueprint" end),
+              typeColor: (if .source == "operator" then "magenta" else "cyan" end),
+              icon: (if .source == "operator" then "fa-gears" else "fa-layer-group" end),
               maturity: ((.annotations // {})["krateo.io/maturity"] // ""),
               version: (.version // ""),
               url: (.urls[0] // ""),
               repoUrl: ((.urls[0] // "") | sub("/[^/]+$"; "")),
               installed: ($inst[.name] != null),
-              installedVersion: ($inst[.name] // "")
+              installedVersion: ($inst[.name] // ""),
+              # at-a-glance "already installed" check on the tile (reuses the Listy status glyph);
+              # empty icon when not installed -> the card renders no glyph.
+              installedIcon: (if $inst[.name] != null then "fa-circle-check" else "" end),
+              installedColor: (if $inst[.name] != null then "green" else "" end),
+              installedTooltip: (if $inst[.name] != null then ("Installed · v" + ($inst[.name] // "")) else "" end)
             }
-        ] | map(select($sel == "all" or .category == $sel)) | sort_by(.name)
+        ] ) as $cards
+    | {
+        selectedCategory: $sel,
+        selectedSource: $src,
+        categories: (
+          [ {key: "all", label: "All", count: ($cards | length), active: ($sel == "all"),
+             route: qstr({category: "", source: (if $src == "all" then "" else $src end), q: $q})} ]
+          + ( [ $cards[] | .keywords[] ] | group_by(.)
+              | map({key: .[0], label: .[0], count: length, active: (.[0] == $sel),
+                     route: qstr({category: .[0], source: (if $src == "all" then "" else $src end), q: $q})})
+              | map(select(.count >= 5)) | sort_by(.count) | reverse )
+        ),
+        sources: [
+          {key: "all", label: "All", active: ($src == "all"),
+           route: qstr({source: "", category: (if $sel == "all" then "" else $sel end), q: $q})},
+          {key: "blueprint", label: "Blueprints", active: ($src == "blueprint"),
+           route: qstr({source: "blueprint", category: (if $sel == "all" then "" else $sel end), q: $q})},
+          {key: "operator", label: "Operators", active: ($src == "operator"),
+           route: qstr({source: "operator", category: (if $sel == "all" then "" else $sel end), q: $q})}
+        ],
+        cards: (
+          [ $cards[] | select(
+              ($src == "all" or .source == $src)
+              and ($sel == "all" or ((.keywords | index($sel)) != null))
+              and ($ql == ""
+                   or (.name | ascii_downcase | contains($ql))
+                   or (.description | ascii_downcase | contains($ql))
+                   or ((.keywords | join(" ")) | ascii_downcase | contains($ql)))
+          ) ] | sort_by(.name)
+        )
       }

@@ -19,7 +19,10 @@ spec:
       primaryText: '{type}'
       secondaryText: '{status}'
       secondaryTextAsTag: true
-      description: '{desc}'
+      # reason·message rides on subPrimaryText (the Item.Meta description line the DEFAULT
+      # row variant actually renders) — `description` is only painted by the `card` variant
+      # (ListView.tsx), so it would silently drop here.
+      subPrimaryText: '{desc}'
       color:
         value: '{status}'
         map:

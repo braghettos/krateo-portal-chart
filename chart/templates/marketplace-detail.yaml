@@ -1,0 +1,594 @@
+# =============================================================================
+# Marketplace blueprint DETAIL page — route /marketplace/{name} (page-<slug>).
+# Mirrors the installed-blueprint detail page (flex.page-blueprint-detail) but the
+# data source is the braghettos helm-repo index entry for THIS chart (not an installed
+# CompositionDefinition). Surfaces the honest index.yaml metadata: description, the full
+# version list, appVersion, type, the krateo.io category/maturity/supported-version
+# annotations, keywords, home/sources/chart-package links, published date + digest. The
+# header action is Install (→ /marketplace/{name}/install) or, if the blueprint is already
+# installed, Configure (→ its installed-blueprint detail). All fields are server-shaped by
+# the marketplace-detail RA below; widgets only slice their view. Needs snowplow >= 1.4.0
+# (external YAML fetch), same as blueprints-catalog / blueprint-detail.
+#
+# Grouped in one multi-doc template (vs one file per CR) because they're a single cohesive
+# feature; snowplow indexes by kind+name, so file layout is cosmetic.
+# =============================================================================
+---
+# DATA SOURCE — resolve ONE catalog entry by ?extras.name (route /marketplace/{name}).
+# Fetches the helm index + the installed CompositionDefinitions (to mark installed/Configure).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: marketplace-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: catalog
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/blueprints/index.yaml
+      verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
+      continueOnError: true
+      errorKey: catalogError
+    - name: compdefs
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
+      verb: GET
+      continueOnError: true
+      errorKey: compdefsError
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: compositiondefinitions
+        namespaceFrom: .metadata.namespace
+      filter: '[.compdefs.items[]? | {name: .metadata.name, version: (.spec.chart.version // ""), namespace: .metadata.namespace}]'
+  filter: >
+    .name as $n
+    | ( [ (.compdefs // [])[] | {key: .name, value: .version} ] | from_entries ) as $instVer
+    | ( [ (.compdefs // [])[] | {key: .name, value: .namespace} ] | from_entries ) as $instNs
+    | ( ((.catalog // {}).entries[$n]) // [] ) as $vers
+    | ( $vers[0] // {} ) as $latest
+    | ( [ $vers[] | .version | select(. != null and . != "") ] | unique ) as $availableVersions
+    | ( ($latest.annotations // {}) ) as $ann
+    | ( $ann["krateo.io/category"] // ($latest.keywords[0]) // "uncategorized" ) as $cat
+    | {
+        name: $n,
+        found: ($vers | length > 0),
+        description: ($latest.description // ""),
+        category: $cat,
+        maturity: ($ann["krateo.io/maturity"] // ""),
+        version: ($latest.version // ""),
+        availableVersions: $availableVersions,
+        availableVersionsText: ($availableVersions | join(", ")),
+        appVersion: ($latest.appVersion // ""),
+        type: ($latest.type // ""),
+        krateoSupportedVersion: ($ann["krateoSupportedVersion"] // ""),
+        keywords: ($latest.keywords // []),
+        keywordsText: (($latest.keywords // []) | join(", ")),
+        home: ($latest.home // ""),
+        sources: ($latest.sources // []),
+        sourcesText: (($latest.sources // []) | join("   ")),
+        icon: ($latest.icon // ""),
+        chartUrl: ($latest.urls[0] // ""),
+        created: ($latest.created // ""),
+        digest: ($latest.digest // ""),
+        installed: ($instVer[$n] != null),
+        installedVersion: ($instVer[$n] // ""),
+        installedNamespace: ($instNs[$n] // "{{ .Release.Namespace }}")
+      }
+---
+# PAGE ROOT — header block over a 2-column grid (mirrors page-blueprint-detail).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-marketplace-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: large
+    allowedResources:
+      - flexes
+      - rows
+    items:
+      - resourceRefId: marketplace-detail-header-block
+      - resourceRefId: marketplace-detail-grid
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-header-block
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-header-block
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: marketplace-detail-grid
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-grid
+        namespace: {{ .Release.Namespace }}
+        resource: rows
+        verb: GET
+---
+# Header block — title-stack (left) + Install/Configure action (right).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-header-block
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: false
+    justify: space-between
+    align: flex-start
+    gap: middle
+    allowedResources:
+      - flexes
+    items:
+      - resourceRefId: marketplace-detail-title-stack
+      - resourceRefId: marketplace-detail-actions
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-title-stack
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-title-stack
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: marketplace-detail-actions
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-actions
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+---
+# Left pagehead: back-link over title-line over subtitle.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-title-stack
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: small
+    allowedResources:
+      - buttons
+      - flexes
+      - paragraphs
+    items:
+      - resourceRefId: marketplace-detail-back
+      - resourceRefId: marketplace-detail-title-line
+      - resourceRefId: marketplace-detail-subtitle
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-back
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-back
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
+      - id: marketplace-detail-title-line
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-title-line
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: marketplace-detail-subtitle
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-subtitle
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET
+---
+# "← Back to marketplace"
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-back
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: Back to marketplace
+    type: link
+    size: small
+    icon: fa-arrow-left
+    clickActionId: back-nav
+    actions:
+      navigate:
+        - id: back-nav
+          path: /marketplace
+          type: navigate
+  resourcesRefs:
+    items: []
+---
+# Title line: chart name (H2) + maturity Tag.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-title-line
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: false
+    align: center
+    gap: middle
+    allowedResources:
+      - paragraphs
+      - tags
+    items:
+      - resourceRefId: marketplace-detail-title
+      - resourceRefId: marketplace-detail-status
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-title
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-title
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET
+      - id: marketplace-detail-status
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-status
+        namespace: {{ .Release.Namespace }}
+        resource: tags
+        verb: GET
+---
+# Chart name as H2.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-title
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: Blueprint
+    level: 2
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .name }'
+  resourcesRefs:
+    items: []
+---
+# Maturity Tag (e.g. beta / stable); amber for beta, cyan otherwise. Hidden if empty.
+kind: Tag
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-status
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: ""
+    color: cyan
+  widgetDataTemplate:
+    - forPath: label
+      expression: '${ if .installed then ("INSTALLED · v" + .installedVersion) else ((.maturity // "") | ascii_upcase) end }'
+    - forPath: color
+      expression: '${ if .installed then "green" elif (.maturity == "beta") then "amber" elif (.maturity == "alpha") then "red" else "cyan" end }'
+  resourcesRefs:
+    items: []
+---
+# Subtitle: "network · beta · v0.3.0 · published 3d ago"
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-subtitle
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ""
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ ([ (.category // empty), (.maturity // empty), ("v" + (.version // "?")), ((.created // "") as $ts | if ($ts | length) == 0 then empty else ((now - ($ts | sub("\\.[0-9]+"; "") | sub("Z$"; "+00:00") | fromdate)) as $sec | "published " + (if $sec < 3600 then "just now" elif $sec < 86400 then ((($sec/3600)|floor)|tostring) + "h ago" else ((($sec/86400)|floor)|tostring) + "d ago" end)) end) ] | map(select(. != null and . != "")) | join("  ·  ")) }'
+  resourcesRefs:
+    items: []
+---
+# Header action — Install (catalog) or Configure (already installed).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-actions
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - buttons
+    vertical: false
+    gap: small
+    items:
+      - resourceRefId: marketplace-detail-action
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-action
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-action
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
+---
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-action
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: Install
+    icon: fa-download
+    type: primary
+    size: small
+    clickActionId: act
+    actions:
+      navigate:
+        - id: act
+          type: navigate
+          path: /marketplace
+  widgetDataTemplate:
+    - forPath: label
+      expression: '${ if .installed then "Configure" else "Install" end }'
+    - forPath: icon
+      expression: '${ if .installed then "fa-sliders" else "fa-download" end }'
+    - forPath: actions
+      expression: '${ if .installed then { navigate: [ { id: "act", type: "navigate", path: ("/blueprints/" + (.installedNamespace) + "/" + (.name)) } ] } else { navigate: [ { id: "act", type: "navigate", path: ("/marketplace/" + (.name) + "/install") } ] } end }'
+  resourcesRefs:
+    items: []
+---
+# 2-column grid (15 : 9) — left About, right Source & links.
+kind: Row
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-grid
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+      - flexes
+    alignment: top
+    items:
+      - resourceRefId: marketplace-detail-col-left
+        size: 15
+      - resourceRefId: marketplace-detail-col-right
+        size: 9
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-col-left
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-col-left
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: marketplace-detail-col-right
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-col-right
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+---
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-col-left
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - cards
+    items:
+      - resourceRefId: card-marketplace-detail-about
+  resourcesRefs:
+    items:
+      - id: card-marketplace-detail-about
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-marketplace-detail-about
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+---
+# "About" card — description paragraph + the chart-metadata Descriptions.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-marketplace-detail-about
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: About
+    items:
+      - resourceRefId: marketplace-detail-description
+      - resourceRefId: descriptions-marketplace-detail-about
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-description
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-description
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET
+      - id: descriptions-marketplace-detail-about
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: descriptions-marketplace-detail-about
+        namespace: {{ .Release.Namespace }}
+        resource: descriptions
+        verb: GET
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-description
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ""
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .description // "No description provided in the chart index." }'
+  resourcesRefs:
+    items: []
+---
+# Chart metadata rows from the index entry.
+kind: Descriptions
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: descriptions-marketplace-detail-about
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    column: 1
+    bordered: true
+    size: small
+    items: []
+  widgetDataTemplate:
+    - forPath: items
+      expression: '${ [ { label: "Latest version", value: (.version // "") }, { label: "App version", value: (.appVersion // "") }, { label: "Category", value: (.category // "") }, { label: "Maturity", value: (.maturity // "") }, { label: "Krateo supported", value: (.krateoSupportedVersion // "") }, { label: "Type", value: (.type // "") }, { label: "Published", value: (.created // "") }, { label: "Digest", value: ((.digest // "")[0:19]) } ] | map(select(.value != "" and .value != null)) }'
+  resourcesRefs:
+    items: []
+---
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-col-right
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - cards
+    items:
+      - resourceRefId: card-marketplace-detail-source
+  resourcesRefs:
+    items:
+      - id: card-marketplace-detail-source
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-marketplace-detail-source
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+---
+# "Source & links" card — linkified home/sources/package paragraph + keywords/versions rows.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-marketplace-detail-source
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Source & links
+    items:
+      - resourceRefId: marketplace-detail-links
+      - resourceRefId: descriptions-marketplace-detail-source
+  resourcesRefs:
+    items:
+      - id: marketplace-detail-links
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-links
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
+        verb: GET
+      - id: descriptions-marketplace-detail-source
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: descriptions-marketplace-detail-source
+        namespace: {{ .Release.Namespace }}
+        resource: descriptions
+        verb: GET
+---
+# Home + sources + chart package URLs — Paragraph auto-linkifies raw URLs.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-detail-links
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ""
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ ([ (if (.home // "") != "" then ("Home   " + .home) else empty end), (if ((.sources // []) | length) > 0 then ("Sources   " + (.sources | join("   "))) else empty end), (if (.chartUrl // "") != "" then ("Package   " + .chartUrl) else empty end) ] | join("\n")) }'
+  resourcesRefs:
+    items: []
+---
+# Keywords + available versions as rows.
+kind: Descriptions
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: descriptions-marketplace-detail-source
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: marketplace-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    column: 1
+    bordered: true
+    size: small
+    items: []
+  widgetDataTemplate:
+    - forPath: items
+      expression: '${ [ { label: "Keywords", value: (.keywordsText // "") }, { label: "Available versions", value: (.availableVersionsText // "") }, { label: "Installed", value: (if .installed then ("yes · v" + .installedVersion) else "no" end) } ] | map(select(.value != "" and .value != null)) }'
+  resourcesRefs:
+    items: []

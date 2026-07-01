@@ -20,12 +20,16 @@ spec:
     # Explicit false (not omitted) so `kubectl apply` merges OFF the prior live:true
     # on the helm-created CR — a removed field would not prune (no last-applied-config).
     live: false
-    # Legend key — the gauge colour grammar: cyan converged "actual", magenta
-    # "drift" hatch, amber "target" tick. Matches the mockup swatches (#34D6C8/#D86BC4/#F2A33C).
+    # Legend key — cyan = converged "actual" fill, then the three non-converged remainder
+    # states (hatch + % label, coloured by railState): violet=drift / orange=pending / red=failed.
+    # Two swatches are deliberately OMITTED because the Petrol palette makes them duplicates of
+    # another entry: HEALTHY (green token == cyan "actual") and TARGET (amber token == orange
+    # "pending", both #F2A33C). The amber 100% goalpost tick stays in the rail, just unlegended.
     legend:
     - {color: cyan, label: actual}
-    - {color: magenta, label: drift}
-    - {color: amber, label: target}
+    - {color: violet, label: drift}
+    - {color: orange, label: pending}
+    - {color: red, label: failed}
     items:
     - resourceRefId: rail-list
   resourcesRefs:

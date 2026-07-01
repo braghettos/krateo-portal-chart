@@ -1,0 +1,38 @@
+# Rail-state breakdown — converged / drift / pending / failed counts as one bar each,
+# percent = share of total, colour per state. Off compositions-list's server-derived
+# .railState (same 4-state grammar as the reconciliation rail + compositions table).
+# Only states with at least one composition are shown. Bar fields (color.value+map,
+# label, variant) match the proven rail-list itemTemplate.
+kind: Listy
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-reconcile-breakdown
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: compositions-list
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    itemLayout: horizontal
+    split: false
+    itemTemplate:
+      primaryText: '{label}'
+      bar:
+        percent: '{percent}'
+        label: '{count}'
+        color:
+          value: '{state}'
+          map:
+            healthy: green
+            drift: violet
+            pending: orange
+            failed: red
+        variant: line
+    dataSource: []
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ (.list // []) as $l | ($l | length) as $n | [ {state:"healthy",label:"Converged"}, {state:"drift",label:"Drift"}, {state:"pending",label:"Pending"}, {state:"failed",label:"Failed"} ] | map(. as $s | ([ $l[] | select(.railState == $s.state) ] | length) as $c | { state: $s.state, label: $s.label, count: ($c | tostring), percent: (if $n > 0 then ($c * 100 / $n | floor) else 0 end) }) | map(select((.count | tonumber) > 0)) }'
+  resourcesRefs:
+    items: []

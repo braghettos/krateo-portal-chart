@@ -1,8 +1,17 @@
 # Tenant (= cluster) identity chip for the shell sider. Per the platform model the
 # TENANT is the Kubernetes cluster; its name is deployer config (the apiserver has
 # no honest self-name), so it comes from the Helm value `.Values.tenant` (set per
-# install). Muted chip with a ⬡ glyph; sits above the project selector so the sider
-# reads "which cluster / which project" — the flight-deck context strip.
+# install). Rendered as the multitenancy-mockup's LOCKED tenant label (`.tenant-label`):
+# a quiet, NON-INTERACTIVE chip — mono, graphite, transparent fill, hairline border —
+# with a ⬡ cluster glyph. The "single fixed tenant, nothing to switch to" reading comes
+# from the chip being chevron-less and inert (vs the project selector right below it,
+# which DOES carry a chevron) plus the quiet styling — NOT a padlock glyph: the only
+# Unicode padlock (U+1F512) force-renders as a loud yellow emoji in Chrome (VS15 and
+# font-variant-emoji:text both ignored), and the Tag schema forbids an antd icon node,
+# so a graphite lock can't be reproduced — and a yellow one would break the mockup's
+# explicit rule ("the tenant stays quiet graphite; boldness is not spent there"). Sits
+# above the project (= namespace) selector so the sider reads "which cluster (locked) /
+# which project (the only control)" — the flight-deck context strip.
 kind: Tag
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -13,6 +22,11 @@ metadata:
 spec:
   widgetData:
     label: '⬡ {{ .Values.tenant | default "krateo-enterprise" }}'
-    color: default
+    style:
+      fontFamily: var(--font-mono)
+      fontSize: 11px
+      color: var(--gray-color)
+      background: transparent
+      borderColor: var(--border-color)
   resourcesRefs:
     items: []

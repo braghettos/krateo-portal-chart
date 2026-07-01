@@ -25,7 +25,7 @@ spec:
     - resourceRefId: header-row
     - resourceRefId: stats-row
     - resourceRefId: charts-row
-    - resourceRefId: rail-card
+    - resourceRefId: rail-row
     - resourceRefId: lists-row
   resourcesRefs:
     items:
@@ -47,11 +47,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
-    - id: rail-card
+    - id: rail-row
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: rail-card
+      name: rail-row
       namespace: {{ .Release.Namespace }}
-      resource: cards
+      resource: rows
       verb: GET
     - id: lists-row
       apiVersion: widgets.templates.krateo.io/v1beta1

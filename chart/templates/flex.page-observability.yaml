@@ -1,0 +1,70 @@
+# Convention page root for /observability — a unified, cross-cutting observability view
+# that AGGREGATES the key signals already surfaced across the other pages into one screen.
+# Mirrors flex.page-compositions / flex.dashboard-flex (header stack on top, then rows).
+#
+# Every value is REAL — sourced from EXISTING RESTActions (no fabricated numbers):
+#   - compositions-list  → totals, health (healthy/pending/failed/drift), condition
+#                          coverage, reconciliation rail, by-kind / by-namespace counts.
+#   - blueprints-cards   → installed-blueprint inventory count.
+#   - events             → recent platform activity feed.
+# Reuses the dashboard's proven widget patterns; introduces NO new widget kind and NO
+# new allowedResources enum value (each row's enum mix is already used by dashboard-flex).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-observability
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    - rows
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: obs-header
+    - resourceRefId: obs-stats-row
+    - resourceRefId: obs-health-row
+    - resourceRefId: obs-distribution-row
+    - resourceRefId: obs-rail-row
+    - resourceRefId: obs-activity-row
+  resourcesRefs:
+    items:
+    - id: obs-header
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: obs-stats-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-stats-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-health-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-health-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-distribution-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-distribution-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-rail-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-rail-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-activity-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-activity-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET

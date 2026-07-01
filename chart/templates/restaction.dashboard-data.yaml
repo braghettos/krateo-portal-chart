@@ -1,11 +1,12 @@
-# Dashboard data source = compositions-list + the persisted time-range (Tier C #10).
+# Dashboard data source = compositions-list shape, scoped by the active time-range.
 # Mirrors compositions-list (CRD discovery -> cluster LIST per kind, UAF-gated), then
-# reads the dashboard-range ConfigMap and pre-filters the list by creationTimestamp.
-# Returns the SAME shape as compositions-list ({list:[...]}) so the dashboard stat/
-# donut/throughput widgets keep their per-widget jq unchanged — only their apiRef is
-# repointed here. The range scope is shared across those widgets, so it lives once here
-# (a page-level scope) rather than in each widget. Range write = the range-selector's
-# rest PATCH on the ConfigMap; the post-write invalidate refetches this RA -> re-scopes.
+# pre-filters the list by creationTimestamp. Returns the SAME shape as compositions-list
+# ({list:[...]}) so the dashboard stat/donut/throughput widgets keep their per-widget jq
+# unchanged — only their apiRef is repointed here. The range scope is shared across those
+# widgets, so it lives once here (a page-level scope) rather than in each widget. The range
+# comes from the request `extras` (?range= in the URL, forwarded by the frontend) and is
+# read SYNCHRONOUSLY in the filter as `.range` — NOT a persisted ConfigMap. (The earlier
+# ConfigMap-PATCH approach lagged snowplow's informer read-after-write and was removed.)
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:

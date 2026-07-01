@@ -19,6 +19,12 @@
       "description": "enabling the demo creates the demo-system namespace, deploys two Route resources within it, and grants permissions to the cyberjoker user if that user is enabled",
       "title": "enableDemoSystemNamespace",
       "type": "boolean"
+    },
+    "tenant": {
+      "default": "krateo-enterprise",
+      "description": "Display name of the platform tenant — shown in the sider tenant chip and the page eyebrows (dashboard greeting, compositions, observability). A deployer-set label, not derived data; defaults to krateo-enterprise.",
+      "title": "tenant",
+      "type": "string"
     }
   },
   "type": "object"
