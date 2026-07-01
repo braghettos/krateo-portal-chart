@@ -24,6 +24,12 @@ spec:
       # Rail wrapped in a full-width Row (composition-detail-rail-row) so it shares the grid's
       # gutter inset and aligns with the Spec/Health cards below (was a bare full-width card).
       - resourceRefId: composition-detail-rail-row
+      # Conditions promoted to the top (full-width, under the rail) so the composition's
+      # status — including the ReconcileError reason+message — is visible up front, not
+      # buried in the Manifest YamlViewer further down the grid. Wrapped in a Row
+      # (composition-detail-health-row) so it shares the grid gutter inset and aligns
+      # with the rail above and the Spec/Relations cards below (a bare card read wider).
+      - resourceRefId: composition-detail-health-row
       - resourceRefId: composition-detail-grid
   resourcesRefs:
     items:
@@ -36,6 +42,12 @@ spec:
       - id: composition-detail-rail-row
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: composition-detail-rail-row
+        namespace: {{ .Release.Namespace }}
+        resource: rows
+        verb: GET
+      - id: composition-detail-health-row
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-health-row
         namespace: {{ .Release.Namespace }}
         resource: rows
         verb: GET
