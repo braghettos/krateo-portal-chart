@@ -1,10 +1,15 @@
-# Projects = namespaces (per the platform model: tenant = cluster, project =
-# namespace). Lists the namespaces the caller may `list` (UAF-gated, so each user
-# sees only their projects) and shapes them into Select `options`, prepended with
-# an "All projects" (empty value = no scope). The project-select widget binds this
-# to the ?project= URL param → extras, which compositions-list reads as `.project`
-# to scope the dashboard/compositions server-side. continueOnError so a missing
-# RBAC grant degrades to just "All projects" rather than erroring the shell.
+# Projects = namespaces (platform model: tenant = cluster, project = namespace). Lists the
+# namespaces the caller may `list` (UAF-gated, so each user sees only their projects) and
+# shapes them into Select `options` for the MULTI-select project scope in the shell sider.
+# The project-select widget binds this to the ?projects= URL param (comma-joined) → extras,
+# which compositions-list and blueprints-cards read as `.projects` to scope server-side.
+#
+# The SYSTEM namespace is excluded from the selectable projects — but NOT hardcoded: it is
+# DERIVED from the Krateo installer custom resource's own namespace (installers.composition
+# .krateo.io). We first GET the installer CRD to discover its served version (robust across
+# installer upgrades, whose version is baked into the CRD), then list the installer CR and
+# take its `.metadata.namespace`. continueOnError throughout: a missing grant / CRD degrades
+# to "no exclusion" (the system ns just appears) rather than erroring the shell.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -14,6 +19,27 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
+    # 1) discover the installer CRD's served version (its version string is the installer
+    #    chart version, e.g. v0-2-162, so we must not hardcode it).
+    - name: installerCrd
+      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions/installers.composition.krateo.io
+      verb: GET
+      continueOnError: true
+      errorKey: installerCrdError
+      filter: >
+        [ { version: (((([.installerCrd.spec.versions[]? | select(.served and .storage)])[0])
+            // (([.installerCrd.spec.versions[]? | select(.served)])[0])).name) } ]
+    # 2) list the installer CR(s) under that version → its namespace = the system namespace.
+    - name: installer
+      dependsOn:
+        name: installerCrd
+        iterator: ".installerCrd"
+      path: ${ "/apis/composition.krateo.io/" + (.version) + "/installers" }
+      verb: GET
+      continueOnError: true
+      errorKey: installerError
+      filter: '[ .installer.items[]? | .metadata.namespace ]'
+    # 3) the namespaces the caller may list (UAF-gated → each user sees only their projects).
     - name: namespaces
       path: /api/v1/namespaces
       verb: GET
@@ -24,10 +50,15 @@ spec:
         group: ""
         resource: namespaces
         namespaceFrom: .metadata.name
+  # Build the Select options from the namespaces, EXCLUDING the installer's namespace. No
+  # "All projects" option: for a multi-select an empty selection already means all projects
+  # (shown via the placeholder). Falls back to no-exclusion if the installer lookup failed.
   filter: >
-    {
-      options: (
-        [ { label: "All projects", value: "" } ]
-        + ( [ .namespaces.items[]? | { label: .metadata.name, value: .metadata.name } ] | sort_by(.value) )
-      )
-    }
+    (((.installer // []) | map(select(. != null and . != "")) | first) // "") as $systemNs
+    | {
+        options: (
+          [ .namespaces.items[]? | { label: .metadata.name, value: .metadata.name } ]
+          | map(select(.value != $systemNs))
+          | sort_by(.value)
+        )
+      }

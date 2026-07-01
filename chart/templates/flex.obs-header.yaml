@@ -1,0 +1,38 @@
+# Observability page head — eyebrow + H1 + subtitle stack (mirrors compositions-title-stack).
+# Static copy; no data dependency (the page's data lives in the rows below).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-header
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - paragraphs
+    vertical: true
+    items:
+    - resourceRefId: obs-eyebrow
+    - resourceRefId: obs-title
+    - resourceRefId: obs-subtitle
+  resourcesRefs:
+    items:
+    - id: obs-eyebrow
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-eyebrow
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-title
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-title
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-subtitle
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-subtitle
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET

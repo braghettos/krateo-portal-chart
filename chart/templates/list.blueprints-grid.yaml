@@ -6,7 +6,7 @@
 # The card body shows "provisions · <composition kind>" (status.kind, e.g. KrateoAuthn) — what the
 # blueprint deploys (mockup `.prov`); falls back to the chart source for any compdef with no kind.
 apiVersion: widgets.templates.krateo.io/v1beta1
-kind: List
+kind: Listy
 metadata:
   name: blueprints-grid
   namespace: {{ .Release.Namespace }}
@@ -48,6 +48,13 @@ spec:
           observability: cyan
           blueprint: magenta
         default: gray
+      # At-a-glance status glyph (top-right of the card) = the blueprint's CompositionDefinition
+      # Ready condition. The icon + colour are computed server-side in the blueprints-cards RA
+      # (readyIcon/readyColor) so the widget stays strongly typed; tooltip = the condition reason.
+      status:
+        icon: '{readyIcon}'
+        color: '{readyColor}'
+        tooltip: '{readyReason}'
     actions:
       navigate:
         - id: configure
@@ -55,6 +62,6 @@ spec:
           path: /blueprints/${namespace}/${name}/new
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[] | { name: .metadata.name, namespace: .metadata.namespace, version: .version, category: .category, desc: ((.provisions // "") as $p | if $p != "" then ("provisions · " + $p) else .chart end) } ] }'
+      expression: '${ [ .cards[] | { name: .metadata.name, namespace: .metadata.namespace, version: .version, category: .category, readyIcon: .readyIcon, readyColor: .readyColor, readyReason: .readyReason, desc: ((.provisions // "") as $p | if $p != "" then ("provisions · " + $p) else .chart end) } ] }'
   resourcesRefs:
     items: []

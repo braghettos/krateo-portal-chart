@@ -1,0 +1,29 @@
+# Compositions by kind — honest group-by-count over compositions-list. Card head shows
+# the distinct-kind count. Mirrors the dashboard status-card (extra readout + Listy body).
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-by-kind-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Compositions by kind
+    titleVariant: eyebrow
+    variant: outlined
+    extra: ''
+    items:
+    - resourceRefId: obs-by-kind-list
+  widgetDataTemplate:
+  - forPath: extra
+    expression: '${ (([ (.list // [])[].kind ] | unique | length) | tostring) + " kinds" }'
+  apiRef: { name: compositions-list, namespace: {{ .Release.Namespace }} }
+  resourcesRefs:
+    items:
+    - id: obs-by-kind-list
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-by-kind-list
+      namespace: {{ .Release.Namespace }}
+      resource: listies
+      verb: GET

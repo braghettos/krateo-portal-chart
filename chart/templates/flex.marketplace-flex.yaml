@@ -12,7 +12,7 @@ spec:
     allowedResources:
       - flexes
       - filters
-      - lists
+      - listies
     items:
       - resourceRefId: marketplace-header
       - resourceRefId: marketplace-category-group
@@ -35,5 +35,5 @@ spec:
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-grid
         namespace: {{ .Release.Namespace }}
-        resource: lists
+        resource: listies
         verb: GET

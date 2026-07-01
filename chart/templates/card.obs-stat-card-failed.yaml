@@ -1,0 +1,26 @@
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-stat-card-failed
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    variant: outlined
+    clickActionId: view-failed
+    widgetActions:
+      navigate:
+        - id: view-failed
+          type: navigate
+          path: /compositions?status=failed
+    items:
+    - resourceRefId: obs-stat-failed
+  resourcesRefs:
+    items:
+    - id: obs-stat-failed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-stat-failed
+      namespace: {{ .Release.Namespace }}
+      resource: statistics
+      verb: GET

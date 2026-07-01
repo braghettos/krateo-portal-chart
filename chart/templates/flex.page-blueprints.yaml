@@ -12,7 +12,7 @@ spec:
   widgetData:
     allowedResources:
     - flexes
-    - lists
+    - listies
     vertical: true
     gap: large
     items:
@@ -37,5 +37,5 @@ spec:
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: blueprints-grid
       namespace: {{ .Release.Namespace }}
-      resource: lists
+      resource: listies
       verb: GET

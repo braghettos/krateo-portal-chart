@@ -7,7 +7,7 @@
 # (rowActions → `install`, a navigate action) opens the install form at
 # /marketplace/{name}/install, which renders the CompositionDefinition CRD and deploys it.
 apiVersion: widgets.templates.krateo.io/v1beta1
-kind: List
+kind: Listy
 metadata:
   name: marketplace-grid
   namespace: {{ .Release.Namespace }}
@@ -35,35 +35,41 @@ spec:
       # Footer-left = the helm chart version (subSecondaryText → card-foot left); the top keeps
       # just name + category tag. Maturity dropped (not in the mockup).
       subSecondaryText: 'v{version}'
-      secondaryText: '{category}'
+      # Type badge: the source pill (Blueprint cyan / Operator magenta) — the at-a-glance
+      # blueprint-vs-operator distinction; the icon (fa-layer-group / fa-gears) + tile tint
+      # use the same typeColor, both stamped by the catalog RA per `source`.
+      secondaryText: '{typeLabel}'
       secondaryTextAsTag: true
       description: '{description}'
       color:
-        value: '{category}'
-        map:
-          database: cyan
-          compute: amber
-          storage: magenta
-          network: cyan
-          security: red
-          observability: magenta
-          application: amber
-          generator: cyan
+        value: '{typeColor}'
         default: gray
+      # "Already installed" check (top-right of the tile) — green when this blueprint is installed;
+      # icon/colour are computed server-side in the catalog RA (empty -> no glyph when available).
+      status:
+        icon: '{installedIcon}'
+        color: '{installedColor}'
+        tooltip: '{installedTooltip}'
       # Per-tile Install — a VISIBLE footer button (card variant). It NAVIGATES to the install
       # form for THIS row (${name} interpolated from the card's customPayload), where the user
       # reviews the CompositionDefinition (CRD schema, chart pre-filled) and deploys it.
       rowActions:
+        - actionId: details
+          label: Details
+          icon: fa-circle-info
         - actionId: install
           label: Install
           icon: fa-download
     actions:
       navigate:
+        - id: details
+          type: navigate
+          path: /marketplace/${name}
         - id: install
           type: navigate
           path: /marketplace/${name}/install
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[] | { name: .name, version: .version, category: .category, tags: .tags, maturity: .maturity, installed: .installed, repoUrl: .repoUrl, icon: .icon, description: .description } ] }'
+      expression: '${ [ .cards[] | { name, version, typeLabel, typeColor, source, tags, installed, installedIcon, installedColor, installedTooltip, repoUrl, icon, description } ] }'
   resourcesRefs:
     items: []

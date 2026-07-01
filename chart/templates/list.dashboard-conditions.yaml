@@ -2,7 +2,7 @@
 # compositions (replaces the invented Healthy/Pending/Failed donut). For each distinct condition
 # TYPE (Ready, Synced, …) a bar shows how many compositions have it True ("N/M"), cyan fill; the
 # unfilled trail is the gap. Nothing derived — straight off `.conditions[].type`/`.status`.
-kind: List
+kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: dashboard-conditions
