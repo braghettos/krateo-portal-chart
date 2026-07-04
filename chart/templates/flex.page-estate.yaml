@@ -1,0 +1,33 @@
+# Convention page root for /estate — header (H1 + subtitle) above the estate FlowChart.
+# The nav (`menu.sidebar-nav`) points its `estate` ref here.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-estate
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    - flowcharts
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: estate-header
+    - resourceRefId: estate-graph
+  resourcesRefs:
+    items:
+    - id: estate-header
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: estate-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: estate-graph
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: estate-graph
+      namespace: {{ .Release.Namespace }}
+      resource: flowcharts
+      verb: GET
