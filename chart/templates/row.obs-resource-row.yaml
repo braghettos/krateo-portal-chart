@@ -1,0 +1,24 @@
+# Full-width strip hosting the platform resource-usage card (ClickHouse otel_metrics_gauge).
+# Sits in the infra-health band, below the reconcile/error telemetry.
+kind: Row
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-resource-row
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - cards
+    items:
+    - resourceRefId: obs-resource-card
+      size: 24
+  resourcesRefs:
+    items:
+    - id: obs-resource-card
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-resource-card
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET

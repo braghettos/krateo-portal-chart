@@ -26,6 +26,12 @@ spec:
     items:
     - resourceRefId: obs-header
     - resourceRefId: obs-stats-row
+    - resourceRefId: obs-telemetry-row
+    - resourceRefId: obs-latency-row
+    - resourceRefId: obs-perf-stat-row
+    - resourceRefId: obs-perf-phases-row
+    - resourceRefId: obs-errors-row
+    - resourceRefId: obs-resource-row
     - resourceRefId: obs-health-row
     - resourceRefId: obs-distribution-row
     - resourceRefId: obs-rail-row
@@ -41,6 +47,42 @@ spec:
     - id: obs-stats-row
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-stats-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-telemetry-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-telemetry-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-latency-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-latency-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-perf-stat-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-perf-stat-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-perf-phases-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-perf-phases-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-errors-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-errors-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-resource-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-resource-row
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET

@@ -1,0 +1,32 @@
+# Titled panel around the ERROR-log digest list. The `extra` shows the live headline totals
+# (total error lines + distinct problems over 6h) from the same RA's `tot` step — so the
+# panel header reads e.g. "1495 errors · 15 distinct · 6h".
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-errors-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: What's going wrong
+    titleVariant: eyebrow
+    variant: outlined
+    extra: 'errors · last 6h'
+    items:
+    - resourceRefId: obs-error-log-list
+  widgetDataTemplate:
+  - forPath: extra
+    expression: '${ ((.total // 0)|tostring) + " errors · " + ((.distinct // 0)|tostring) + " distinct · 6h" }'
+  apiRef:
+    name: obs-error-log-digest
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items:
+    - id: obs-error-log-list
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-error-log-list
+      namespace: {{ .Release.Namespace }}
+      resource: listies
+      verb: GET
