@@ -1,0 +1,37 @@
+# Observability time-range chips. The range is URL state (?range=1h|6h|24h|7d): each chip
+# NAVIGATES to /observability?range=<k>, which the frontend forwards into the request `extras`
+# — so every range-scoped obs RESTAction interpolates the window into its ClickHouse query
+# (INTERVAL) and the chips' own selected-state read `.range` from extras SYNCHRONOUSLY, per
+# request. Same pattern as the dashboard's range-options. Default 6h when no ?range in the URL.
+{{- $opts := list (dict "k" "1h" "l" "1h") (dict "k" "6h" "l" "6h") (dict "k" "24h" "l" "24h") (dict "k" "7d" "l" "7d") }}
+{{- range $opts }}
+---
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Button
+metadata:
+  name: obs-range-btn-{{ .k }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: {{ .l | quote }}
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: obs-set-range-{{ .k }}
+    actions:
+      navigate:
+        - id: obs-set-range-{{ .k }}
+          type: navigate
+          path: /observability?range={{ .k }}
+  # Selected-state reads the active range from `extras` (no apiRef — snowplow merges request
+  # extras into a no-apiRef widget's widgetDataTemplate data source). Default 6h.
+  widgetDataTemplate:
+    - forPath: type
+      expression: '${ if (.range // "6h") == {{ .k | quote }} then "primary" else "default" end }'
+    - forPath: variant
+      expression: '${ if (.range // "6h") == {{ .k | quote }} then "solid" else "outlined" end }'
+  resourcesRefs:
+    items: []
+{{- end }}

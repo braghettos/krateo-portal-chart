@@ -16,6 +16,9 @@ spec:
     allowedResources: []
     bordered: false
     size: small
+    # Row click → the composition's detail page ({ns}/{name} from a hidden ns cell + the
+    # name cell). Rows whose ns/name don't resolve simply don't navigate (buildRowPath guard).
+    rowNavigateTo: /compositions/{ns}/{name}
     pagination:
       defaultPageSize: 10
     columns:
@@ -34,7 +37,7 @@ spec:
   # Rows already sorted slowest-first server-side. p95 tinted by threshold; avg stays
   # neutral. All numbers are the real measured latency (ms) — nothing derived client-side.
   - forPath: dataSource
-    expression: '${ [ (.rows // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"reconciles",kind:"jsonSchemaType",type:"string",stringValue:(.reconciles|tostring)}, {valueKey:"p95",kind:"jsonSchemaType",type:"string",stringValue:((.p95_ms|tostring)+" ms"),color:((.p95_ms|tonumber) | if . > 3000 then "#cf1322" elif . > 1500 then "#d48806" else "#8c8c8c" end)}, {valueKey:"avg",kind:"jsonSchemaType",type:"string",stringValue:((.avg_ms|tostring)+" ms"),color:"#8c8c8c"} ] ] }'
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"reconciles",kind:"jsonSchemaType",type:"string",stringValue:(.reconciles|tostring)}, {valueKey:"p95",kind:"jsonSchemaType",type:"string",stringValue:((.p95_ms|tostring)+" ms"),color:((.p95_ms|tonumber) | if . > 3000 then "#cf1322" elif . > 1500 then "#d48806" else "#8c8c8c" end)}, {valueKey:"avg",kind:"jsonSchemaType",type:"string",stringValue:((.avg_ms|tostring)+" ms"),color:"#8c8c8c"} ] ] }'
   apiRef:
     name: obs-reconcile-by-composition
     namespace: {{ .Release.Namespace }}

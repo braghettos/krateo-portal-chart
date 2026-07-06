@@ -1,14 +1,11 @@
-# Convention page root for /observability — a unified, cross-cutting observability view
-# that AGGREGATES the key signals already surfaced across the other pages into one screen.
-# Mirrors flex.page-compositions / flex.dashboard-flex (header stack on top, then rows).
-#
-# Every value is REAL — sourced from EXISTING RESTActions (no fabricated numbers):
-#   - compositions-list  → totals, health (healthy/pending/failed/drift), condition
-#                          coverage, reconciliation rail, by-kind / by-namespace counts.
-#   - blueprints-cards   → installed-blueprint inventory count.
-#   - events             → recent platform activity feed.
-# Reuses the dashboard's proven widget patterns; introduces NO new widget kind and NO
-# new allowedResources enum value (each row's enum mix is already used by dashboard-flex).
+# Convention page root for /observability — a unified observability view, now organised into
+# five LABELLED sections (each = a strong heading + a one-line "what this shows" caption) so
+# the ~13 panels read as a coherent story instead of an undifferentiated stack:
+#   Reconciliation (composition snapshots) · Performance (traces/metrics) · Logs (otel_logs) ·
+#   Resources (otel_metrics_gauge) · Activity (events).
+# Every value is REAL — composition snapshots from compositions-list/blueprints/events, live
+# telemetry from the clickstack ClickHouse OTel tables via the obs-* RESTActions. antd-only
+# widgets; the section headers are plain Paragraphs (strong label + secondary caption).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -21,20 +18,38 @@ spec:
     allowedResources:
     - flexes
     - rows
+    - paragraphs
     vertical: true
     gap: middle
     items:
     - resourceRefId: obs-header
+    - resourceRefId: obs-range-group
+    # — Reconciliation —
+    - resourceRefId: obs-sec-reconciliation-label
+    - resourceRefId: obs-sec-reconciliation-desc
     - resourceRefId: obs-stats-row
+    - resourceRefId: obs-rail-row
+    - resourceRefId: obs-health-row
+    - resourceRefId: obs-distribution-row
+    # — Performance —
+    - resourceRefId: obs-sec-performance-label
+    - resourceRefId: obs-sec-performance-desc
     - resourceRefId: obs-telemetry-row
     - resourceRefId: obs-latency-row
     - resourceRefId: obs-perf-stat-row
     - resourceRefId: obs-perf-phases-row
+    # — Logs —
+    - resourceRefId: obs-sec-logs-label
+    - resourceRefId: obs-sec-logs-desc
     - resourceRefId: obs-errors-row
+    - resourceRefId: obs-log-stream-row
+    # — Resources —
+    - resourceRefId: obs-sec-resources-label
+    - resourceRefId: obs-sec-resources-desc
     - resourceRefId: obs-resource-row
-    - resourceRefId: obs-health-row
-    - resourceRefId: obs-distribution-row
-    - resourceRefId: obs-rail-row
+    # — Activity —
+    - resourceRefId: obs-sec-activity-label
+    - resourceRefId: obs-sec-activity-desc
     - resourceRefId: obs-activity-row
   resourcesRefs:
     items:
@@ -44,11 +59,59 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
+    - id: obs-range-group
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-range-group
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: obs-sec-reconciliation-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-reconciliation-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-sec-reconciliation-desc
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-reconciliation-desc
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
     - id: obs-stats-row
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-stats-row
       namespace: {{ .Release.Namespace }}
       resource: rows
+      verb: GET
+    - id: obs-rail-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-rail-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-health-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-health-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-distribution-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-distribution-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-sec-performance-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-performance-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-sec-performance-desc
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-performance-desc
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
       verb: GET
     - id: obs-telemetry-row
       apiVersion: widgets.templates.krateo.io/v1beta1
@@ -74,11 +137,41 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
+    - id: obs-sec-logs-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-logs-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-sec-logs-desc
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-logs-desc
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
     - id: obs-errors-row
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-errors-row
       namespace: {{ .Release.Namespace }}
       resource: rows
+      verb: GET
+    - id: obs-log-stream-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-log-stream-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-sec-resources-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-resources-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-sec-resources-desc
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-resources-desc
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
       verb: GET
     - id: obs-resource-row
       apiVersion: widgets.templates.krateo.io/v1beta1
@@ -86,23 +179,17 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
-    - id: obs-health-row
+    - id: obs-sec-activity-label
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-health-row
+      name: obs-sec-activity-label
       namespace: {{ .Release.Namespace }}
-      resource: rows
+      resource: paragraphs
       verb: GET
-    - id: obs-distribution-row
+    - id: obs-sec-activity-desc
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-distribution-row
+      name: obs-sec-activity-desc
       namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-rail-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-rail-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
+      resource: paragraphs
       verb: GET
     - id: obs-activity-row
       apiVersion: widgets.templates.krateo.io/v1beta1

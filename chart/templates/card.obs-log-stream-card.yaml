@@ -1,0 +1,25 @@
+# Titled panel around the live log tail. Static extra explains the scope (excludes the
+# snowplow request-noise WARN) so the numbers/omission are honest and self-describing.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-log-stream-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Recent errors & warnings
+    titleVariant: eyebrow
+    variant: outlined
+    extra: 'live tail · newest first · excl. snowplow request noise'
+    items:
+    - resourceRefId: obs-log-stream
+  resourcesRefs:
+    items:
+    - id: obs-log-stream
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-log-stream
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET

@@ -18,7 +18,7 @@ spec:
     - resourceRefId: obs-reconcile-throughput
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ (.current // {}) as $c | (.failures // 0) as $f | (.successes // 0) as $ok | ($f + $ok) as $tot | "p95 " + (($c.p95_ms // 0)|tostring) + "ms · " + ($f|tostring) + " fail" + (if $tot > 0 then " (" + (($f * 100 / $tot)|floor|tostring) + "%)" else "" end) + " · 6h" }'
+    expression: '${ (.current // {}) as $c | (.failures // 0) as $f | (.successes // 0) as $ok | ($f + $ok) as $tot | "p95 " + (($c.p95_ms // 0)|tostring) + "ms · " + ($f|tostring) + " fail" + (if $tot > 0 then " (" + (($f * 100 / $tot)|floor|tostring) + "%)" else "" end) }'
   apiRef:
     name: obs-reconcile-metrics
     namespace: {{ .Release.Namespace }}

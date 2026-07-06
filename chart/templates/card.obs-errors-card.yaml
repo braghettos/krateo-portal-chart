@@ -13,12 +13,12 @@ spec:
     title: What's going wrong
     titleVariant: eyebrow
     variant: outlined
-    extra: 'errors · last 6h'
+    extra: 'errors'
     items:
     - resourceRefId: obs-error-log-list
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ ((.total // 0)|tostring) + " errors · " + ((.distinct // 0)|tostring) + " distinct · 6h" }'
+    expression: '${ ((.total // 0)|tostring) + " errors · " + ((.distinct // 0)|tostring) + " distinct" }'
   apiRef:
     name: obs-error-log-digest
     namespace: {{ .Release.Namespace }}

@@ -12,12 +12,12 @@ spec:
     title: Where reconcile time goes
     titleVariant: eyebrow
     variant: outlined
-    extra: 'mean per phase · last 6h'
+    extra: 'mean per phase'
     items:
     - resourceRefId: obs-reconcile-phases
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ "avg " + ((.avg // 0)|tostring) + "ms · " + ((.n // 0)|tostring) + " reconciles · 6h" }'
+    expression: '${ "avg " + ((.avg // 0)|tostring) + "ms · " + ((.n // 0)|tostring) + " reconciles" }'
   apiRef:
     name: obs-reconcile-perf
     namespace: {{ .Release.Namespace }}

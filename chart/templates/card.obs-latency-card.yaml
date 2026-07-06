@@ -13,7 +13,7 @@ spec:
     title: Reconcile latency by composition
     titleVariant: eyebrow
     variant: outlined
-    extra: 'p95 · slowest first · last 6h'
+    extra: 'p95 · slowest first'
     items:
     - resourceRefId: obs-reconcile-by-composition
   resourcesRefs:

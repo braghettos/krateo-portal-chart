@@ -1,0 +1,28 @@
+# Live log tail from ClickHouse (clickstack otel_logs) — the chronological complement to the
+# grouped error digest. Returns the most recent ERROR + WARN lines (time · service · level ·
+# message), newest-first. Snowplow's own per-request WARN ('userAccessFilter … JQ eval failed')
+# is pure request noise (76k/h against the 60k benchapp scale-test set) and is excluded; all
+# ERRORs, including snowplow's, are kept. level+msg are parsed from the Body JSON (SeverityText
+# is empty at ingest). External-fetch endpointRef, ClickHouse FORMAT JSON.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: obs-log-stream
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: stream
+      endpointRef:
+        name: clickhouse-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: '${ (.range // "6h") as $r | (if $r=="1h" then "1%20HOUR" elif $r=="24h" then "24%20HOUR" elif $r=="7d" then "7%20DAY" else "6%20HOUR" end) as $iv | "/?query=SELECT%20formatDateTime%28Timestamp%2C%27%25Y-%25m-%25dT%25H%3A%25i%3A%25SZ%27%29%20AS%20ts%2C%20ServiceName%20AS%20svc%2C%20upper%28JSONExtractString%28Body%2C%27level%27%29%29%20AS%20lvl%2C%20substring%28JSONExtractString%28Body%2C%27msg%27%29%2C1%2C120%29%20AS%20msg%20FROM%20otel_logs%20WHERE%20%28lower%28JSONExtractString%28Body%2C%27level%27%29%29%3D%27error%27%20OR%20%28lower%28JSONExtractString%28Body%2C%27level%27%29%29%3D%27warn%27%20AND%20ServiceName%21%3D%27snowplow%27%29%29%20AND%20Timestamp%20%3E%20now%28%29-INTERVAL%20" + $iv + "%20ORDER%20BY%20Timestamp%20DESC%20LIMIT%2040%20FORMAT%20JSON" }'
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: streamError
+  # stream => {data:[{ts,svc,lvl,msg}]}, newest-first.
+  filter: >
+    { rows: ((.stream.data) // []) }
