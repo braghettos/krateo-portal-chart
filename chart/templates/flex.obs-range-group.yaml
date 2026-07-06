@@ -22,6 +22,9 @@ spec:
     - resourceRefId: obs-range-btn-6h
     - resourceRefId: obs-range-btn-24h
     - resourceRefId: obs-range-btn-7d
+    {{- if .Values.observabilityConsoleUrl }}
+    - resourceRefId: obs-console-link
+    {{- end }}
   resourcesRefs:
     items:
     - id: obs-range-label
@@ -35,6 +38,14 @@ spec:
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-range-btn-{{ . }}
       namespace: {{ $.Release.Namespace }}
+      resource: buttons
+      verb: GET
+    {{- end }}
+    {{- if .Values.observabilityConsoleUrl }}
+    - id: obs-console-link
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-console-link
+      namespace: {{ .Release.Namespace }}
       resource: buttons
       verb: GET
     {{- end }}
