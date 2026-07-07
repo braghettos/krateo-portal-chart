@@ -1,4 +1,4 @@
-# Left column (wider): Specification, Events, Manifest.
+# Left column (wider): Resource topology, Specification, Events, Manifest.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -13,11 +13,18 @@ spec:
     allowedResources:
       - cards
     items:
+      - resourceRefId: card-composition-detail-topology
       - resourceRefId: card-composition-detail-spec
       - resourceRefId: card-composition-detail-events
       - resourceRefId: card-composition-detail-manifest
   resourcesRefs:
     items:
+      - id: card-composition-detail-topology
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-topology
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
       - id: card-composition-detail-spec
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: card-composition-detail-spec

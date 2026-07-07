@@ -28,7 +28,9 @@ spec:
       dependsOn:
         name: crds
         iterator: .crds
-      path: ${ "/apis/composition.krateo.io/" + .version + "/" + .plural }
+      # Namespace-scoped (the composition is always in ?extras .namespace) — never a cluster-wide
+      # list, so this stays fast even when other namespaces hold tens of thousands of compositions.
+      path: ${ "/apis/composition.krateo.io/" + .version + "/namespaces/" + .namespace + "/" + .plural }
       verb: GET
       headers:
         - 'Accept: application/json'

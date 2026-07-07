@@ -1,0 +1,43 @@
+# Per-composition resource topology — rides the composition-detail RA (no extra fetch, so it's
+# naturally bounded to ONE composition + its managed resources; no cluster-wide list). One node for
+# the composition (health-coloured from Ready∧Synced) + one node per .status.managed[] resource
+# (parent = the composition, via parentRefs[].uid). Replaces the cluster-wide /estate graph, which
+# had to list every composition (unusable at tens-of-thousands scale).
+kind: FlowChart
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-graph
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    data: []
+  widgetDataTemplate:
+  - forPath: data
+    expression: >
+      ${ (.detail // {}) as $d
+        | (($d.status.conditions) // []) as $c
+        | (any($c[]?; .type=="Ready" and .status=="True")) as $ready
+        | (any($c[]?; .type=="Ready" and .status=="False")) as $notready
+        | (any($c[]?; .type=="Synced" and .status=="False")) as $unsynced
+        | ( [ { uid: ($d.metadata.uid // "composition"), kind: ($d.kind // "Composition"),
+                name: ($d.metadata.name // ""), namespace: ($d.metadata.namespace // ""),
+                version: ($d.apiVersion // "v1"), resourceVersion: "0",
+                date: ($d.metadata.creationTimestamp // ""),
+                icon: {name: "fa-cubes", color: "blue", message: ($d.kind // "Composition")},
+                statusIcon: (if $ready and ($unsynced | not) then {name: "fa-check", color: "green", message: "Ready · Synced"}
+                             elif $ready and $unsynced then {name: "fa-triangle-exclamation", color: "orange", message: "Drift · Synced=False"}
+                             elif $notready then {name: "fa-xmark", color: "red", message: "Not ready"}
+                             else {name: "fa-clock", color: "gray", message: "Pending"} end),
+                parentRefs: [] } ]
+            + [ (($d.status.managed) // [])[]?
+                | { uid: (.path // ((.resource // "res") + ":" + (.namespace // "") + ":" + (.name // ""))),
+                    kind: (.resource // ""), name: (.name // ""), namespace: (.namespace // ""),
+                    version: (.apiVersion // "v1"), resourceVersion: "0", date: "",
+                    icon: {name: "fa-cube", color: "gray", message: (.resource // "")},
+                    statusIcon: {name: "fa-circle-dot", color: "blue", message: "managed"},
+                    parentRefs: [ {uid: ($d.metadata.uid // "composition")} ] } ] ) }

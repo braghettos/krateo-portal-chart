@@ -22,9 +22,8 @@ spec:
     items:
       - { label: Dashboard,    icon: fa-gauge,        order: 1, path: /dashboard,    resourceRefId: dashboard }
       - { label: Compositions, icon: fa-cubes,        order: 2, path: /compositions, resourceRefId: compositions }
-      # Estate → page-estate: a directed graph of every composition and the resources it
-      # manages, health-coloured (Ready·Synced / drift / failed). First FlowChart deployment.
-      - { label: Estate,       icon: fa-diagram-project, order: 3, path: /estate,       resourceRefId: estate }
+      # (per-composition resource topology now lives on the composition detail page as a FlowChart —
+      #  the cluster-wide /estate graph was removed: it had to list every composition, unusable at scale.)
       # Observability → page-observability: aggregates compositions health, reconciliation,
       # by-kind/by-project distribution, inventory and recent activity into one view.
       - { label: Observability, icon: fa-chart-line,  order: 4, path: /observability, resourceRefId: observability }
@@ -69,12 +68,6 @@ spec:
       - id: compositions
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: page-compositions
-        namespace: {{ .Release.Namespace }}
-        resource: flexes
-        verb: GET
-      - id: estate
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: page-estate
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET

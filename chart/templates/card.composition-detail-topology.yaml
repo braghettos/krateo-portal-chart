@@ -1,0 +1,23 @@
+# "Resource topology" card → the per-composition FlowChart (the composition + its managed
+# resources). Replaces the removed cluster-wide /estate page; scoped to one composition so it
+# renders instantly at any cluster scale.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-composition-detail-topology
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Resource topology
+    items:
+      - resourceRefId: flowchart-composition-detail-graph
+  resourcesRefs:
+    items:
+      - id: flowchart-composition-detail-graph
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-graph
+        namespace: {{ .Release.Namespace }}
+        resource: flowcharts
+        verb: GET
