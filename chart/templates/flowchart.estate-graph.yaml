@@ -1,0 +1,20 @@
+# The estate graph itself — a directed graph of every composition and the resources it
+# manages, health-coloured (green Ready·Synced / orange drift / red not-ready / gray pending).
+# Data comes from the `estate-graph` RESTAction; widgetDataTemplate maps its `.nodes` into the
+# widget's `data[]` (each node carries parentRefs → the FlowChart derives parent→child edges).
+kind: FlowChart
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: estate-graph
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: estate-graph
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    data: []
+  widgetDataTemplate:
+  - forPath: data
+    expression: ${ .nodes }

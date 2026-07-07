@@ -20,15 +20,18 @@ spec:
       - navmenuitems
       - pages
     items:
-      - { label: Dashboard,    icon: fa-gauge,       order: 1, path: /dashboard,    resourceRefId: dashboard }
+      - { label: Dashboard,    icon: fa-gauge,        order: 1, path: /dashboard,    resourceRefId: dashboard }
+      - { label: Compositions, icon: fa-cubes,        order: 2, path: /compositions, resourceRefId: compositions }
+      # Estate → page-estate: a directed graph of every composition and the resources it
+      # manages, health-coloured (Ready·Synced / drift / failed). First FlowChart deployment.
+      - { label: Estate,       icon: fa-diagram-project, order: 3, path: /estate,       resourceRefId: estate }
       # Observability → page-observability: aggregates compositions health, reconciliation,
       # by-kind/by-project distribution, inventory and recent activity into one view.
-      - { label: Observability, icon: fa-chart-line, order: 3, path: /observability, resourceRefId: observability }
-      - { label: Compositions, icon: fa-cubes,       order: 2, path: /compositions, resourceRefId: compositions }
+      - { label: Observability, icon: fa-chart-line,  order: 4, path: /observability, resourceRefId: observability }
       # Blueprints → page-blueprints (header + the now-selectable catalog table).
-      - { label: Blueprints,   icon: fa-layer-group, order: 4, path: /blueprints,   resourceRefId: blueprints }
-      - { label: Marketplace,  icon: fa-store,       order: 5, path: /marketplace,  resourceRefId: marketplace }
-      - { label: Settings,     icon: fa-gear,        order: 6, path: /settings,     resourceRefId: settings }
+      - { label: Blueprints,   icon: fa-layer-group,  order: 5, path: /blueprints,   resourceRefId: blueprints }
+      - { label: Marketplace,  icon: fa-store,        order: 6, path: /marketplace,  resourceRefId: marketplace }
+      - { label: Settings,     icon: fa-gear,         order: 7, path: /settings,     resourceRefId: settings }
       # route-only (no label → hidden). /search renders the search-results List; its
       # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
       - { order: 800, path: /search, resourceRefId: search-results }
@@ -66,6 +69,12 @@ spec:
       - id: compositions
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: page-compositions
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: estate
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-estate
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
