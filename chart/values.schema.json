@@ -20,6 +20,12 @@
       "title": "enableDemoSystemNamespace",
       "type": "boolean"
     },
+    "observabilityConsoleUrl": {
+      "default": "",
+      "description": "Optional URL of the external observability console (e.g. the clickstack/HyperDX UI). When set, a \"View in console\" link appears on the /observability page and opens it in a new tab; empty hides the link. No default target is invented — a deployer must point this at their own console.",
+      "title": "observabilityConsoleUrl",
+      "type": "string"
+    },
     "tenant": {
       "default": "krateo-enterprise",
       "description": "Display name of the platform tenant — shown in the sider tenant chip and the page eyebrows (dashboard greeting, compositions, observability). A deployer-set label, not derived data; defaults to krateo-enterprise.",

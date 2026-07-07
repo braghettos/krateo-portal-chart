@@ -1,0 +1,14 @@
+# Observability section header — obs-sec-logs-desc
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-sec-logs-desc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: 'Platform logs from OpenTelemetry — recurring failures grouped, plus a live tail of recent errors & warnings.'
+    type: secondary
+  resourcesRefs:
+    items: []

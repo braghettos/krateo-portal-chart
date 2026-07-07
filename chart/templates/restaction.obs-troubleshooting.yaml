@@ -1,0 +1,25 @@
+# Lists the TroubleshootingReport CRs (observability.krateo.io, written by the krateo-alert-
+# troubleshooter when a HyperDX alert fires and Autopilot finishes its RCA). Newest-first.
+# Exposes the report feed (rows) + the latest report's markdown for the analysis panel.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: obs-troubleshooting
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: reports
+      path: /apis/observability.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/troubleshootingreports
+      verb: GET
+      continueOnError: true
+      errorKey: reportsError
+  filter: >
+    ( ((.reports.items) // []) | sort_by(.spec.triggeredAt // "") | reverse ) as $sorted
+    | { rows: [ $sorted[] | { alert: (.spec.alertName // ""), phase: (.status.phase // "Pending"),
+                              triggeredAt: (.spec.triggeredAt // "") } ],
+        count: ($sorted | length),
+        latestAlert: (($sorted[0] // {}).spec.alertName // ""),
+        latestPhase: (($sorted[0] // {}).status.phase // ""),
+        latestReport: (($sorted[0] // {}).status.report // "") }

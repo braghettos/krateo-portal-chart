@@ -1,0 +1,29 @@
+# Lists the Krateo Alert CRs (observability.krateo.io) via the apiserver — same per-user path
+# pattern as compositions-list. Each Alert's live state lives in .status.state (OK / ALERT /
+# PENDING), mirrored from HyperDX by the session-driven reconciler in krateo-alert-troubleshooter.
+# Exposes {rows[], firing} for the status table + the "firing" headline.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: obs-alerts
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: alerts
+      path: /apis/observability.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/alerts
+      verb: GET
+      continueOnError: true
+      errorKey: alertsError
+  filter: >
+    { rows: [ ((.alerts.items) // [])[] | {
+        name: (.spec.displayName // .metadata.name // ""),
+        watching: (.spec.where // "all logs"),
+        threshold: ((.spec.threshold // 0) | tostring),
+        interval: (.spec.interval // ""),
+        thresholdType: (.spec.thresholdType // ""),
+        phase: (.status.phase // "Pending"),
+        state: (.status.state // "PENDING")
+      } ],
+      firing: ([ ((.alerts.items) // [])[] | select((.status.state // "") == "ALERT") ] | length) }

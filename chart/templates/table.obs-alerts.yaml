@@ -1,0 +1,37 @@
+# HyperDX alerts status — lists the Alert CRs (observability.krateo.io) with their live state,
+# from restaction.obs-alerts. state is colour-coded: ALERT crimson, PENDING amber, OK cyan. The
+# numbers/threshold are the real alert config; state is mirrored from HyperDX by the reconciler.
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-alerts
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: small
+    pagination:
+      defaultPageSize: 10
+    columns:
+    - valueKey: name
+      title: Alert
+    - valueKey: watching
+      title: Watching
+    - valueKey: threshold
+      title: Threshold
+    - valueKey: interval
+      title: Every
+    - valueKey: state
+      title: State
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"watching",kind:"jsonSchemaType",type:"string",stringValue:(.watching // "-"),color:"#8c8c8c"}, {valueKey:"threshold",kind:"jsonSchemaType",type:"string",stringValue:((.thresholdType // "") + " " + (.threshold // ""))}, {valueKey:"interval",kind:"jsonSchemaType",type:"string",stringValue:(.interval // "-"),color:"#8c8c8c"}, {valueKey:"state",kind:"jsonSchemaType",type:"string",stringValue:(.state // "PENDING"),color:((.state // "PENDING") | if . == "ALERT" then "#cf1322" elif . == "PENDING" then "#d48806" else "#13a8a8" end)} ] ] }'
+  apiRef:
+    name: obs-alerts
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

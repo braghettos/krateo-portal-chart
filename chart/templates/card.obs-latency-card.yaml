@@ -1,0 +1,26 @@
+# Titled panel around the per-composition reconcile-latency Table — matches the other
+# observability cards (eyebrow title + outlined). The `extra` labels the window/metric;
+# the table itself carries the live per-composition numbers.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-latency-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Reconcile latency by composition
+    titleVariant: eyebrow
+    variant: outlined
+    extra: 'p95 · slowest first'
+    items:
+    - resourceRefId: obs-reconcile-by-composition
+  resourcesRefs:
+    items:
+    - id: obs-reconcile-by-composition
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-reconcile-by-composition
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET

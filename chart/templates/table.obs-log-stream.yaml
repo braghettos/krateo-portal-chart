@@ -1,0 +1,36 @@
+# Live log tail — recent ERROR/WARN lines as a log-viewer table (time · service · level ·
+# message), newest-first, from otel_logs via obs-log-stream. Level is colour-coded per row
+# (ERROR crimson, WARN amber) via a plain coloured string cell (portable across frontend
+# versions); time renders relative. The message is the real Body-parsed log message.
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-log-stream
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: small
+    pagination:
+      defaultPageSize: 12
+    columns:
+    - valueKey: ts
+      title: Time
+    - valueKey: svc
+      title: Service
+    - valueKey: lvl
+      title: Level
+    - valueKey: msg
+      title: Message
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"ts",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"}, {valueKey:"svc",kind:"jsonSchemaType",type:"string",stringValue:.svc,color:"#8c8c8c"}, {valueKey:"lvl",kind:"jsonSchemaType",type:"string",stringValue:.lvl,color:(if .lvl=="ERROR" then "#cf1322" else "#d48806" end)}, {valueKey:"msg",kind:"jsonSchemaType",type:"string",stringValue:.msg} ] ] }'
+  apiRef:
+    name: obs-log-stream
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

@@ -29,3 +29,10 @@ enableDemoSystemNamespace: true
 # default: krateo-enterprise
 # @schema
 tenant: krateo-enterprise
+
+# @schema
+# description: Optional URL of the external observability console (e.g. the clickstack/HyperDX UI). When set, a "View in console" link appears on the /observability page and opens it in a new tab; empty hides the link. No default target is invented — a deployer must point this at their own console.
+# type: string
+# default: ""
+# @schema
+observabilityConsoleUrl: ""

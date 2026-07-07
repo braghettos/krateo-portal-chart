@@ -1,0 +1,40 @@
+# "What's going wrong" — the ERROR-log digest as an antd List. Fed by obs-error-log-digest
+# (ClickHouse otel_logs, grouped service+msg). Each row = a red dot + the error message +
+# the component (mono) + an occurrence badge (×N) + last-seen (relative). Same itemTemplate
+# grammar as obs-activity-list; the colour maps off the parsed log level (ERROR=crimson,
+# WARN=amber) so it stays honest if WARN is ever surfaced too.
+kind: Listy
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-error-log-list
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: obs-error-log-digest
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    dataSource: []
+    itemLayout: horizontal
+    split: false
+    itemTemplate:
+      iconVariant: dot
+      color:
+        value: '{level}'
+        map:
+          ERROR: red
+          WARN: gold
+      primaryText: '{msg}'
+      subPrimaryText: '{service}'
+      subPrimaryTextMono: true
+      secondaryText: '{occ}'
+      secondaryTextAsTag: true
+      subSecondaryText: '{ts}'
+      formats:
+        subSecondaryText: relative
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ [ (.rows // [])[] | { msg: (.msg // ""), service: (.service // ""), level: "ERROR", occ: ("×" + ((.occurrences // 0)|tostring)), ts: (.last_ts // "") } ] }'
+  resourcesRefs:
+    items: []
