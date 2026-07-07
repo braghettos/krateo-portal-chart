@@ -25,6 +25,16 @@ spec:
   apiRef:
     name: blueprint-formdef
     namespace: {{ .Release.Namespace }}
+  # A6 §1.3: this form's apiRef (blueprint-formdef) reads the authenticated username SERVER-SIDE to
+  # scope the per-user draft key (__owner in initialValues). Under the cache-identity architecture
+  # the frontend stops volunteering identity in extras (capability flag api.SNOWPLOW_IDENTITY_INJECTION),
+  # so declare it here: snowplow injects the server-trusted username (JWT principal) into this
+  # widget's L1 key + resolve input — correct per-user drafts, spoof-proof (injection wins over any
+  # client-supplied ?extras.username). This is the ONE identity-declaring widget in the portal
+  # (the live survey's single server-side identity consumer). Enum-bounded to username (displayName
+  # foreclosed, D1). See snowplow docs/A6-chart-enablement-spec-2026-07-07.md §1.3.
+  identityContext:
+    - username
   widgetData:
     layout: vertical
     # Real Configure→Review: the primary button validates and reveals an in-place

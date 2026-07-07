@@ -6,24 +6,22 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
-  # Data-driven greeting. Time-of-day is resolved CLIENT-SIDE: the jq emits the literal token
-  # `{localTimeOfDay}` and the Paragraph widget replaces it at render with the browser-local
-  # bucket (morning/afternoon/evening from `new Date().getHours()`). This is deliberate —
-  # snowplow caches a no-apiRef widget's RENDERED output with `now` FROZEN at resolve time, so
-  # any server-side `now`-based time-of-day is cache-incoherent (an 11:50-Rome user saw a stale
-  # "Good evening"; a raw no-store fetch confirmed it was snowplow's frozen render, not the
-  # frontend cache — see [[snowplow-cache-coherence]]). Emitting the token instead is immune to
-  # that: the bucket is computed in the viewer's browser, in the viewer's TZ, on every render.
-  # The name comes from the login identity forwarded via `?extras.displayName` (no runtime /me).
-  # Requires snowplow >= 1.1.0 (extras-to-widgets, PR #27): Fix-2 merges request `extras` into a
-  # no-apiRef widget's widgetDataTemplate data source, so `.displayName` resolves here; with no
-  # extras it degrades to "there" (the `// "there"` fallback). `widgetData.text` below is only a
-  # last-resort fallback if the template can't run.
+  # Fully CLIENT-RENDERED greeting — no server-side identity, no apiRef, no extras. Both dynamic
+  # parts are client tokens the Paragraph widget resolves at render (src/widgets/Paragraph/localTokens.ts):
+  #   {localTimeOfDay} → morning/afternoon/evening from the viewer's browser clock+TZ. Deliberate:
+  #     snowplow caches a no-apiRef widget's RENDERED output with `now` FROZEN at resolve time, so a
+  #     server-side time-of-day is cache-incoherent (an 11:50-Rome user saw a stale "Good evening")
+  #     — see [[snowplow-cache-coherence]]. Resolving in the browser is immune to that.
+  #   {displayName}    → the login name from the browser's own login state (localStorage K_user),
+  #     fallback "there".
+  # This DROPS the former server-side `.displayName` (fed via ?extras.displayName). Under the
+  # cache-identity architecture the frontend stops volunteering identity in extras (capability flag
+  # api.SNOWPLOW_IDENTITY_INJECTION); greeting-title was the LAST server-side displayName consumer,
+  # so it migrates to client-render. Now fully identity-free + extras-free → one shared L1 cell.
+  # Requires the frontend to ship the {displayName} localTokens resolver (A5 / frontend PR #25).
+  # See snowplow docs/A6-chart-enablement-spec-2026-07-07.md §1.4.
   widgetData:
-    text: Welcome
+    text: "Good {localTimeOfDay}, {displayName}"
     strong: true
-  widgetDataTemplate:
-    - forPath: text
-      expression: '${ "Good {localTimeOfDay}, " + (.displayName // "there") }'
   resourcesRefs:
     items: []
