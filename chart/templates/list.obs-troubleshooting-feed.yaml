@@ -1,0 +1,37 @@
+# Troubleshooting-report feed — the recent auto-RCA runs as an antd List: a phase-coloured dot
+# + the alert name + phase tag + relative trigger time. Off restaction.obs-troubleshooting.
+kind: Listy
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-troubleshooting-feed
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: obs-troubleshooting
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    dataSource: []
+    itemLayout: horizontal
+    split: false
+    itemTemplate:
+      iconVariant: dot
+      color:
+        value: '{phase}'
+        map:
+          Ready: green
+          Analyzing: gold
+          Pending: gray
+          Failed: red
+      primaryText: '{alert}'
+      secondaryText: '{phase}'
+      secondaryTextAsTag: true
+      subSecondaryText: '{triggeredAt}'
+      formats:
+        subSecondaryText: relative
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ (.rows // []) | .[0:8] }'
+  resourcesRefs:
+    items: []

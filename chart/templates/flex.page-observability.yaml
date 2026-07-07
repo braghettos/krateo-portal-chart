@@ -43,6 +43,11 @@ spec:
     - resourceRefId: obs-sec-logs-desc
     - resourceRefId: obs-errors-row
     - resourceRefId: obs-log-stream-row
+    # — Alerts —
+    - resourceRefId: obs-sec-alerts-label
+    - resourceRefId: obs-sec-alerts-desc
+    - resourceRefId: obs-alerts-row
+    - resourceRefId: obs-troubleshooting-row
     # — Resources —
     - resourceRefId: obs-sec-resources-label
     - resourceRefId: obs-sec-resources-desc
@@ -158,6 +163,30 @@ spec:
     - id: obs-log-stream-row
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-log-stream-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-sec-alerts-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-alerts-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-sec-alerts-desc
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-sec-alerts-desc
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: obs-alerts-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-alerts-row
+      namespace: {{ .Release.Namespace }}
+      resource: rows
+      verb: GET
+    - id: obs-troubleshooting-row
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-troubleshooting-row
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
