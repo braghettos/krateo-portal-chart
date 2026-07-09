@@ -1,5 +1,15 @@
 {{- if .Values.enableCyberjokerUser }}
 # krateo-system permissions
+{{- /* Preserve an existing password across re-renders (see rbac.admin-rbac.yaml): an
+       unguarded randAlphaNum regenerates every reconcile and churns a helm revision each
+       cycle. lookup the live Secret and reuse its password; generate only on first create. */}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace "cyberjoker-password" }}
+{{- $password := "" }}
+{{- if and $existing $existing.data (index $existing.data "password") }}
+{{- $password = index $existing.data "password" | b64dec }}
+{{- else }}
+{{- $password = randAlphaNum 12 }}
+{{- end }}
 apiVersion: v1
 kind: Secret
 type: kubernetes.io/basic-auth
@@ -7,7 +17,7 @@ metadata:
   name: cyberjoker-password
   namespace: {{ .Release.Namespace }}
 stringData:
-  password: {{ randAlphaNum 12 | quote }}
+  password: {{ $password | quote }}
 ---
 apiVersion: basic.authn.krateo.io/v1alpha1
 kind: User
