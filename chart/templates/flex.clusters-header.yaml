@@ -1,0 +1,34 @@
+# Clusters head row — title+subtitle stack on the left, the primary "Register cluster" CTA
+# on the right (mirrors compositions-header). justify space-between pushes the button to the
+# far edge.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: clusters-header
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    - buttons
+    justify: space-between
+    align: center
+    items:
+    - resourceRefId: clusters-title-stack
+    - resourceRefId: register-cluster
+  resourcesRefs:
+    items:
+    - id: clusters-title-stack
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: clusters-title-stack
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: register-cluster
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: register-cluster
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET

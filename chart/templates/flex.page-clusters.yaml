@@ -1,0 +1,34 @@
+# Convention page root for /clusters — header (title + subtitle stack, with the primary
+# "Register cluster" CTA on the right) above the cluster-registry table. The sidebar-nav
+# `clusters` entry points here (page-<slug> convention). Mirrors flex.page-compositions.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-clusters
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    - tables
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: clusters-header
+    - resourceRefId: clusters-table
+  resourcesRefs:
+    items:
+    - id: clusters-header
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: clusters-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: clusters-table
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: clusters-table
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET

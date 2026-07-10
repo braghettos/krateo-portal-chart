@@ -22,6 +22,9 @@ spec:
     items:
       - { label: Dashboard,    icon: fa-gauge,        order: 1, path: /dashboard,    resourceRefId: dashboard }
       - { label: Compositions, icon: fa-cubes,        order: 2, path: /compositions, resourceRefId: compositions }
+      # Clusters → page-clusters: the hub-and-spoke registry (registered KubernetesTargets a
+      # CompositionDefinition can deploy to; health rolled up from CompositionDefinition.status.target).
+      - { label: Clusters,     icon: fa-server,       order: 3, path: /clusters,     resourceRefId: clusters }
       # (per-composition resource topology now lives on the composition detail page as a FlowChart —
       #  the cluster-wide /estate graph was removed: it had to list every composition, unusable at scale.)
       # Observability → page-observability: aggregates compositions health, reconciliation,
@@ -45,6 +48,9 @@ spec:
       # Install a blueprint = deploy a CompositionDefinition (the marketplace card's Install
       # navigates here with the blueprint name; the form renders the CompositionDefinition CRD).
       - { order: 915, path: "/marketplace/{name}/install", page: blueprint-install }
+      # Register a cluster = POST a KubernetesTarget (the clusters page's "Register cluster" CTA
+      # navigates here; route-only/hidden → the register-cluster Form via page-clusters-register).
+      - { order: 917, path: "/clusters/register", page: clusters-register }
       # Marketplace blueprint detail — a catalog tile's "Details" lands here (and Autopilot can
       # navigate here). Shows the helm-index metadata (description / versions / links) + Install.
       - { order: 912, path: "/marketplace/{name}", page: marketplace-detail }
@@ -68,6 +74,12 @@ spec:
       - id: compositions
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: page-compositions
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: clusters
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-clusters
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
