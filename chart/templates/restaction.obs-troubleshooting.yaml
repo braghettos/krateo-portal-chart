@@ -20,6 +20,8 @@ spec:
   # runCount  = annotation observability.krateo.io/run-count (number) else count of CRs for that
   #             alert else 1. lastRunAt = annotation observability.krateo.io/last-run-at else the
   #             latest .spec.triggeredAt. Rows sorted by lastRunAt DESC; pane fields = most-recent.
+  # Each row also carries askHref: a URL-encoded (@uri) /observability?ask=<seed> deep-link the feed
+  # uses as navigateTo — clicking an alert opens the Autopilot rail seeded to continue THAT alert.
   filter: >
     ( ((.reports.items) // []) ) as $items
     | ( $items | group_by(.spec.alertName // "") | map(
@@ -37,7 +39,7 @@ spec:
       ) ) as $grouped
     | ( $grouped | sort_by(.lastRunAt // "") | reverse ) as $rows
     | ($rows[0] // {}) as $top
-    | { rows: [ $rows[] | { alert, phase, runCount, lastRunAt } ],
+    | { rows: [ $rows[] | { alert, phase, runCount, lastRunAt, askHref: ("/observability?ask=" + (("Continue the root-cause investigation of the \"" + (.alert // "this alert") + "\" observability alert — summarise the current root cause and give me the concrete next remediation steps.") | @uri)) } ],
         count: ($rows | length),
         latestAlert: ($top.alert // ""),
         latestPhase: ($top.phase // ""),

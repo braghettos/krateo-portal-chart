@@ -1,5 +1,7 @@
 # Troubleshooting-report feed — one row per ALERT as an antd List: a phase-coloured dot + the
 # alert name + phase tag + run count and relative last-run time. Off restaction.obs-troubleshooting.
+# Each row is CLICKABLE: navigateTo carries the server-built ?ask= deep-link (askHref) that opens
+# the Autopilot rail seeded to continue THAT alert's investigation (one alert ⇒ one thread).
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,7 +17,10 @@ spec:
     dataSource: []
     itemLayout: horizontal
     split: false
+    header: Select an alert to continue the investigation in Autopilot →
     itemTemplate:
+      # Whole-row click → the per-alert Autopilot deep-link built server-side in the RA (@uri-encoded).
+      navigateTo: '{askHref}'
       iconVariant: dot
       color:
         value: '{phase}'
