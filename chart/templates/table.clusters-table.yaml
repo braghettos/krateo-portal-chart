@@ -1,8 +1,9 @@
 # Cluster registry table (hub-and-spoke Phase 1). Rows come from clusters-list `.list`
 # (one row per registered KubernetesTarget, with health rolled up from the blueprints that
-# target it). Cell kinds/shape mirror compositions-table exactly: the Health column is the
-# reconciliation-rail `bar` cell (percent + color derived server-side per row), everything
-# else is a plain `jsonSchemaType` string cell (Last probe formatted `relative`).
+# target it). The Health column is a discrete colored `tag` pill — cluster connectivity is a
+# STATE (Healthy / Down / Unknown), not a progress-toward-target, so a Tag reads clearer than
+# the compositions-table reconciliation-rail bar (label + color derived server-side per row).
+# Everything else is a plain `jsonSchemaType` string cell (Last probe formatted `relative`).
 # rowNavigateTo points at the per-cluster detail route (/clusters/{name}) — the detail PAGE
 # is Phase-1-optional, but wiring the nav target now costs nothing.
 kind: Table
@@ -34,12 +35,12 @@ spec:
       title: Last Probe
     dataSource: []
   widgetDataTemplate:
-  # One row per KubernetesTarget. `health` reuses the compositions-table `bar` cell (the
-  # reconciliation-rail Progress gauge): stringValue = healthPercent, color = the rolled-up
+  # One row per KubernetesTarget. `health` is a colored `tag` pill: stringValue = the state
+  # word (Healthy / Down / Unknown, mapped from the rolled-up verdict), color = the rolled-up
   # health color (green healthy / red failed / gray unknown). blueprints is the count of
   # targeting CompositionDefinitions; lastProbe renders relative when a timestamp is present.
   - forPath: dataSource
-    expression: '${ [ .list[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"health",kind:"bar",stringValue:(.healthPercent|tostring),color:.healthColor}, {valueKey:"version",kind:"jsonSchemaType",type:"string",stringValue:(.version // "")}, {valueKey:"blueprints",kind:"jsonSchemaType",type:"string",stringValue:(.blueprintCount|tostring)}, {valueKey:"secret",kind:"jsonSchemaType",type:"string",stringValue:(.secretRef // "")}, {valueKey:"lastProbe",kind:"jsonSchemaType",type:"string",stringValue:(.lastProbe // ""),format:"relative"} ] ] }'
+    expression: '${ [ .list[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"health",kind:"tag",stringValue:(if .health=="healthy" then "Healthy" elif .health=="failed" then "Down" else "Unknown" end),color:.healthColor}, {valueKey:"version",kind:"jsonSchemaType",type:"string",stringValue:(.version // "")}, {valueKey:"blueprints",kind:"jsonSchemaType",type:"string",stringValue:(.blueprintCount|tostring)}, {valueKey:"secret",kind:"jsonSchemaType",type:"string",stringValue:(.secretRef // "")}, {valueKey:"lastProbe",kind:"jsonSchemaType",type:"string",stringValue:(.lastProbe // ""),format:"relative"} ] ] }'
   apiRef:
     name: clusters-list
     namespace: {{ .Release.Namespace }}
