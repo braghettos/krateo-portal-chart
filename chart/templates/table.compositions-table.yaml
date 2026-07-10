@@ -35,8 +35,22 @@ spec:
   # filters server-side via ?status/?range/?from/?to); `.list` stays the dashboard's
   # full set. Status cell uses the pre-derived `.railState` (4 states incl. drift) so
   # a Ready-but-Synced=false composition reads magenta "Drift", not gold "Pending".
+  #
+  # PAGINATION (paginate + virtualize, spec 2026-07-10): the SPA requests a bounded
+  # page (`?page=N&perPage=M`, default 50) so snowplow injects `.slice={page,perPage,
+  # offset}` (resolve.go injectSlice). We slice `.filtered` to the WINDOW
+  # `[offset : offset+perPage]` (classic pager — matches the frontend's controlled
+  # antd pager) so the returned `dataSource` is ONE page, not the whole 60K set that
+  # wedged the browser. When no slice is present (unpaginated request, e.g. the
+  # dashboard sharing this RA) we fall back to the full `.filtered` — behaviour is
+  # byte-identical to pre-pagination for those callers.
   - forPath: dataSource
-    expression: '${ [ .filtered[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"conditions",stringValue:(((.conditions // []) | map({type:.type, status:.status, color:(if .status=="True" then "cyan" elif .status=="False" then "red" else "gray" end)})) | tojson)}, {valueKey:"reconcile",kind:"bar",stringValue:(.healthPercent|tostring),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+    expression: '${ (if .slice then (.filtered[.slice.offset : (.slice.offset + .slice.perPage)]) else .filtered end) as $rows | [ $rows[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"conditions",stringValue:(((.conditions // []) | map({type:.type, status:.status, color:(if .status=="True" then "cyan" elif .status=="False" then "red" else "gray" end)})) | tojson)}, {valueKey:"reconcile",kind:"bar",stringValue:(.healthPercent|tostring),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+  # Pager needs the TOTAL row count (the full filtered set) so it can render the right
+  # number of pages while `dataSource` holds only the current window. `current` mirrors
+  # the requested page (`.slice.page`) so the controlled pager stays in sync.
+  - forPath: pagination
+    expression: '${ { total: (.filtered | length), pageSize: (.slice.perPage // 50), current: (.slice.page // 1) } }'
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   apiRef:
