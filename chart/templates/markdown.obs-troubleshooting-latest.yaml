@@ -13,7 +13,7 @@ spec:
     markdown: '_No troubleshooting reports yet._'
   widgetDataTemplate:
   - forPath: markdown
-    expression: '${ if (.count // 0) > 0 then ("**Latest analysis — " + (.latestAlert // "") + "**  ·  " + (.latestPhase // "") + "\n\n" + (if (.latestReport // "") == "" then "_Analyzing…_" else .latestReport end)) else "_No alerts have fired yet. When a HyperDX alert triggers, krateo-alert-troubleshooter runs an Autopilot root-cause analysis automatically and it appears here._" end }'
+    expression: '${ if (.count // 0) > 0 then ("**Analysis — " + (.latestAlert // "") + "**  ·  " + (.latestPhase // "") + "\n\n" + (if (.latestReport // "") == "" then "_Analyzing…_" else .latestReport end)) else "_No alerts have fired yet. When a HyperDX alert triggers, krateo-alert-troubleshooter runs an Autopilot root-cause analysis automatically and it appears here._" end }'
   apiRef:
     name: obs-troubleshooting
     namespace: {{ .Release.Namespace }}

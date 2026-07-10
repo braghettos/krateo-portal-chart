@@ -28,6 +28,9 @@ spec:
       secondaryText: '{phase}'
       secondaryTextAsTag: true
       subSecondaryText: '{triggeredAt}'
+      # Click a row to open THAT report in the analysis panel (same-page ?report= extra,
+      # read by restaction.obs-troubleshooting). Lets you browse every report, not just latest.
+      navigateTo: '/observability?report={name}'
       formats:
         subSecondaryText: relative
   widgetDataTemplate:

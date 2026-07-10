@@ -15,11 +15,18 @@ spec:
       verb: GET
       continueOnError: true
       errorKey: reportsError
+  # `?report=<name>` (URL → extras, read synchronously like ?status/?range) selects which
+  # report the analysis panel shows; absent → the newest ($sorted[0]). Rows carry `name` so
+  # the feed can deep-link each report (navigateTo /observability?report=<name>).
   filter: >
     ( ((.reports.items) // []) | sort_by(.spec.triggeredAt // "") | reverse ) as $sorted
-    | { rows: [ $sorted[] | { alert: (.spec.alertName // ""), phase: (.status.phase // "Pending"),
+    | (.report // "") as $sel
+    | ( if $sel == "" then ($sorted[0] // {})
+        else (($sorted | map(select(.metadata.name == $sel)))[0] // ($sorted[0] // {})) end ) as $selected
+    | { rows: [ $sorted[] | { name: (.metadata.name // ""), alert: (.spec.alertName // ""), phase: (.status.phase // "Pending"),
                               triggeredAt: (.spec.triggeredAt // "") } ],
         count: ($sorted | length),
-        latestAlert: (($sorted[0] // {}).spec.alertName // ""),
-        latestPhase: (($sorted[0] // {}).status.phase // ""),
-        latestReport: (($sorted[0] // {}).status.report // "") }
+        selectedName: ($selected.metadata.name // ""),
+        latestAlert: ($selected.spec.alertName // ""),
+        latestPhase: ($selected.status.phase // ""),
+        latestReport: ($selected.status.report // "") }
