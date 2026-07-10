@@ -1,5 +1,5 @@
-# Troubleshooting-report feed — the recent auto-RCA runs as an antd List: a phase-coloured dot
-# + the alert name + phase tag + relative trigger time. Off restaction.obs-troubleshooting.
+# Troubleshooting-report feed — one row per ALERT as an antd List: a phase-coloured dot + the
+# alert name + phase tag + run count and relative last-run time. Off restaction.obs-troubleshooting.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -27,10 +27,10 @@ spec:
       primaryText: '{alert}'
       secondaryText: '{phase}'
       secondaryTextAsTag: true
-      subSecondaryText: '{triggeredAt}'
-      # Click a row to open THAT report in the analysis panel (same-page ?report= extra,
-      # read by restaction.obs-troubleshooting). Lets you browse every report, not just latest.
-      navigateTo: '/observability?report={name}'
+      # Split so the relative formatter gets a BARE timestamp: run count in the description slot,
+      # last-run time (formatted "24m") in the secondary slot.
+      subPrimaryText: '×{runCount} runs'
+      subSecondaryText: '{lastRunAt}'
       formats:
         subSecondaryText: relative
   widgetDataTemplate:

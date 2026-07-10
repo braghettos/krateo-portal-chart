@@ -1,6 +1,6 @@
 # Lists the TroubleshootingReport CRs (observability.krateo.io, written by the krateo-alert-
-# troubleshooter when a HyperDX alert fires and Autopilot finishes its RCA). Newest-first.
-# Exposes the report feed (rows) + the latest report's markdown for the analysis panel.
+# troubleshooter when a HyperDX alert fires and Autopilot finishes its RCA).
+# Collapses to ONE entry per alert (latest analysis + run count) for the analysis panel.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -15,18 +15,32 @@ spec:
       verb: GET
       continueOnError: true
       errorKey: reportsError
-  # `?report=<name>` (URL → extras, read synchronously like ?status/?range) selects which
-  # report the analysis panel shows; absent → the newest ($sorted[0]). Rows carry `name` so
-  # the feed can deep-link each report (navigateTo /observability?report=<name>).
+  # The troubleshooter upserts ONE CR per alert, but OLD generateName CRs may still exist —
+  # so GROUP BY alertName defensively, picking the latest CR (max .spec.triggeredAt) per alert.
+  # runCount  = annotation observability.krateo.io/run-count (number) else count of CRs for that
+  #             alert else 1. lastRunAt = annotation observability.krateo.io/last-run-at else the
+  #             latest .spec.triggeredAt. Rows sorted by lastRunAt DESC; pane fields = most-recent.
   filter: >
-    ( ((.reports.items) // []) | sort_by(.spec.triggeredAt // "") | reverse ) as $sorted
-    | (.report // "") as $sel
-    | ( if $sel == "" then ($sorted[0] // {})
-        else (($sorted | map(select(.metadata.name == $sel)))[0] // ($sorted[0] // {})) end ) as $selected
-    | { rows: [ $sorted[] | { name: (.metadata.name // ""), alert: (.spec.alertName // ""), phase: (.status.phase // "Pending"),
-                              triggeredAt: (.spec.triggeredAt // "") } ],
-        count: ($sorted | length),
-        selectedName: ($selected.metadata.name // ""),
-        latestAlert: ($selected.spec.alertName // ""),
-        latestPhase: ($selected.status.phase // ""),
-        latestReport: ($selected.status.report // "") }
+    ( ((.reports.items) // []) ) as $items
+    | ( $items | group_by(.spec.alertName // "") | map(
+        ( sort_by(.spec.triggeredAt // "") | reverse ) as $g
+        | $g[0] as $latest
+        | ( ($latest.metadata.annotations["observability.krateo.io/run-count"] // "") as $rc | (try ($rc | tonumber) catch null) ) as $annCount
+        | ( ($latest.metadata.annotations["observability.krateo.io/last-run-at"] // "") ) as $annLast
+        | {
+            alert: ($latest.spec.alertName // ""),
+            phase: ($latest.status.phase // "Pending"),
+            report: ($latest.status.report // ""),
+            runCount: ( if $annCount != null then $annCount elif ($g | length) > 0 then ($g | length) else 1 end ),
+            lastRunAt: ( if $annLast != "" then $annLast else ($latest.spec.triggeredAt // "") end )
+          }
+      ) ) as $grouped
+    | ( $grouped | sort_by(.lastRunAt // "") | reverse ) as $rows
+    | ($rows[0] // {}) as $top
+    | { rows: [ $rows[] | { alert, phase, runCount, lastRunAt } ],
+        count: ($rows | length),
+        latestAlert: ($top.alert // ""),
+        latestPhase: ($top.phase // ""),
+        latestReport: ($top.report // ""),
+        latestRunCount: ($top.runCount // 1),
+        latestLastRunAt: ($top.lastRunAt // "") }
