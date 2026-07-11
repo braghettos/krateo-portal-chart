@@ -7,21 +7,23 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    label: '▲+0'
-    color: cyan
+    label: '0 total'
+    color: gray
     # Sized to match (slightly exceed) the caption so the delta number is legible.
     style:
       fontSize: '13px'
       fontWeight: 700
       lineHeight: '18px'
-    # live-refresh: watch the composition kinds so the delta updates with the count Statistic
-    # (which already watches) — keeps count + delta consistent without a reload. Computed, not hardcoded.
+    # live-refresh: watch the composition kinds so this total updates with the count Statistic
+    # (which already watches) — computed, not hardcoded. NOTE: this is the ABSOLUTE total, not a
+    # delta/trend — rendered as a neutral "N total" pill (no up-arrow, no positive colour) so it
+    # never implies growth that did not happen (audit: honest-data).
     watch: []
   widgetDataTemplate:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: label
-    expression: '${ "▲+" + ((.list | length) | tostring) }'
+    expression: '${ ((.list | length) | tostring) + " total" }'
   apiRef:
     name: dashboard-data
     namespace: {{ .Release.Namespace }}

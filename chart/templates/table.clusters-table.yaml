@@ -4,8 +4,8 @@
 # STATE (Healthy / Down / Unknown), not a progress-toward-target, so a Tag reads clearer than
 # the compositions-table reconciliation-rail bar (label + color derived server-side per row).
 # Everything else is a plain `jsonSchemaType` string cell (Last probe formatted `relative`).
-# rowNavigateTo points at the per-cluster detail route (/clusters/{name}) — the detail PAGE
-# is Phase-1-optional, but wiring the nav target now costs nothing.
+# Rows are NOT clickable: the per-cluster detail route (/clusters/{name}) does not exist yet, so a
+# rowNavigateTo would 404 (audit finding). Re-add rowNavigateTo once the detail page ships.
 kind: Table
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -18,8 +18,6 @@ spec:
     allowedResources: []
     bordered: false
     size: small
-    # Row click → the per-cluster detail page ({name} from the row's cells).
-    rowNavigateTo: /clusters/{name}
     columns:
     - valueKey: name
       title: Name
