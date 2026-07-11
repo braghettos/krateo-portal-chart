@@ -44,6 +44,22 @@ spec:
         resource: compositiondefinitions
         namespaceFrom: .metadata.name
       filter: "[.namespaces.items[] | .metadata.name]"
+    # Registered spokes (hub-and-spoke P2): their names become the enum for the deploy.targetRef.name
+    # field, so the installer PICKS a registered KubernetesTarget instead of typing it — the blueprint
+    # then deploys its compositions on that spoke. continueOnError + list-UAF: no grant / no spokes →
+    # the field stays a plain string and, left empty, the empty-prune drops deploy → deploys on the hub.
+    - name: targets
+      path: /apis/core.krateo.io/v1alpha1/kubernetestargets
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: targetsError
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: kubernetestargets
+      filter: "[.targets.items[]? | .metadata.name]"
   filter: |
     # Drop statusDataTemplate — it's a blueprint-author field (status projection), not something
     # the installer sets; remove it from the fetched CRD schema so it doesn't render in the form.
@@ -54,6 +70,7 @@ spec:
     | ($spec0 | .properties = ((.properties // {}) | walk(if (type == "object" and has("required")) then del(.required) else . end))) as $spec
     | (.name // "") as $bp
     | .namespaces as $namespaces
+    | ((.targets // []) | map(select(. != null and . != ""))) as $targetNames
     | (((.catalog.entries[$bp]?) // [])[0]) as $entry
     | ($entry.version // "") as $ver
     | (($entry.urls[0]? // "") | sub("/[^/]+$"; "")) as $repoUrl
@@ -63,7 +80,10 @@ spec:
               name: { type: "string", title: "Name", description: "Name for the installed blueprint (the CompositionDefinition)" },
               namespace: { type: "string", title: "Namespace", description: "Namespace to install the blueprint into", enum: $namespaces }
             } + (.properties // {}))
-          | .required = (["name", "namespace"] + (.required // []))),
+          | .required = (["name", "namespace"] + (.required // []))
+          | (if (($targetNames | length) > 0) and ((.properties.deploy.properties.targetRef.properties.name? // null) != null)
+             then (.properties.deploy.properties.targetRef.properties.name |= (. + { title: "Deploy to cluster", description: "Leave empty to deploy on this (hub) cluster; pick a registered spoke to deploy remotely.", enum: $targetNames }))
+             else . end)),
         initialValues: {
           name: $bp,
           namespace: "{{ .Release.Namespace }}",
