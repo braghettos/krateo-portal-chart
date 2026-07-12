@@ -22,6 +22,9 @@ spec:
     gap: middle
     items:
     - resourceRefId: header-row
+    # First-run onboarding — self-hides once the user owns a composition (hideWhenEmpty
+    # gate on compositions-list). Sits under the greeting header, above the stats.
+    - resourceRefId: onboarding-empty
     - resourceRefId: stats-row
     - resourceRefId: charts-row
     - resourceRefId: rail-row
@@ -33,6 +36,12 @@ spec:
       name: header-row
       namespace: {{ .Release.Namespace }}
       resource: rows
+      verb: GET
+    - id: onboarding-empty
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: onboarding-empty
+      namespace: {{ .Release.Namespace }}
+      resource: listies
       verb: GET
     - id: stats-row
       apiVersion: widgets.templates.krateo.io/v1beta1
