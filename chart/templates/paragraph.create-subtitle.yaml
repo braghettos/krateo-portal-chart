@@ -6,6 +6,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   # Subtitle names the blueprint being provisioned — the name arrives via ?extras
   # (.name, the route param) and resolves in the widgetDataTemplate (no apiRef needed),
   # the same channel the dashboard greeting uses for .displayName. Falls back to the

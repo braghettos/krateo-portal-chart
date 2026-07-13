@@ -255,6 +255,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -276,6 +278,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -299,6 +303,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [category, name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -344,6 +350,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -462,6 +470,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -482,6 +492,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [category, name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -558,6 +570,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
@@ -579,6 +593,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   apiRef:
     name: marketplace-detail
     namespace: {{ .Release.Namespace }}
