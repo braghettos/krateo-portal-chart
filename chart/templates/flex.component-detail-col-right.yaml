@@ -1,0 +1,31 @@
+# Right column (narrower): Conditions (the "why not"), Overview.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: component-detail-col-right
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: small
+    allowedResources:
+      - cards
+    items:
+      - resourceRefId: card-component-detail-conditions
+      - resourceRefId: card-component-detail-overview
+  resourcesRefs:
+    items:
+      - id: card-component-detail-conditions
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-component-detail-conditions
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-component-detail-overview
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-component-detail-overview
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET

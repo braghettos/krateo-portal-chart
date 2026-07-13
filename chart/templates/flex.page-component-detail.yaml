@@ -1,0 +1,36 @@
+# Convention page root for /settings/components/{name} — the Settings component
+# drill-down ("is my control plane healthy, and why not?"). Mirrors the
+# composition-detail page structure: a pagehead (title + ready Tag + subtitle |
+# actions) over a 2-column grid: left = Pods / Events, right = Conditions /
+# Overview. Every figure is shaped server-side by the component-detail RA.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-component-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - flexes
+      - rows
+    items:
+      - resourceRefId: component-detail-header-block
+      - resourceRefId: component-detail-grid
+  resourcesRefs:
+    items:
+      - id: component-detail-header-block
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: component-detail-header-block
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: component-detail-grid
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: component-detail-grid
+        namespace: {{ .Release.Namespace }}
+        resource: rows
+        verb: GET

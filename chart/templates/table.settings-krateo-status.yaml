@@ -14,6 +14,9 @@ spec:
     allowedResources: []
     bordered: false
     size: middle
+    # Row click → the component drill-down ({name} resolves from the visible name
+    # cell; rows without a name simply don't navigate — buildRowPath guard).
+    rowNavigateTo: /settings/components/{name}
     columns:
     - valueKey: name
       title: Component

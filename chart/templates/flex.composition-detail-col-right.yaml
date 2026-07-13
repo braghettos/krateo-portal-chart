@@ -1,4 +1,5 @@
-# Right column (narrower): Relations, Metadata. (Conditions/Health promoted to the page top.)
+# Right column (narrower): Reconcile activity, Relations, Metadata. (Conditions/Health
+# promoted to the page top.)
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -13,10 +14,17 @@ spec:
     allowedResources:
       - cards
     items:
+      - resourceRefId: card-composition-detail-reconcile
       - resourceRefId: card-composition-detail-relations
       - resourceRefId: card-composition-detail-metadata
   resourcesRefs:
     items:
+      - id: card-composition-detail-reconcile
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-composition-detail-reconcile
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
       - id: card-composition-detail-relations
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: card-composition-detail-relations

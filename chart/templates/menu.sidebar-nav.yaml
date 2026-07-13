@@ -57,6 +57,9 @@ spec:
       # Installed-blueprint detail — a Blueprints card click lands here. Shows chart/version/status
       # and hosts Create (instantiate) / Delete (uninstall) / version-update.
       - { order: 920, path: "/blueprints/{namespace}/{name}", page: blueprint-detail }
+      # Settings component drill-down — a Krateo Deployments row click (settings-krateo-status
+      # Table) lands here. Pods / conditions / events for one control-plane Deployment.
+      - { order: 930, path: "/settings/components/{name}", page: component-detail }
   resourcesRefs:
     items:
       - id: dashboard
