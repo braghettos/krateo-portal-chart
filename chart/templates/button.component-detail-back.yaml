@@ -1,0 +1,23 @@
+# "← Back to settings" link above the component-detail title (pagehead pattern).
+# A link-style Button that navigates (SPA) back to the Settings page.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: component-detail-back
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: Back to settings
+    type: link
+    size: small
+    icon: fa-arrow-left
+    clickActionId: back-nav
+    actions:
+      navigate:
+        - id: back-nav
+          path: /settings
+          type: navigate
+  resourcesRefs:
+    items: []

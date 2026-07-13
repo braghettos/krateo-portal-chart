@@ -1,0 +1,25 @@
+# "Pods" card → the component Deployment's live pods (matched by its own selector,
+# server-side). The table carries the real per-pod runtime facts.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: card-component-detail-pods
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Pods
+    titleVariant: eyebrow
+    variant: outlined
+    extra: 'matched by the Deployment selector'
+    items:
+      - resourceRefId: component-detail-pods
+  resourcesRefs:
+    items:
+      - id: component-detail-pods
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: component-detail-pods
+        namespace: {{ .Release.Namespace }}
+        resource: tables
+        verb: GET
