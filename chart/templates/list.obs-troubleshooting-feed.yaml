@@ -2,6 +2,7 @@
 # alert name + phase tag + run count and relative last-run time. Off restaction.obs-troubleshooting.
 # Each row is CLICKABLE: navigateTo carries the server-built ?ask= deep-link (askHref) that opens
 # the Autopilot rail seeded to continue THAT alert's investigation (one alert ⇒ one thread).
+# Lives on /incidents since the IA split; askHref targets /incidents?ask= accordingly.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

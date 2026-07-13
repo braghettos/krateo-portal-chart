@@ -1,10 +1,10 @@
-# Activity + inventory — recent platform events (left, wide) and the platform inventory
-# stats (right). Events off the `events` RA; inventory off blueprints-cards +
-# compositions-list. Mirrors the dashboard charts-row split, cards enum already used.
+# /incidents secondary band — the two alert-signal panels that moved here in the IA split
+# (page-observability keeps only platform health): the per-alert Autopilot continuation
+# feed (left) and the HyperDX alert-rules table (right).
 kind: Row
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
-  name: obs-activity-row
+  name: incidents-secondary-row
   namespace: {{ .Release.Namespace }}
   annotations:
     "krateo.io/verbose": "true"
@@ -14,21 +14,21 @@ spec:
     - cards
     alignment: top
     items:
-    - resourceRefId: obs-activity-card
-      size: 16
-    - resourceRefId: obs-inventory-card
-      size: 8
+    - resourceRefId: obs-troubleshooting-card
+      size: 12
+    - resourceRefId: obs-alerts-card
+      size: 12
   resourcesRefs:
     items:
-    - id: obs-activity-card
+    - id: obs-troubleshooting-card
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-activity-card
+      name: obs-troubleshooting-card
       namespace: {{ .Release.Namespace }}
       resource: cards
       verb: GET
-    - id: obs-inventory-card
+    - id: obs-alerts-card
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-inventory-card
+      name: obs-alerts-card
       namespace: {{ .Release.Namespace }}
       resource: cards
       verb: GET

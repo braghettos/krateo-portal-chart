@@ -1,0 +1,23 @@
+# Invisible host for the missing-context Alert: Card children are NOT constrained by the
+# container allowedResources enum (the Alert plural isn't in the Flex enum yet — see
+# memory/frontend Flex.schema.json), so the amber callout rides inside a borderless Card.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-gaps-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    variant: borderless
+    items:
+    - resourceRefId: incident-gaps
+  resourcesRefs:
+    items:
+    - id: incident-gaps
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-gaps
+      namespace: {{ .Release.Namespace }}
+      resource: alerts
+      verb: GET

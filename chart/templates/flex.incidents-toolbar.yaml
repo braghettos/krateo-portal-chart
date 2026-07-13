@@ -1,0 +1,30 @@
+# /incidents toolbar — the lifecycle filter chips (All / Open / Mitigated / Resolved with
+# live counts) under the page head. Mirrors compositions-toolbar's chip group.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incidents-toolbar
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - buttons
+    gap: small
+    align: center
+    wrap: true
+    items:
+    {{- range (list "all" "open" "mitigated" "resolved") }}
+    - resourceRefId: incidents-status-btn-{{ . }}
+    {{- end }}
+  resourcesRefs:
+    items:
+    {{- range (list "all" "open" "mitigated" "resolved") }}
+    - id: incidents-status-btn-{{ . }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incidents-status-btn-{{ . }}
+      namespace: {{ $.Release.Namespace }}
+      resource: buttons
+      verb: GET
+    {{- end }}

@@ -1,0 +1,25 @@
+# Lifecycle chip (open / mitigated / resolved) — colour computed server-side by
+# incident-detail (open crimson / mitigated amber / resolved cyan).
+kind: Tag
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-lifecycle
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: open
+    color: red
+  widgetDataTemplate:
+    - forPath: label
+      expression: '${ .lifecycle // "open" }'
+    - forPath: color
+      expression: '${ .lifecycleColor // "red" }'
+  resourcesRefs:
+    items: []

@@ -1,0 +1,43 @@
+# ROOT CAUSE card (mockup .rootcause) — the verdict: statement + category tag +
+# declared confidence in the footer. Crimson accent via the header icon; included by the
+# page Flex only when status.rootCause.statement exists (never an empty verdict box).
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-rootcause
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    title: Root cause
+    titleVariant: eyebrow
+    variant: outlined
+    icon:
+      name: fa-circle-exclamation
+      color: red
+    items:
+    - resourceRefId: incident-rootcause-statement
+    footer:
+    - resourceRefId: incident-rootcause-category
+    - resourceRefId: incident-rootcause-confidence
+  resourcesRefs:
+    items:
+    - id: incident-rootcause-statement
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause-statement
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: incident-rootcause-category
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause-category
+      namespace: {{ .Release.Namespace }}
+      resource: tags
+      verb: GET
+    - id: incident-rootcause-confidence
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause-confidence
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET

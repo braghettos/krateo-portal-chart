@@ -1,0 +1,128 @@
+# REMEDIATION PLAN step rows (mockup .remrow) — a fixed pool of 6 row triplets
+# (Flex + Markdown + gated Button); the page Flex includes only the first
+# `sections.remCount` rows, so a 3-step plan renders exactly 3 rows and a v1 report none.
+# Per step:
+#   · the Markdown row: "N. description" + the mono op line (VERB resource/name -n ns +
+#     the payload JSON) + successCriterion + observedOutcome (only when present) — all
+#     shaped server-side by incident-detail (.remSteps[i].md).
+#   · a REAL gated Button whose REST action is built server-side from the step's
+#     {verb, gvr, target, payload}: the resourcesRefsTemplate resolves apiVersion/resource/
+#     name/namespace per step, and — because the template `verb` field is enum-validated,
+#     so it cannot be an expression — one ref per REST verb is declared and the action
+#     picks "rem-target-<i>-<verb>" server-side. Mutating verbs automatically ride the
+#     frontend blast-radius HITL gate; DELETE steps render as danger buttons.
+#   · applied steps (observedOutcome present) drop the Button — the row reads as a receipt.
+{{- range $i := until 6 }}
+---
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-rem-step-{{ $i }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ $.Release.Namespace }}
+  widgetData:
+    allowedResources:
+    - markdowns
+    - buttons
+    gap: middle
+    align: center
+    justify: space-between
+    items:
+    - resourceRefId: incident-rem-step-md-{{ $i }}
+  widgetDataTemplate:
+    # Applied steps (observedOutcome recorded) read as receipts: markdown only, no Button.
+    - forPath: items
+      expression: '${ [ { resourceRefId: "incident-rem-step-md-{{ $i }}" } ] + (if (((.remSteps // [])[{{ $i }}] // {}).applied // false) then [] else [ { resourceRefId: "incident-rem-apply-{{ $i }}" } ] end) }'
+  resourcesRefs:
+    items:
+    - id: incident-rem-step-md-{{ $i }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-step-md-{{ $i }}
+      namespace: {{ $.Release.Namespace }}
+      resource: markdowns
+      verb: GET
+    - id: incident-rem-apply-{{ $i }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-apply-{{ $i }}
+      namespace: {{ $.Release.Namespace }}
+      resource: buttons
+      verb: GET
+---
+kind: Markdown
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-rem-step-md-{{ $i }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ $.Release.Namespace }}
+  widgetData:
+    markdown: ''
+  widgetDataTemplate:
+  - forPath: markdown
+    expression: '${ ((.remSteps // [])[{{ $i }}] // {}).md // "" }'
+  resourcesRefs:
+    items: []
+---
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-rem-apply-{{ $i }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ $.Release.Namespace }}
+  widgetData:
+    label: Review & apply
+    icon: fa-shield-halved
+    type: primary
+    size: small
+    clickActionId: rem-apply-{{ $i }}
+    actions:
+      rest:
+        - id: rem-apply-{{ $i }}
+          type: rest
+          resourceRefId: rem-target-{{ $i }}-patch
+          headers:
+            - 'Content-Type: application/merge-patch+json'
+          loading:
+            display: true
+  widgetDataTemplate:
+    # DELETE is the only crimson verb (mockup): danger + the whole REST action rebuilt
+    # server-side from the step — verb-keyed target ref, per-verb headers, the step's
+    # payload as the request body, and a successMessage that repeats the successCriterion
+    # (checked, not assumed — the criterion is the operator's verification contract).
+    - forPath: danger
+      expression: '${ ((.remSteps // [])[{{ $i }}] // {}).danger // false }'
+    - forPath: actions
+      expression: '${ (((.remSteps // [])[{{ $i }}]) // {}) as $s | { rest: [ { id: "rem-apply-{{ $i }}", type: "rest", resourceRefId: ("rem-target-{{ $i }}-" + ($s.verbKey // "patch")), headers: ($s.headers // ["Content-Type: application/json"]), payload: ($s.payload // {}), successMessage: ($s.successMessage // "Remediation step submitted"), loading: { display: true } } ] } }'
+  resourcesRefs:
+    items: []
+  resourcesRefsTemplate:
+    {{- range $verb := list "PATCH" "POST" "PUT" "DELETE" }}
+    - template:
+        id: rem-target-{{ $i }}-{{ $verb | lower }}
+        apiVersion: ${ ((.remSteps // [])[{{ $i }}] // {}).apiVersion // "" }
+        resource: ${ ((.remSteps // [])[{{ $i }}] // {}).resource // "" }
+        name: ${ ((.remSteps // [])[{{ $i }}] // {}).name // "" }
+        namespace: ${ ((.remSteps // [])[{{ $i }}] // {}).namespace // "" }
+        verb: {{ $verb }}
+    {{- end }}
+{{- end }}

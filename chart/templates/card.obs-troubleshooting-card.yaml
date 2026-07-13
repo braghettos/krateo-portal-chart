@@ -1,6 +1,9 @@
-# Auto-troubleshooting panel — the report feed (recent RCA runs) + the latest Autopilot
-# root-cause analysis rendered as markdown. Fires automatically: when a HyperDX alert triggers,
-# krateo-alert-troubleshooter runs the Autopilot agent and writes a TroubleshootingReport.
+# Autopilot continuation panel — the per-alert report feed (recent RCA runs), each row a
+# /incidents?ask= deep-link that reopens THAT investigation in the Autopilot rail. Fires
+# automatically: when a HyperDX alert triggers, krateo-alert-troubleshooter runs the
+# Autopilot agent and writes a TroubleshootingReport. Lives on /incidents since the IA
+# split; the full analyses render structured on the incident DETAIL pages (the former
+# obs-troubleshooting-latest markdown was retired as redundant with them).
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -10,13 +13,12 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
-    title: Auto-troubleshooting
+    title: Continue in Autopilot
     titleVariant: eyebrow
     variant: outlined
     extra: 'Autopilot RCA on alert-fire'
     items:
     - resourceRefId: obs-troubleshooting-feed
-    - resourceRefId: obs-troubleshooting-latest
   widgetDataTemplate:
   - forPath: extra
     expression: '${ ((.count // 0)|tostring) + " reports · Autopilot RCA" }'
@@ -30,10 +32,4 @@ spec:
       name: obs-troubleshooting-feed
       namespace: {{ .Release.Namespace }}
       resource: listies
-      verb: GET
-    - id: obs-troubleshooting-latest
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-troubleshooting-latest
-      namespace: {{ .Release.Namespace }}
-      resource: markdowns
       verb: GET

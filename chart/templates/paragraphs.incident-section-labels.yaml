@@ -1,0 +1,117 @@
+# Incident-detail section labels + captions (mockup .blocklabel). Static copy except the
+# evidence + remediation captions, whose counts are shaped server-side by incident-detail.
+# Each section is included by the page Flex ONLY when its data exists (sections flags),
+# so these never render over empty structure.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-evidence-label
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: Evidence
+    strong: true
+  resourcesRefs:
+    items: []
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-evidence-desc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: what the agent read, verbatim
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .evidenceDesc // "what the agent read, verbatim" }'
+  resourcesRefs:
+    items: []
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-trace-label
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: Reasoning trace
+    strong: true
+  resourcesRefs:
+    items: []
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-trace-desc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: each step cites its evidence — no uncited claims
+    type: secondary
+  resourcesRefs:
+    items: []
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-remediation-label
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: Remediation plan
+    strong: true
+  resourcesRefs:
+    items: []
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-remediation-desc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ordered · every apply is gated
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .remediationDesc // "ordered · every apply is gated" }'
+  resourcesRefs:
+    items: []
+---
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-similar-label
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: Similar incidents
+    strong: true
+  resourcesRefs:
+    items: []

@@ -1,11 +1,11 @@
-# Convention page root for /observability — a unified observability view, now organised into
-# five LABELLED sections (each = a strong heading + a one-line "what this shows" caption) so
-# the ~13 panels read as a coherent story instead of an undifferentiated stack:
-#   Reconciliation (composition snapshots) · Performance (traces/metrics) · Logs (otel_logs) ·
-#   Resources (otel_metrics_gauge) · Activity (events).
-# Every value is REAL — composition snapshots from compositions-list/blueprints/events, live
-# telemetry from the clickstack ClickHouse OTel tables via the obs-* RESTActions. antd-only
-# widgets; the section headers are plain Paragraphs (strong label + secondary caption).
+# Convention page root for /observability — PLATFORM HEALTH ONLY after the /incidents IA
+# split: Reconciliation (composition snapshots) · Performance (traces/metrics) · Logs
+# (otel_logs) · Resources (otel_metrics_gauge + inventory). Alerts, the troubleshooting
+# feed and the activity/event feed moved to /incidents (events remain on the composition
+# detail page); the header range-group carries an "Incidents" link. Every value is REAL —
+# composition snapshots from compositions-list/blueprints, live telemetry from the
+# clickstack ClickHouse OTel tables via the obs-* RESTActions. antd-only widgets; the
+# section headers are plain Paragraphs (strong label + secondary caption).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -43,19 +43,10 @@ spec:
     - resourceRefId: obs-sec-logs-desc
     - resourceRefId: obs-errors-row
     - resourceRefId: obs-log-stream-row
-    # — Alerts —
-    - resourceRefId: obs-sec-alerts-label
-    - resourceRefId: obs-sec-alerts-desc
-    - resourceRefId: obs-alerts-row
-    - resourceRefId: obs-troubleshooting-row
     # — Resources —
     - resourceRefId: obs-sec-resources-label
     - resourceRefId: obs-sec-resources-desc
     - resourceRefId: obs-resource-row
-    # — Activity —
-    - resourceRefId: obs-sec-activity-label
-    - resourceRefId: obs-sec-activity-desc
-    - resourceRefId: obs-activity-row
   resourcesRefs:
     items:
     - id: obs-header
@@ -166,30 +157,6 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
-    - id: obs-sec-alerts-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-alerts-label
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-sec-alerts-desc
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-alerts-desc
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-alerts-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-alerts-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-troubleshooting-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-troubleshooting-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
     - id: obs-sec-resources-label
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-sec-resources-label
@@ -205,24 +172,6 @@ spec:
     - id: obs-resource-row
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-resource-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-sec-activity-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-activity-label
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-sec-activity-desc
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-activity-desc
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-activity-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-activity-row
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET

@@ -1,4 +1,5 @@
 # HyperDX alerts panel — the alert status table + a "N firing" headline (from the same RA).
+# Lives on /incidents since the IA split (page-observability keeps only platform health).
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

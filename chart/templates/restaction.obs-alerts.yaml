@@ -4,8 +4,9 @@
 # Exposes {rows[], firing} for the status table + the "firing" headline.
 # Each row also carries `ask`: the Autopilot seed sentence for THIS alert (built server-side,
 # same pattern as obs-troubleshooting's askHref). The alerts table interpolates it into
-# rowNavigateTo /observability?ask={ask} — the Table URI-encodes interpolated cells itself,
-# so the seed rides RAW here (a pre-@uri'd href would be double-encoded by the widget).
+# rowNavigateTo /incidents?ask={ask} (the table lives on /incidents since the IA split) —
+# the Table URI-encodes interpolated cells itself, so the seed rides RAW here (a
+# pre-@uri'd href would be double-encoded by the widget).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:

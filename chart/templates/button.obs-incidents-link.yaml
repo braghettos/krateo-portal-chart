@@ -1,0 +1,25 @@
+# "Incidents" link in the observability header band — after the IA split the alerts +
+# troubleshooting signal lives on /incidents; this is the one-click hand-off from
+# platform health to investigations. Plain SPA navigate, nothing hardcoded beyond the route.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-incidents-link
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: Incidents
+    icon: fa-triangle-exclamation
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: obs-open-incidents
+    actions:
+      navigate:
+        - id: obs-open-incidents
+          type: navigate
+          path: /incidents
+  resourcesRefs:
+    items: []

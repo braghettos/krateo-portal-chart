@@ -30,10 +30,14 @@ spec:
       # Observability → page-observability: aggregates compositions health, reconciliation,
       # by-kind/by-project distribution, inventory and recent activity into one view.
       - { label: Observability, icon: fa-chart-line,  order: 4, path: /observability, resourceRefId: observability }
+      # Incidents → page-incidents: the SRE page — one row per TroubleshootingReport
+      # (lifecycle chips, gated remediation on the detail pages). Alerts + the Autopilot
+      # troubleshooting feed moved here from /observability in the IA split.
+      - { label: Incidents,    icon: fa-triangle-exclamation, order: 5, path: /incidents, resourceRefId: incidents }
       # Blueprints → page-blueprints (header + the now-selectable catalog table).
-      - { label: Blueprints,   icon: fa-layer-group,  order: 5, path: /blueprints,   resourceRefId: blueprints }
-      - { label: Marketplace,  icon: fa-store,        order: 6, path: /marketplace,  resourceRefId: marketplace }
-      - { label: Settings,     icon: fa-gear,         order: 7, path: /settings,     resourceRefId: settings }
+      - { label: Blueprints,   icon: fa-layer-group,  order: 6, path: /blueprints,   resourceRefId: blueprints }
+      - { label: Marketplace,  icon: fa-store,        order: 7, path: /marketplace,  resourceRefId: marketplace }
+      - { label: Settings,     icon: fa-gear,         order: 8, path: /settings,     resourceRefId: settings }
       # route-only (no label → hidden). /search renders the search-results List; its
       # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
       - { order: 800, path: /search, resourceRefId: search-results }
@@ -60,6 +64,9 @@ spec:
       # Settings component drill-down — a Krateo Deployments row click (settings-krateo-status
       # Table) lands here. Pods / conditions / events for one control-plane Deployment.
       - { order: 930, path: "/settings/components/{name}", page: component-detail }
+      # Incident detail — an incidents-table row click lands here (route-only/hidden). The
+      # investigation anatomy: evidence / gaps / reasoning / root cause / gated remediation.
+      - { order: 940, path: "/incidents/{namespace}/{name}", page: incident-detail }
   resourcesRefs:
     items:
       - id: dashboard
@@ -71,6 +78,12 @@ spec:
       - id: observability
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: page-observability
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: incidents
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: page-incidents
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET

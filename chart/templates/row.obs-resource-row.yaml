@@ -1,5 +1,6 @@
-# Full-width strip hosting the platform resource-usage card (ClickHouse otel_metrics_gauge).
-# Sits in the infra-health band, below the reconcile/error telemetry.
+# Resources band — the platform resource-usage card (ClickHouse otel_metrics_gauge, wide)
+# + the platform-inventory stats (right). The inventory card re-homed here from the
+# retired Activity row when the /incidents IA split moved activity/events off this page.
 kind: Row
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -11,14 +12,23 @@ spec:
   widgetData:
     allowedResources:
     - cards
+    alignment: top
     items:
     - resourceRefId: obs-resource-card
-      size: 24
+      size: 16
+    - resourceRefId: obs-inventory-card
+      size: 8
   resourcesRefs:
     items:
     - id: obs-resource-card
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-resource-card
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
+    - id: obs-inventory-card
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-inventory-card
       namespace: {{ .Release.Namespace }}
       resource: cards
       verb: GET

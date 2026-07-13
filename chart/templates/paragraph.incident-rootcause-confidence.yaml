@@ -1,0 +1,23 @@
+# Declared confidence of the root cause ("confidence 88%") — or the honest
+# "confidence not declared" when the agent didn't state one.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-rootcause-confidence
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: confidence not declared
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .rootCauseConfidence // "confidence not declared" }'
+  resourcesRefs:
+    items: []

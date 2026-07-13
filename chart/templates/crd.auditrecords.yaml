@@ -1,0 +1,113 @@
+# AuditRecord — the data-plane audit trail for gated portal mutations (W0-3's sink): who
+# (human or agent, with agent identity + session), what was asked (the prompt), the exact
+# k8s write (verb + GVR + target), the blast-radius the gate showed, and the outcome.
+# STRONGLY TYPED end to end — no preserve-unknown, no open maps (widget-crd-schemas rule).
+# Data-plane only for now: producers write these; no portal page consumes them yet
+# (incident remediation rows will link them once the apply flow records refs).
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: auditrecords.audit.krateo.io
+spec:
+  group: audit.krateo.io
+  scope: Namespaced
+  names:
+    kind: AuditRecord
+    listKind: AuditRecordList
+    plural: auditrecords
+    singular: auditrecord
+    shortNames: [ar]
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+        - name: Actor
+          type: string
+          jsonPath: .spec.actor
+        - name: Verb
+          type: string
+          jsonPath: .spec.action.verb
+        - name: OK
+          type: boolean
+          jsonPath: .spec.outcome.ok
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [actor, action]
+              properties:
+                actor:
+                  type: string
+                  enum: [human, agent]
+                  description: Who initiated the mutation.
+                agent:
+                  type: object
+                  description: Set when actor=agent — which agent, in which session.
+                  properties:
+                    id:
+                      type: string
+                      description: The agent identity (e.g. the kagent Agent name).
+                    sessionId:
+                      type: string
+                      description: The conversation/session the action originated from.
+                prompt:
+                  type: string
+                  description: The natural-language ask that led to this mutation (verbatim).
+                action:
+                  type: object
+                  description: The exact k8s write that was dispatched.
+                  required: [verb, resource]
+                  properties:
+                    verb:
+                      type: string
+                      description: HTTP verb of the write (POST / PUT / PATCH / DELETE).
+                    group:
+                      type: string
+                      description: API group of the target ("" for core).
+                    version:
+                      type: string
+                    resource:
+                      type: string
+                      description: Resource plural (e.g. configmaps).
+                    namespace:
+                      type: string
+                    name:
+                      type: string
+                      description: Target object name (empty for a POST to the collection).
+                blastRadius:
+                  type: object
+                  description: What the HITL gate showed before approval.
+                  properties:
+                    count:
+                      type: integer
+                      description: Number of objects the write touches.
+                    irreversible:
+                      type: boolean
+                      description: Whether the write cannot be undone (e.g. DELETE).
+                    summary:
+                      type: string
+                      description: The human-readable impact summary shown in the gate.
+                outcome:
+                  type: object
+                  description: What actually happened when the write was dispatched.
+                  properties:
+                    ok:
+                      type: boolean
+                    status:
+                      type: integer
+                      description: HTTP status code returned by the apiserver.
+                    message:
+                      type: string
+                      description: The apiserver response message (verbatim, on error).
+                requestedAt:
+                  type: string
+                  description: When the actor asked for the mutation (RFC3339).
+                resolvedAt:
+                  type: string
+                  description: When the gate decision + dispatch completed (RFC3339).

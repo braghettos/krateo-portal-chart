@@ -1,0 +1,43 @@
+# SIMILAR INCIDENTS strip (mockup .similar) — past investigations sharing this one's
+# rootCause.category, matched server-side (incident-detail .similar: self excluded, ≤4).
+# EXCEPTION-ONLY twice over: the page Flex omits the section when the list is empty AND
+# hideWhenEmpty guards the widget itself. Rows navigate to the sibling incident detail.
+kind: Listy
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-similar
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    dataSource: []
+    itemLayout: horizontal
+    split: false
+    hideWhenEmpty: true
+    itemTemplate:
+      navigateTo: '/incidents/{namespace}/{name}'
+      iconVariant: dot
+      color:
+        value: '{lifecycle}'
+        map:
+          open: red
+          mitigated: orange
+          resolved: cyan
+        default: gray
+      primaryText: '{title}'
+      secondaryText: '{lifecycle}'
+      secondaryTextAsTag: true
+      subSecondaryText: '{completedAt}'
+      formats:
+        subSecondaryText: relative
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ .similar // [] }'
+  resourcesRefs:
+    items: []

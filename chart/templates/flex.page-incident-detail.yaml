@@ -1,0 +1,116 @@
+# Convention page root for /incidents/{namespace}/{name} — the investigation anatomy
+# (mockup §C), strict top-to-bottom: header → EVIDENCE (analyzed table + numbered source
+# cards) → MISSING CONTEXT/ASSUMPTIONS (amber callout) → REASONING trace → ROOT CAUSE →
+# REMEDIATION plan (gated apply buttons) → SIMILAR incidents → the v1 prose fallback.
+#
+# `items` are templated SERVER-SIDE off incident-detail's `sections` flags: every section
+# renders ONLY when its structured data exists — a v1 prose-only report degrades to
+# header + prose, and nothing ever renders as fabricated empty structure (exception-only,
+# honest data). resourcesRefs stay static (the full pool); unreferenced children are
+# simply never fetched.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-incident-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    allowedResources:
+    - flexes
+    - paragraphs
+    - tables
+    - markdowns
+    - cards
+    - steps
+    - listies
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: incident-detail-header-block
+  widgetDataTemplate:
+    - forPath: items
+      expression: >-
+        ${ (.sections // {}) as $s
+        | [ { resourceRefId: "incident-detail-header-block" } ]
+        + (if ($s.evidence // false) then [ { resourceRefId: "incident-sec-evidence-label" }, { resourceRefId: "incident-sec-evidence-desc" } ] else [] end)
+        + (if ($s.analyzed // false) then [ { resourceRefId: "incident-analyzed" } ] else [] end)
+        + (if ($s.sources // false) then [ { resourceRefId: "incident-evidence" } ] else [] end)
+        + (if ($s.gaps // false) then [ { resourceRefId: "incident-gaps-card" } ] else [] end)
+        + (if ($s.trace // false) then [ { resourceRefId: "incident-sec-trace-label" }, { resourceRefId: "incident-sec-trace-desc" }, { resourceRefId: "incident-trace" } ] else [] end)
+        + (if ($s.rootcause // false) then [ { resourceRefId: "incident-rootcause" } ] else [] end)
+        + (if ($s.remediation // false) then ([ { resourceRefId: "incident-sec-remediation-label" }, { resourceRefId: "incident-sec-remediation-desc" } ] + ([ range(0; ($s.remCount // 0)) ] | map({ resourceRefId: ("incident-rem-step-" + tostring) }))) else [] end)
+        + (if ($s.similar // false) then [ { resourceRefId: "incident-sec-similar-label" }, { resourceRefId: "incident-similar" } ] else [] end)
+        + (if ($s.prose == true) or ($s == {}) then [ { resourceRefId: "incident-prose" } ] else [] end) }
+  resourcesRefs:
+    items:
+    - id: incident-detail-header-block
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-detail-header-block
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    {{- range (list "incident-sec-evidence-label" "incident-sec-evidence-desc" "incident-sec-trace-label" "incident-sec-trace-desc" "incident-sec-remediation-label" "incident-sec-remediation-desc" "incident-sec-similar-label") }}
+    - id: {{ . }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: {{ . }}
+      namespace: {{ $.Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    {{- end }}
+    - id: incident-analyzed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-analyzed
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET
+    - id: incident-evidence
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-evidence
+      namespace: {{ .Release.Namespace }}
+      resource: markdowns
+      verb: GET
+    - id: incident-gaps-card
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-gaps-card
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
+    - id: incident-trace
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-trace
+      namespace: {{ .Release.Namespace }}
+      resource: steps
+      verb: GET
+    - id: incident-rootcause
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
+    {{- range $i := until 6 }}
+    - id: incident-rem-step-{{ $i }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-step-{{ $i }}
+      namespace: {{ $.Release.Namespace }}
+      resource: flexes
+      verb: GET
+    {{- end }}
+    - id: incident-similar
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-similar
+      namespace: {{ .Release.Namespace }}
+      resource: listies
+      verb: GET
+    - id: incident-prose
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-prose
+      namespace: {{ .Release.Namespace }}
+      resource: markdowns
+      verb: GET

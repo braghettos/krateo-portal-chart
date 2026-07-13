@@ -1,0 +1,128 @@
+# Data source for ONE incident — /incidents/{namespace}/{name} (route params ride in as
+# ?extras .name/.namespace, same mechanism as composition-detail). Lists the release-namespace
+# TroubleshootingReports ONCE and shapes EVERYTHING server-side (nothing-hardcoded):
+#   header fields (title / lifecycle+colour / trigger / mono ref / meta line / confidence),
+#   analyzedRows (evidence table), evidenceMd (numbered source cards as markdown — type badge,
+#   ref, verbatim mono excerpt), gapsText (missing context + assumptions, exception-only),
+#   traceItems (antd Steps items, each citing "→ evidence #n", 1-based; final step crimson when
+#   a root cause is declared), rootCause fields, remSteps (per-step REST wiring: restVerb map,
+#   gvr → apiVersion/resource split, op line, payload, headers, markdown row, applied flag),
+#   similar (same rootCause.category, self excluded, ≤4), proseMd (v1 fallback), and
+#   `sections` — the flags the page Flex uses to include ONLY the sections that exist, so a
+#   v1 prose-only report renders as prose and never as fabricated empty structure.
+# The full list (not a per-name GET) also feeds the SIMILAR strip in the same resolution.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: incident-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  api:
+    - name: reports
+      path: /apis/observability.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/troubleshootingreports
+      verb: GET
+      continueOnError: true
+      errorKey: reportsError
+  filter: >
+    (.name // "") as $n
+    | (.namespace // "") as $ns
+    | ((.reports.items) // []) as $items
+    | ([ $items[] | select((.metadata.name // "") == $n and (.metadata.namespace // "") == $ns) ] | first // {}) as $r
+    | ($r.spec // {}) as $sp
+    | ($r.status // {}) as $st
+    | ($st.rootCause // {}) as $rc
+    | ($st.sources // []) as $sources
+    | ($st.analyzedResources // []) as $analyzed
+    | ($st.missingContext // []) as $gaps
+    | ($st.assumptions // []) as $assump
+    | (($st.reasoningTrace // []) | sort_by(.step // 0)) as $trace
+    | ($st.remediationPlan // []) as $plan
+    | ($st.lifecycle // "open") as $lc
+    | ($st.phase // "Pending") as $phase
+    | ($sp.triggeredAt // ($r.metadata.creationTimestamp // "")) as $started
+    | ($st.completedAt // "") as $updated
+    | ((($rc.confidence // "") | (try tonumber catch null)) as $cn | if $cn != null then ((($cn * 100) | round | tostring) + "%") else "—" end) as $conf
+    | ((($analyzed | length) > 0) or (($sources | length) > 0) or (($trace | length) > 0) or (($rc.statement // "") != "") or (($plan | length) > 0)) as $structured
+    | ([ $analyzed[] | select((.gvr // "") | contains("composition")) ] | first) as $comp
+    | ($trace | to_entries | map({
+        eyebrow: ("step " + ((.value.step // (.key + 1)) | tostring)),
+        title: (.value.statement // ""),
+        description: (if ((.value.evidenceRefs // []) | length) > 0 then ("→ evidence " + ((.value.evidenceRefs // []) | map("#" + ((. + 1) | tostring)) | join(", "))) else "" end),
+        status: "finish"
+      })) as $ti0
+    | (if (($ti0 | length) > 0) and (($rc.statement // "") != "") then ($ti0[0:-1] + [ ($ti0[-1] + {status: "error"}) ]) else $ti0 end) as $traceItems
+    | ($plan | to_entries | map(
+        .key as $i | .value as $s
+        | (($s.verb // "patch") | ascii_downcase) as $vb
+        | (if $vb == "delete" then "DELETE" elif $vb == "create" then "POST" elif ($vb == "put" or $vb == "replace") then "PUT" else "PATCH" end) as $rv
+        | (($s.gvr // "") | split("/")) as $g
+        | (if ($g | length) >= 3 then { apiVersion: ($g[0] + "/" + $g[1]), resource: $g[2] } elif ($g | length) == 2 then { apiVersion: $g[0], resource: $g[1] } else { apiVersion: "", resource: "" } end) as $tv
+        | ($s.target.name // "") as $tn
+        | ($s.target.namespace // "") as $tns
+        | ($rv + " " + $tv.resource + (if $tn != "" then ("/" + $tn) else "" end) + (if $tns != "" then (" -n " + $tns) else "" end)) as $op
+        | {
+            i: $i,
+            restVerb: $rv,
+            verbKey: ($rv | ascii_downcase),
+            apiVersion: $tv.apiVersion,
+            resource: $tv.resource,
+            name: $tn,
+            namespace: $tns,
+            payload: ($s.payload // {}),
+            danger: ($rv == "DELETE"),
+            applied: (($s.observedOutcome // "") != ""),
+            headers: (if $rv == "PATCH" then ["Content-Type: application/merge-patch+json"] else ["Content-Type: application/json"] end),
+            successMessage: ("Remediation step " + (($i + 1) | tostring) + " submitted — verify: " + ($s.successCriterion // "see plan")),
+            md: ("**" + (($i + 1) | tostring) + ". " + ($s.description // "") + "**\n\n```\n" + $op + (if (($s.payload // {}) | length) > 0 then ("\n" + (($s.payload // {}) | tojson)) else "" end) + "\n```" + (if ($s.successCriterion // "") != "" then ("\n\nsuccessCriterion: **" + $s.successCriterion + "**") else "" end) + (if ($s.observedOutcome // "") != "" then ("\n\n✓ observedOutcome: " + $s.observedOutcome) else "" end))
+          }
+      )) as $remSteps
+    | (if ($rc.category // "") != "" then
+        ([ $items[]
+           | select(((.metadata.name // "") != $n) or ((.metadata.namespace // "") != $ns))
+           | select((.status.rootCause.category // "") == ($rc.category // ""))
+           | { name: (.metadata.name // ""), namespace: (.metadata.namespace // ""),
+               title: (if (.status.rootCause.statement // "") != "" then .status.rootCause.statement elif (.spec.alertName // "") != "" then ("Investigation — " + .spec.alertName) else (.metadata.name // "") end),
+               lifecycle: (.status.lifecycle // "open"),
+               completedAt: (.status.completedAt // .spec.triggeredAt // .metadata.creationTimestamp // "") }
+         ] | .[0:4])
+       else [] end) as $similar
+    | {
+        title: (if ($rc.statement // "") != "" then $rc.statement elif ($sp.alertName // "") != "" then ("Investigation — " + $sp.alertName) else $n end),
+        lifecycle: $lc,
+        lifecycleColor: (if $lc == "open" then "red" elif $lc == "mitigated" then "orange" else "cyan" end),
+        trigger: ($sp.trigger // "alert"),
+        phase: $phase,
+        ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) elif ($sp.alertName // "") != "" then ("alerts/" + $sp.alertName) else "—" end),
+        meta: ([ (if $started != "" then ("started " + $started) else empty end),
+                 (if $updated != "" then ("updated " + $updated) else empty end),
+                 ("phase " + $phase),
+                 (if $conf != "—" then ("confidence " + $conf) else empty end) ] | join("  ·  ")),
+        confidence: $conf,
+        analyzedRows: ($analyzed | map({ gvr: (.gvr // ""), name: (.name // ""), namespace: (.namespace // ""), what: (.whatWasRead // "") })),
+        evidenceDesc: ("what the agent read, verbatim — " + (($sources | length) | tostring) + " sources · " + (($analyzed | length) | tostring) + " analyzed resources"),
+        evidenceMd: ($sources | to_entries | map("**#" + ((.key + 1) | tostring) + " · " + ((.value.type // "object") | ascii_upcase) + "**" + (if (.value.ref // "") != "" then (" — `" + .value.ref + "`") else "" end) + "\n\n```\n" + (.value.excerpt // "") + "\n```") | join("\n\n")),
+        gapsText: (($gaps | join("  •  ")) + (if ($assump | length) > 0 then ((if ($gaps | length) > 0 then "   —   " else "" end) + "Assumed: " + ($assump | join("  •  "))) else "" end)),
+        traceItems: $traceItems,
+        traceCurrent: (if ($traceItems | length) > 0 then (($traceItems | length) - 1) else 0 end),
+        rootCauseStatement: ($rc.statement // ""),
+        rootCauseCategory: (if ($rc.category // "") != "" then ("category: " + $rc.category) else "uncategorised" end),
+        rootCauseConfidence: (if $conf != "—" then ("confidence " + $conf) else "confidence not declared" end),
+        remSteps: $remSteps,
+        remediationDesc: ((($plan | length) | tostring) + " ordered steps · every apply rides the blast-radius gate" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
+        similar: $similar,
+        proseMd: (if $structured then "" elif ($st.report // "") != "" then $st.report elif ($st.error // "") != "" then ("**Analysis failed** — " + $st.error) else "_Analysis in progress — the investigation will appear here when the Autopilot run completes._" end),
+        sections: {
+          evidence: ((($analyzed | length) > 0) or (($sources | length) > 0)),
+          analyzed: (($analyzed | length) > 0),
+          sources: (($sources | length) > 0),
+          gaps: ((($gaps | length) > 0) or (($assump | length) > 0)),
+          trace: (($traceItems | length) > 0),
+          rootcause: (($rc.statement // "") != ""),
+          remediation: (($remSteps | length) > 0),
+          remCount: ([ ($remSteps | length), 6 ] | min),
+          similar: (($similar | length) > 0),
+          prose: ($structured | not)
+        }
+      }

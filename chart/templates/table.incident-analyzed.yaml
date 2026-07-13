@@ -1,0 +1,35 @@
+# analyzedResources table (mockup .ares) — the cluster objects the agent actually read
+# during the RCA: gvr / name / namespace / what was read. Off incident-detail; the page
+# Flex includes it only when analyzedResources is non-empty.
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-analyzed
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: small
+    columns:
+    - valueKey: gvr
+      title: analyzedResources · gvr
+    - valueKey: name
+      title: Name
+    - valueKey: namespace
+      title: Namespace
+    - valueKey: what
+      title: What was read
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ (.analyzedRows // [])[] | [ {valueKey:"gvr",kind:"jsonSchemaType",type:"string",stringValue:(.gvr // "")}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // ""),color:"#8c8c8c"}, {valueKey:"what",kind:"jsonSchemaType",type:"string",stringValue:(.what // ""),color:"#8c8c8c"} ] ] }'
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

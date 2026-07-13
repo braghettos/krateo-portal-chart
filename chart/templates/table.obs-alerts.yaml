@@ -1,6 +1,7 @@
 # HyperDX alerts status — lists the Alert CRs (observability.krateo.io) with their live state,
 # from restaction.obs-alerts. state is colour-coded: ALERT crimson, PENDING amber, OK cyan. The
 # numbers/threshold are the real alert config; state is mirrored from HyperDX by the reconciler.
+# Lives on /incidents since the IA split (page-observability keeps only platform health).
 kind: Table
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -14,10 +15,10 @@ spec:
     bordered: false
     size: small
     # Row click → the Autopilot rail seeded to investigate THAT alert (same destination the
-    # troubleshooting feed one row below uses). The seed sentence rides in a hidden `ask`
+    # troubleshooting feed beside it uses). The seed sentence rides in a hidden `ask`
     # cell (built server-side by restaction.obs-alerts); the Table URI-encodes interpolated
-    # cells, so {ask} lands as a proper ?ask= query value.
-    rowNavigateTo: /observability?ask={ask}
+    # cells, so {ask} lands as a proper ?ask= query value. Retargeted to /incidents (IA split).
+    rowNavigateTo: /incidents?ask={ask}
     pagination:
       defaultPageSize: 10
     columns:

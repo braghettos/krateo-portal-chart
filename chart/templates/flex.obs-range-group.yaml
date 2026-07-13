@@ -22,6 +22,8 @@ spec:
     - resourceRefId: obs-range-btn-6h
     - resourceRefId: obs-range-btn-24h
     - resourceRefId: obs-range-btn-7d
+    # Hand-off to the SRE page (alerts + investigations moved there in the IA split).
+    - resourceRefId: obs-incidents-link
     {{- if .Values.observabilityConsoleUrl }}
     - resourceRefId: obs-console-link
     {{- end }}
@@ -41,6 +43,12 @@ spec:
       resource: buttons
       verb: GET
     {{- end }}
+    - id: obs-incidents-link
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-incidents-link
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
     {{- if .Values.observabilityConsoleUrl }}
     - id: obs-console-link
       apiVersion: widgets.templates.krateo.io/v1beta1
