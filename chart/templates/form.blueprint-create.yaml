@@ -58,8 +58,10 @@ spec:
         label: Create composition
       secondary:
         label: Cancel
-        # Cancel → back to the Marketplace (navigate, not a form reset).
-        navigateTo: /marketplace
+        # Cancel → back to the Blueprints page (navigate, not a form reset). This form is
+        # reached from a blueprint tile/detail (/blueprints/...), so /blueprints is the
+        # user's origin — /marketplace was a dead-end for that path.
+        navigateTo: /blueprints
       draft:
         label: Save draft
         # Disk on Save-draft (mockup `.actionbar` left).

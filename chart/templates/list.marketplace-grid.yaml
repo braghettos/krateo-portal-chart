@@ -32,6 +32,10 @@ spec:
     itemTemplate:
       rowVariant: card
       iconVariant: tile
+      # Whole-tile click → the blueprint's marketplace DETAIL page (same destination as the
+      # footer Details button) — mirrors blueprints-grid's whole-card navigateTo; the footer
+      # buttons (Details/Install) keep their own actions on top.
+      navigateTo: '/marketplace/{name}'
       icon: '{icon}'
       primaryText: '{name}'
       # Footer-left = the helm chart version (subSecondaryText → card-foot left); the top keeps

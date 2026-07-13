@@ -8,13 +8,15 @@ metadata:
 spec:
   widgetData:
     variant: outlined
-    # D4: whole-card CTA → the compositions list (reconcile activity → the live set).
-    clickActionId: view-all-reconciles
+    # Whole-card CTA: this card's Statistic (stat-reconciles) is titled "Pending", so clicking
+    # it jumps to the compositions list already filtered to the pending ones (?status=pending
+    # read by compositions-list from extras) — same pattern as stat-card-failed.
+    clickActionId: view-pending
     widgetActions:
       navigate:
-        - id: view-all-reconciles
+        - id: view-pending
           type: navigate
-          path: /compositions
+          path: /compositions?status=pending
     items:
     - resourceRefId: stat-reconciles
     - resourceRefId: delta-reconciles

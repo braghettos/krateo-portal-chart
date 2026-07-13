@@ -13,6 +13,11 @@ spec:
     allowedResources: []
     bordered: false
     size: small
+    # Row click → the Autopilot rail seeded to investigate THAT alert (same destination the
+    # troubleshooting feed one row below uses). The seed sentence rides in a hidden `ask`
+    # cell (built server-side by restaction.obs-alerts); the Table URI-encodes interpolated
+    # cells, so {ask} lands as a proper ?ask= query value.
+    rowNavigateTo: /observability?ask={ask}
     pagination:
       defaultPageSize: 10
     columns:
@@ -29,7 +34,7 @@ spec:
     dataSource: []
   widgetDataTemplate:
   - forPath: dataSource
-    expression: '${ [ (.rows // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"watching",kind:"jsonSchemaType",type:"string",stringValue:(.watching // "-"),color:"#8c8c8c"}, {valueKey:"threshold",kind:"jsonSchemaType",type:"string",stringValue:((.thresholdType // "") + " " + (.threshold // ""))}, {valueKey:"interval",kind:"jsonSchemaType",type:"string",stringValue:(.interval // "-"),color:"#8c8c8c"}, {valueKey:"state",kind:"jsonSchemaType",type:"string",stringValue:(.state // "PENDING"),color:((.state // "PENDING") | if . == "ALERT" then "#cf1322" elif . == "PENDING" then "#d48806" else "#13a8a8" end)} ] ] }'
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"ask",kind:"jsonSchemaType",type:"string",stringValue:(.ask // "")}, {valueKey:"watching",kind:"jsonSchemaType",type:"string",stringValue:(.watching // "-"),color:"#8c8c8c"}, {valueKey:"threshold",kind:"jsonSchemaType",type:"string",stringValue:((.thresholdType // "") + " " + (.threshold // ""))}, {valueKey:"interval",kind:"jsonSchemaType",type:"string",stringValue:(.interval // "-"),color:"#8c8c8c"}, {valueKey:"state",kind:"jsonSchemaType",type:"string",stringValue:(.state // "PENDING"),color:((.state // "PENDING") | if . == "ALERT" then "#cf1322" elif . == "PENDING" then "#d48806" else "#13a8a8" end)} ] ] }'
   apiRef:
     name: obs-alerts
     namespace: {{ .Release.Namespace }}

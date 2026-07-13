@@ -19,6 +19,10 @@ spec:
     itemLayout: horizontal
     split: false
     itemTemplate:
+      # Whole-row click → the tagged composition's detail page. `route` is resolved
+      # SERVER-SIDE in the events RA (compositionId label → {ns,name}); events with no
+      # resolvable composition tag carry route:"" and stay inert.
+      navigateTo: '{route}'
       iconVariant: dot
       color:
         value: '{type}'
@@ -37,6 +41,6 @@ spec:
         subSecondaryText: relative
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.list // []) | .[0:8] | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.involvedObject.kind // "") + "/" + (.involvedObject.name // "")), ts: (.lastTimestamp // .firstTimestamp // .eventTime // "") }) }'
+      expression: '${ (.list // []) | .[0:8] | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.involvedObject.kind // "") + "/" + (.involvedObject.name // "")), ts: (.lastTimestamp // .firstTimestamp // .eventTime // ""), route: (.route // "") }) }'
   resourcesRefs:
     items: []
