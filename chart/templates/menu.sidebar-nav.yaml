@@ -71,6 +71,11 @@ spec:
       # Incident detail — an incidents-table row click lands here (route-only/hidden). The
       # investigation anatomy: evidence / gaps / reasoning / root cause / gated remediation.
       - { order: 940, path: "/incidents/{namespace}/{name}", page: incident-detail }
+      # Access persona drill-down (W3-2) — a Settings → Access row click lands here.
+      # Capability preview (SubjectAccessReview, run as the calling admin) + the grant
+      # form (Role + RoleBinding in ONE gated ops[] submit) + managed-grant revoke.
+      # {username} + the ?ns= scope ride through as extras to every RA on the page.
+      - { order: 950, path: "/settings/access/{username}", page: access-detail }
   resourcesRefs:
     items:
       - id: dashboard
