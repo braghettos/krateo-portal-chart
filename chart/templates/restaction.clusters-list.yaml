@@ -3,7 +3,11 @@
 # Lists the registered KubernetesTargets (the spokes a CompositionDefinition can deploy
 # to) and derives each target's HEALTH by AGGREGATING CompositionDefinition.status.target
 # across the blueprints that reference it — NO engine change (design §1.3 option 2):
-#   - stage `targets`  : cluster-scoped LIST of KubernetesTargets (they live on the hub).
+#   - stage `targets`  : collection LIST of KubernetesTargets (they live on the hub).
+#     KubernetesTarget is NAMESPACED (core-provider 2.8.0), but the collection endpoint
+#     (/apis/.../kubernetestargets, no namespace segment) returns every namespace the caller
+#     may see — same all-namespaces LIST shape the compdefs stage below relies on — so the
+#     list works unchanged after the scope migration.
 #   - stage `compdefs` : LIST of CompositionDefinitions (the same hub read the compositions
 #     page uses) — each carries spec.deploy.targetRef.name (the spoke it targets) and
 #     status.target.{connectionStatus,version} (per-blueprint reachability, probed each
@@ -23,8 +27,10 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-    # KubernetesTarget is cluster-scoped (core.krateo.io/v1alpha1). UAF gates the LIST by the
-    # user's list grant on kubernetestargets; a narrow-RBAC user simply sees fewer/no rows.
+    # KubernetesTarget is namespaced (core.krateo.io/v1alpha1) as of core-provider 2.8.0, but
+    # this is the collection LIST endpoint (no namespace segment → all visible namespaces).
+    # UAF gates the LIST by the user's list grant on kubernetestargets; a narrow-RBAC user
+    # simply sees fewer/no rows.
     - name: targets
       path: /apis/core.krateo.io/v1alpha1/kubernetestargets
       verb: GET
