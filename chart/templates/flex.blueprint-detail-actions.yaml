@@ -1,5 +1,7 @@
-# Header action row for the blueprint detail page — Create (primary, instantiate) + Delete
-# (danger, uninstall), side by side. The version update is a separate Form lower on the page.
+# Header action row for the blueprint detail page — Create (primary, instantiate) +
+# Deploy to fleet (W3-1: fan out one CompositionDefinition per selected spoke, via drawer)
+# + Delete (danger, uninstall), side by side. The version update is a separate Form lower
+# on the page.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,12 +17,19 @@ spec:
     gap: small
     items:
       - resourceRefId: blueprint-detail-create
+      - resourceRefId: blueprint-detail-fleet
       - resourceRefId: blueprint-detail-delete
   resourcesRefs:
     items:
       - id: blueprint-detail-create
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: blueprint-detail-create
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
+      - id: blueprint-detail-fleet
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-detail-fleet
         namespace: {{ .Release.Namespace }}
         resource: buttons
         verb: GET
