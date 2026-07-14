@@ -76,6 +76,11 @@ spec:
       # form (Role + RoleBinding in ONE gated ops[] submit) + managed-grant revoke.
       # {username} + the ?ns= scope ride through as extras to every RA on the page.
       - { order: 950, path: "/settings/access/{username}", page: access-detail }
+      # KOG builder — the RestDefinition registry + post-publish verification surface
+      # (w4-kog-builder spec §2.5). Route-only/hidden: Autopilot navigates here after a
+      # gated publish (and the empty-state ?ask= CTA lands here too); a visible
+      # author-gated "Builders" nav entry is deferred to the W3-2 grants model.
+      - { order: 951, path: /kog-builder, page: kog-builder }
   resourcesRefs:
     items:
       - id: dashboard
