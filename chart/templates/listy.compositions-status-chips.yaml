@@ -28,7 +28,7 @@ metadata:
 spec:
   # F6 (snowplow#130): extras keys that partition this widget's cache cell — `status` drives
   # the active flag, the windowing/search params drive the counts and the route carry.
-  keyExtras: [from, projects, q, range, status, to]
+  keyExtras: [from, projects, q, range, status, to, namespace]
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}

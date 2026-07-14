@@ -8,6 +8,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
   widgetData:
     text: 'Read-only: renders both chart versions with default values and lists the added, removed and modified objects. Apply with the Update version form.'
     type: secondary

@@ -18,7 +18,7 @@ metadata:
 spec:
   # F6 (snowplow#130): extras keys that partition this widget's cache cell — `range` drives
   # the active flag, the rest are carried into the routes.
-  keyExtras: [from, projects, q, range, status, to]
+  keyExtras: [from, projects, q, range, status, to, namespace]
   widgetData:
     itemTemplate:
       rowVariant: chip

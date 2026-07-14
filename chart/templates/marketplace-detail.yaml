@@ -90,6 +90,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     vertical: true
     gap: large
@@ -123,6 +125,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     vertical: false
     justify: space-between
@@ -157,6 +161,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     vertical: true
     gap: small
@@ -198,6 +204,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     label: Back to marketplace
     type: link
@@ -221,6 +229,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     vertical: false
     align: center
@@ -326,6 +336,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     allowedResources:
       - buttons
@@ -385,6 +397,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     allowedResources:
       - flexes
@@ -417,6 +431,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     vertical: true
     gap: middle
@@ -442,6 +458,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     title: About
     items:
@@ -516,6 +534,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     vertical: true
     gap: middle
@@ -541,6 +561,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name]
   widgetData:
     title: Source & links
     items:

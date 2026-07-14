@@ -27,6 +27,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: Settings · Access
     type: secondary
@@ -93,6 +95,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: What can this persona do?
     strong: true
@@ -107,6 +111,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: apiserver-authorizer truth per capability — a snapshot, not the persona's live session
     type: secondary
@@ -121,6 +127,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: Grant access
     strong: true
@@ -135,6 +143,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: Role + RoleBinding in one gated submit · namespaced only (cluster-wide grants are out of scope in v1)
     type: secondary
@@ -149,6 +159,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: Existing grants
     strong: true
@@ -163,6 +175,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [username]
   widgetData:
     text: grants managed by this page (label-selected) · click a row to focus its namespace and arm Revoke
     type: secondary
