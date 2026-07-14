@@ -26,6 +26,24 @@
       "title": "observabilityConsoleUrl",
       "type": "string"
     },
+    "spokeReadbackCluster": {
+      "default": "krateo-spoke-demo",
+      "description": "W3-3 spoke read-back binding — the ONE registered spoke cluster whose /clusters/{name} detail page shows LIVE compositions read directly from the spoke apiserver (restaction cluster-compositions). snowplow endpointRef references are static (not jq-templated), so the read-back is bound per-install; generating a per-spoke RESTAction + endpoint Secret pair at registration time is the follow-up that removes this value.",
+      "title": "spokeReadbackCluster",
+      "type": "string"
+    },
+    "spokeReadbackEndpointNamespace": {
+      "default": "krateo-system",
+      "description": "Namespace of the derived spoke endpoint Secret (must be readable by snowplow's ServiceAccount; the authn namespace krateo-system is the canonical home, same place the registration flow keeps the kubeconfig Secret).",
+      "title": "spokeReadbackEndpointNamespace",
+      "type": "string"
+    },
+    "spokeReadbackEndpointSecret": {
+      "default": "krateo-spoke-demo-endpoint",
+      "description": "Name of the DERIVED endpoint Secret for the spoke read-back — snowplow endpoint shape {server-url, token, insecure, certificate-authority-data}, derived from the registered spoke's kubeconfig Secret (NOT the kubeconfig Secret itself, which snowplow cannot consume). The server-url deliberately carries the /apis suffix; see restaction.cluster-compositions.yaml for why.",
+      "title": "spokeReadbackEndpointSecret",
+      "type": "string"
+    },
     "tenant": {
       "default": "krateo-enterprise",
       "description": "Display name of the platform tenant — shown in the sider tenant chip and the page eyebrows (dashboard greeting, compositions, observability). A deployer-set label, not derived data; defaults to krateo-enterprise.",
