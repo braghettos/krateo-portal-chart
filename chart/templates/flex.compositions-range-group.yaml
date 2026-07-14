@@ -12,29 +12,26 @@ metadata:
 spec:
   widgetData:
     allowedResources:
-    - buttons
+    - listies
     - rangepickers
     - inputs
     gap: small
     align: center
     wrap: true
     items:
-    - resourceRefId: comp-range-btn-24h
-    - resourceRefId: comp-range-btn-7d
-    - resourceRefId: comp-range-btn-30d
-    - resourceRefId: comp-range-btn-all
+    # The four comp-range-btn-* Buttons collapsed into ONE data-driven Listy(chip)
+    # (widget-sprawl collapse) — same targets, default and active logic.
+    - resourceRefId: compositions-range-chips
     - resourceRefId: comp-date-range
     - resourceRefId: comp-search
   resourcesRefs:
     items:
-    {{- range (list "24h" "7d" "30d" "all") }}
-    - id: comp-range-btn-{{ . }}
+    - id: compositions-range-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: comp-range-btn-{{ . }}
-      namespace: {{ $.Release.Namespace }}
-      resource: buttons
+      name: compositions-range-chips
+      namespace: {{ .Release.Namespace }}
+      resource: listies
       verb: GET
-    {{- end }}
     - id: comp-date-range
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: comp-date-range

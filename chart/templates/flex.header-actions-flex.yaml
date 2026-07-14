@@ -9,40 +9,22 @@ spec:
   widgetData:
     allowedResources:
     - buttons
+    - listies
     justify: flex-end
     align: center
     gap: small
     items:
-    - resourceRefId: range-btn-24h
-    - resourceRefId: range-btn-7d
-    - resourceRefId: range-btn-30d
-    - resourceRefId: range-btn-all
+    # The four range-btn-* Buttons collapsed into ONE data-driven Listy(chip)
+    # (widget-sprawl collapse) — same targets, default and active logic.
+    - resourceRefId: dashboard-range-chips
     - resourceRefId: new-composition
   resourcesRefs:
     items:
-    - id: range-btn-24h
+    - id: dashboard-range-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: range-btn-24h
+      name: dashboard-range-chips
       namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    - id: range-btn-7d
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: range-btn-7d
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    - id: range-btn-30d
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: range-btn-30d
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    - id: range-btn-all
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: range-btn-all
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
+      resource: listies
       verb: GET
     - id: new-composition
       apiVersion: widgets.templates.krateo.io/v1beta1

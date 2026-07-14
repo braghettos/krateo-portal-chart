@@ -1,4 +1,5 @@
-# Compositions filter toolbar — status chips on the left, time-range chips + custom
+# Compositions filter toolbar — status chips on the left (a data-driven Listy(chip), the
+# old chips-only compositions-status-group Flex is gone), time-range chips + custom
 # from/to picker on the right (mirrors the dashboard's filter row, extended for a list
 # page). Sits between the page header and the table in flex.page-compositions.
 kind: Flex
@@ -12,20 +13,21 @@ spec:
   widgetData:
     allowedResources:
     - flexes
+    - listies
     justify: space-between
     align: center
     gap: small
     wrap: true
     items:
-    - resourceRefId: compositions-status-group
+    - resourceRefId: compositions-status-chips
     - resourceRefId: compositions-range-group
   resourcesRefs:
     items:
-    - id: compositions-status-group
+    - id: compositions-status-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: compositions-status-group
+      name: compositions-status-chips
       namespace: {{ .Release.Namespace }}
-      resource: flexes
+      resource: listies
       verb: GET
     - id: compositions-range-group
       apiVersion: widgets.templates.krateo.io/v1beta1

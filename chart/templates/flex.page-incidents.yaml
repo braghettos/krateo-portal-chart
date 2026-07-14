@@ -21,7 +21,9 @@ spec:
     gap: middle
     items:
     - resourceRefId: incidents-header
-    - resourceRefId: incidents-toolbar
+    # The lifecycle chips are ONE data-driven Listy(chip) — the old chips-only
+    # incidents-toolbar Flex and its four looped Buttons are gone (widget-sprawl collapse).
+    - resourceRefId: incidents-status-chips
     - resourceRefId: incidents-table
     - resourceRefId: incidents-awaiting
     - resourceRefId: incidents-secondary-row
@@ -33,11 +35,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: incidents-toolbar
+    - id: incidents-status-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incidents-toolbar
+      name: incidents-status-chips
       namespace: {{ .Release.Namespace }}
-      resource: flexes
+      resource: listies
       verb: GET
     - id: incidents-table
       apiVersion: widgets.templates.krateo.io/v1beta1

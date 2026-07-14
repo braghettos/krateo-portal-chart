@@ -1,5 +1,5 @@
-# Marketplace page container — stacks the filter bar above the tile grid. The
-# /marketplace route points here; both children share the marketplace-filters prefix.
+# Marketplace page container — stacks the facet bar above the tile grid. The
+# /marketplace route points here; the facet chips and the grid compose via URL extras.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: Flex
 metadata:
@@ -11,7 +11,6 @@ spec:
     gap: large
     allowedResources:
       - flexes
-      - filters
       - listies
     items:
       - resourceRefId: marketplace-header
