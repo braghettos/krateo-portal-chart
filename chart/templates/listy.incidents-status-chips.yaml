@@ -8,9 +8,11 @@
 #
 # Chip navigateTo bypasses the client-side same-path query merge the old Buttons used, so the
 # routes are merged SERVER-SIDE: ?projects (the shell scope selector, echoed by incidents-list)
-# is re-emitted onto each chip's route (@uri-encoded). The one-shot ?ask= Autopilot handoff is
-# deliberately NOT carried (it is consumed by the rail on landing; carrying it would partition
-# the cache per prose string).
+# is re-emitted onto each chip's route (@uri-encoded). NOTE the one-shot ?ask= Autopilot
+# handoff never lived on these chips: the old incidents-status-btn-* Buttons navigated bare
+# /incidents?status=<k>, and the ask-seeded routes are carried PER ROW (server-built askHref)
+# by incidents-awaiting / obs-troubleshooting-feed / obs-alerts — all untouched by this
+# collapse, so there is nothing to carry here.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
