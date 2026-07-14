@@ -19,7 +19,9 @@ spec:
     - piecharts
     - listies
     vertical: true
-    gap: middle
+    # Petrol density (D5/O1): tighten the inter-section vertical rhythm (stats/charts/rail/lists)
+    # from `middle` to `small` so the dashboard reads closer to the dense one-screen mockup.
+    gap: small
     items:
     - resourceRefId: header-row
     # First-run onboarding — self-hides once the user owns a composition (hideWhenEmpty
