@@ -22,7 +22,7 @@
 # unverified for RESULT aggregation — the documented fallback is used instead.
 {{- /* The capability matrix. key = jq-safe stage suffix; group/resource/verb =
      SAR resourceAttributes; cluster = true checks cluster-wide (no namespace —
-     e.g. KubernetesTarget is cluster-scoped). resource "*" matches only rules
+     e.g. a genuinely cluster-scoped resource). resource "*" matches only rules
      that grant the whole group (the portal preset shape) — label says "all types". */}}
 {{- $caps := list
   (dict "key" "viewCompositions"   "label" "View compositions (all types)"    "group" "composition.krateo.io"        "resource" "*"                      "verb" "list"   "cluster" false)
@@ -32,7 +32,7 @@
   (dict "key" "installBlueprints"  "label" "Install marketplace blueprints"   "group" "core.krateo.io"               "resource" "compositiondefinitions" "verb" "create" "cluster" false)
   (dict "key" "viewSecrets"        "label" "View Secrets"                     "group" ""                             "resource" "secrets"                "verb" "list"   "cluster" false)
   (dict "key" "viewEvents"         "label" "View events"                      "group" ""                             "resource" "events"                 "verb" "list"   "cluster" false)
-  (dict "key" "registerClusters"   "label" "Register clusters (cluster-wide)" "group" "core.krateo.io"               "resource" "kubernetestargets"      "verb" "create" "cluster" true)
+  (dict "key" "registerClusters"   "label" "Register clusters"                "group" "core.krateo.io"               "resource" "kubernetestargets"      "verb" "create" "cluster" false)
   (dict "key" "viewRbac"           "label" "View access grants"               "group" "rbac.authorization.k8s.io"    "resource" "rolebindings"           "verb" "list"   "cluster" false)
   (dict "key" "grantAccess"        "label" "Grant access"                     "group" "rbac.authorization.k8s.io"    "resource" "rolebindings"           "verb" "create" "cluster" false)
 }}

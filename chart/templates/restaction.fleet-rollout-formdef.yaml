@@ -30,8 +30,10 @@ spec:
       headers:
         - 'Accept: application/json'
     # Registered spokes: their names become the `clusters` enum (LIVE list — never hardcoded).
-    # UAF gates the LIST by the user's list grant on kubernetestargets; continueOnError so a
-    # narrow-RBAC user still gets the form (hub-only rollout via the "local" sentinel).
+    # KubernetesTarget is namespaced; the cluster-scope collection endpoint returns targets across
+    # all namespaces the caller may see. UAF gates each row by the user's per-namespace list grant on
+    # kubernetestargets; continueOnError so a narrow-RBAC user still gets the form (hub-only rollout
+    # via the "local" sentinel).
     - name: targets
       path: /apis/core.krateo.io/v1alpha1/kubernetestargets
       verb: GET
@@ -43,6 +45,7 @@ spec:
         verb: list
         group: core.krateo.io
         resource: kubernetestargets
+        namespaceFrom: .metadata.namespace
       filter: "[.targets.items[]? | .metadata.name]"
   filter: |
     .name as $n
