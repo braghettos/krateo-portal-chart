@@ -1,0 +1,4 @@
+{
+  "objects": [],
+  "error": "no chart source — provide chart{url,version?,repo?} or rawTemplates{path:content}"
+}

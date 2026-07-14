@@ -1,0 +1,4 @@
+{
+  "objects": [],
+  "error": "provide EXACTLY ONE chart source — chart{url,...} or rawTemplates, not both"
+}

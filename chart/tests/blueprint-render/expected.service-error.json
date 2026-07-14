@@ -1,0 +1,4 @@
+{
+  "objects": [],
+  "error": "chart: failed to pull oci://ghcr.io/braghettos/aws-vpc:9.9.9: not found"
+}
