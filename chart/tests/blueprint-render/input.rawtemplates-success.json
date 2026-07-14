@@ -1,0 +1,18 @@
+{
+  "rawTemplates": {
+    "Chart.yaml": "apiVersion: v2\nname: draft\nversion: 0.1.0\n",
+    "templates/cm.yaml": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: {{ .Release.Name }}-draft\n"
+  },
+  "values": {},
+  "render": {
+    "objects": [
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "name": "preview-draft",
+        "namespace": "",
+        "yaml": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: preview-draft\n"
+      }
+    ]
+  }
+}

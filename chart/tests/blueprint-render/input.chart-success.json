@@ -1,0 +1,23 @@
+{
+  "chart": { "url": "oci://ghcr.io/braghettos/aws-vpc", "version": "1.2.3" },
+  "values": { "region": "eu-central-1", "cidr": "10.0.0.0/16" },
+  "render": {
+    "objects": [
+      {
+        "apiVersion": "ec2.services.k8s.aws/v1alpha1",
+        "kind": "VPC",
+        "name": "demo-vpc",
+        "namespace": "demo-system",
+        "yaml": "apiVersion: ec2.services.k8s.aws/v1alpha1\nkind: VPC\nmetadata:\n  name: demo-vpc\n"
+      },
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "name": "demo-vpc-cfg",
+        "namespace": "demo-system",
+        "yaml": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: demo-vpc-cfg\n"
+      }
+    ],
+    "valuesSchema": { "type": "object", "properties": { "region": { "type": "string" } } }
+  }
+}

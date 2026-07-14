@@ -1,0 +1,11 @@
+{
+  "objects": [
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "name": "preview-draft",
+      "namespace": "",
+      "yaml": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: preview-draft\n"
+    }
+  ]
+}
