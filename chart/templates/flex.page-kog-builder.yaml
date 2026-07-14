@@ -1,0 +1,46 @@
+# Convention page root for /kog-builder — the KOG builder's post-publish verification
+# surface (w4-kog-builder spec §2.5 + CHART-K1): pagehead, the RestDefinition registry
+# table (READY / generated kind+apiVersion / OAS source, all derived server-side), and
+# the empty-state Autopilot CTA strip (visible only while zero mappings exist). The
+# route is hidden (label-less nav item) — Autopilot navigates here after a gated
+# publish; the authoring flow itself lives in the rail, not on this page (the create
+# Form is the deferred CHART-K2).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-kog-builder
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - flexes
+    - tables
+    - listies
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: kog-builder-header
+    - resourceRefId: kog-restdefinitions
+    - resourceRefId: kog-builder-hint
+  resourcesRefs:
+    items:
+    - id: kog-builder-header
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: kog-builder-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: kog-restdefinitions
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: kog-restdefinitions
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET
+    - id: kog-builder-hint
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: kog-builder-hint
+      namespace: {{ .Release.Namespace }}
+      resource: listies
+      verb: GET
