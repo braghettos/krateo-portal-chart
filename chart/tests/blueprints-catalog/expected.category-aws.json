@@ -1,0 +1,42 @@
+{
+  "total": 5,
+  "count": 3,
+  "countLabel": "charts",
+  "selectedSort": "name",
+  "selectedSource": "all",
+  "selectedCategory": "aws",
+  "cardOrder": [
+    "alpha-bp",
+    "bee-op",
+    "zeta-bp"
+  ],
+  "sorts": [
+    {
+      "key": "name",
+      "active": true,
+      "route": "/marketplace?category=aws"
+    },
+    {
+      "key": "recent",
+      "active": false,
+      "route": "/marketplace?sort=recent&category=aws"
+    }
+  ],
+  "sources": [
+    {
+      "key": "all",
+      "active": true,
+      "route": "/marketplace?category=aws"
+    },
+    {
+      "key": "blueprint",
+      "active": false,
+      "route": "/marketplace?source=blueprint&category=aws"
+    },
+    {
+      "key": "operator",
+      "active": false,
+      "route": "/marketplace?source=operator&category=aws"
+    }
+  ]
+}

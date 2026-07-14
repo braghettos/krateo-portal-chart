@@ -1,0 +1,32 @@
+# Marketplace head-stat — the real catalog cardinality, shown as an eyebrow Statistic in the
+# page header. Bound to the blueprints-catalog RA: `value` = `.count` (the cards the active
+# facets show — reflects exactly what the grid renders), `suffix` = `.countLabel` (the honest
+# noun: "charts" for the mixed catalog, "blueprints"/"operators" under a source filter). The
+# count is derived SERVER-SIDE from the helm-repo indexes (blueprints + operators, ~397 total)
+# — no fabricated number. Mono numeral per the Petrol style (IBM Plex Mono via the widget's
+# Statistic treatment); `title` gives the standing "Catalog" label.
+kind: Statistic
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: marketplace-count
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): the head-stat count varies with every facet, so its cache cell must
+  # partition on all of them (else a filtered count would be served from the unfiltered cell).
+  keyExtras: [category, q, source, sort]
+  apiRef:
+    name: blueprints-catalog
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    title: Catalog
+    value: 0
+    suffix: charts
+  widgetDataTemplate:
+    - forPath: value
+      expression: '${ .count }'
+    - forPath: suffix
+      expression: '${ " " + .countLabel }'
+  resourcesRefs:
+    items: []

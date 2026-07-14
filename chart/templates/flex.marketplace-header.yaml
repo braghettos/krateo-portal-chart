@@ -11,11 +11,13 @@ spec:
   widgetData:
     allowedResources:
     - paragraphs
+    - statistics
     vertical: true
     items:
     - resourceRefId: marketplace-eyebrow
     - resourceRefId: marketplace-title
     - resourceRefId: marketplace-subtitle
+    - resourceRefId: marketplace-count
   resourcesRefs:
     items:
     - id: marketplace-eyebrow
@@ -35,4 +37,10 @@ spec:
       name: marketplace-subtitle
       namespace: {{ .Release.Namespace }}
       resource: paragraphs
+      verb: GET
+    - id: marketplace-count
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: marketplace-count
+      namespace: {{ .Release.Namespace }}
+      resource: statistics
       verb: GET
