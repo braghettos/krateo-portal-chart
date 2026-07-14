@@ -10,6 +10,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
   widgetData:
     text: Evidence
     strong: true
@@ -46,6 +48,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
   widgetData:
     text: Reasoning trace
     strong: true
@@ -60,6 +64,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
   widgetData:
     text: each step cites its evidence — no uncited claims
     type: secondary
@@ -74,6 +80,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
   widgetData:
     text: Remediation plan
     strong: true
@@ -110,6 +118,8 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
   widgetData:
     text: Similar incidents
     strong: true

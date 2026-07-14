@@ -47,3 +47,24 @@ jobs:
             echo "::endgroup::"
           done
           exit $fail
+
+  # F6 cache-key declaration gate (issues #26/#27): every widget reachable from a
+  # parameterized nav route must declare that route's params in spec.keyExtras,
+  # else snowplow's post-F6 guard declines every cache Put for it (permanently
+  # uncacheable). See README "Authoring rule: spec.keyExtras".
+  keyextras:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Helm
+        uses: azure/setup-helm@v5.0.0
+        with:
+          version: v3.19.0
+
+      - name: keyExtras route lint
+        run: |
+          set -euo pipefail
+          python3 -c "import yaml" 2>/dev/null || pip3 install --user pyyaml
+          python3 scripts/lint-keyextras.py
