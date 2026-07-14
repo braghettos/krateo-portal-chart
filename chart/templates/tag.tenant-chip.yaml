@@ -20,6 +20,10 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6: the shell scope selector writes ?projects= which rides EVERY route's extras;
+  # declare it so this chrome widget stays cacheable instead of guard-declining on
+  # each navigation (the west4 dashboard first-nav 98.4%->89.6% regression).
+  keyExtras: [projects]
   widgetData:
     label: '⬡ {{ .Values.tenant | default "krateo-enterprise" }}'
     style:
