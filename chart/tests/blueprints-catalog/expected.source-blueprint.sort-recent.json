@@ -1,0 +1,42 @@
+{
+  "total": 5,
+  "count": 3,
+  "countLabel": "blueprints",
+  "selectedSort": "recent",
+  "selectedSource": "blueprint",
+  "selectedCategory": "all",
+  "cardOrder": [
+    "alpha-bp",
+    "mid-bp",
+    "zeta-bp"
+  ],
+  "sorts": [
+    {
+      "key": "name",
+      "active": false,
+      "route": "/marketplace?source=blueprint"
+    },
+    {
+      "key": "recent",
+      "active": true,
+      "route": "/marketplace?sort=recent&source=blueprint"
+    }
+  ],
+  "sources": [
+    {
+      "key": "all",
+      "active": false,
+      "route": "/marketplace?sort=recent"
+    },
+    {
+      "key": "blueprint",
+      "active": true,
+      "route": "/marketplace?source=blueprint&sort=recent"
+    },
+    {
+      "key": "operator",
+      "active": false,
+      "route": "/marketplace?source=operator&sort=recent"
+    }
+  ]
+}

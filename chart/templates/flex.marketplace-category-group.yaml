@@ -1,7 +1,8 @@
 # Marketplace facet bar — the type toggle (Blueprints | Operators | All) stacked over the
-# DATA-DRIVEN category chip row. Both are Listy(chip) widgets bound to the blueprints-catalog
-# RA (.sources and .categories). Replaces the old hardcoded krateo.io/category Button chips —
-# the facet now mirrors whatever the live catalog actually carries.
+# DATA-DRIVEN category chip row, with the sort control (Name A–Z | Recently updated) below.
+# All three are Listy(chip) widgets bound to the blueprints-catalog RA (.sources / .categories
+# / .sorts). Replaces the old hardcoded krateo.io/category Button chips — the facet now mirrors
+# whatever the live catalog actually carries.
 apiVersion: widgets.templates.krateo.io/v1beta1
 kind: Flex
 metadata:
@@ -16,6 +17,7 @@ spec:
     items:
       - resourceRefId: marketplace-source-toggle
       - resourceRefId: marketplace-category-chips
+      - resourceRefId: marketplace-sort-toggle
   resourcesRefs:
     items:
       - id: marketplace-source-toggle
@@ -27,6 +29,12 @@ spec:
       - id: marketplace-category-chips
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-category-chips
+        namespace: {{ .Release.Namespace }}
+        resource: listies
+        verb: GET
+      - id: marketplace-sort-toggle
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-sort-toggle
         namespace: {{ .Release.Namespace }}
         resource: listies
         verb: GET
