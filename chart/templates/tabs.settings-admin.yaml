@@ -1,9 +1,10 @@
 # Settings page — the admin console, converted from the krateoplatformops-blueprints
 # portal-admin-page (TabList → my antd Tabs; Column/Panel → tab content widgets).
-# Scoped to the two genuinely-admin tabs: Krateo status + Users (Blueprints and
+# The genuinely-admin tabs: Krateo status + Users + Access (Blueprints and
 # Compositions already have their own nav pages; FinOps dropped). Each tab's
 # content resolves through resourcesRefs, rendered by the Tabs widget's nested
-# WidgetRenderer.
+# WidgetRenderer. Access (W3-2 RBAC guardrails) hosts the persona table behind a
+# Col wrapper — the Tabs allowedResources enum has `cols` but no `flexes`.
 kind: Tabs
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,6 +16,7 @@ spec:
   widgetData:
     allowedResources:
       - tables
+      - cols
     items:
       - label: Krateo
         title: Krateo and cluster status
@@ -22,6 +24,9 @@ spec:
       - label: Users
         title: Local users, groups, and permissions
         resourceRefId: settings-users
+      - label: Access
+        title: Per-persona access control
+        resourceRefId: settings-access
   resourcesRefs:
     items:
       - id: settings-krateo-status
@@ -35,4 +40,10 @@ spec:
         name: settings-users
         namespace: {{ .Release.Namespace }}
         resource: tables
+        verb: GET
+      - id: settings-access
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: settings-access
+        namespace: {{ .Release.Namespace }}
+        resource: cols
         verb: GET

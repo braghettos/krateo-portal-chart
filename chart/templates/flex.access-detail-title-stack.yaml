@@ -1,0 +1,38 @@
+# Title stack for the Access persona page (W3-2) — eyebrow + persona-name H1 +
+# the checked-as honesty line (mirrors the composition-detail title stack).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: access-detail-title-stack
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - paragraphs
+    vertical: true
+    items:
+    - resourceRefId: access-detail-eyebrow
+    - resourceRefId: access-detail-title
+    - resourceRefId: access-checked-as
+  resourcesRefs:
+    items:
+    - id: access-detail-eyebrow
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: access-detail-eyebrow
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: access-detail-title
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: access-detail-title
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: access-checked-as
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: access-checked-as
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
