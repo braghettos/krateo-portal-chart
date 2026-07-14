@@ -1,4 +1,4 @@
-# Compositions status filter chips (All / Healthy / Pending / Failed). Status is URL
+# Compositions status filter chips (All / Healthy / Drift / Pending / Failed). Status is URL
 # state (?status=…): each chip NAVIGATES to /compositions?status=<k>, which the frontend
 # forwards into the request `extras` — so compositions-list filters its `.filtered` set
 # server-side. The Failed-stat card's CTA lands here via ?status=failed. Same-path
@@ -13,8 +13,10 @@
 # counts are echoed by compositions-list (the RA's `.list` is untouched, so the dashboard
 # widgets that share this RA are unaffected). Cost: one compositions-list resolution per
 # chip — chosen for the live counts.
-{{- /* `c` = the leading status-dot palette colour (mockup ●cy/●am/●cr); "all" has no dot. */}}
-{{- $opts := list (dict "k" "all" "l" "All" "c" "") (dict "k" "healthy" "l" "Healthy" "c" "green") (dict "k" "pending" "l" "Pending" "c" "orange") (dict "k" "failed" "l" "Failed" "c" "red") }}
+{{- /* `c` = the leading status-dot palette colour (mockup ●cy/●am/●cr); "all" has no dot.
+     Drift (violet — the rail-state palette) filters on .railState server-side: Ready but
+     Synced=False, an overlay of healthy — its count can overlap the Healthy chip's. */}}
+{{- $opts := list (dict "k" "all" "l" "All" "c" "") (dict "k" "healthy" "l" "Healthy" "c" "green") (dict "k" "drift" "l" "Drift" "c" "violet") (dict "k" "pending" "l" "Pending" "c" "orange") (dict "k" "failed" "l" "Failed" "c" "red") }}
 {{- range $opts }}
 ---
 apiVersion: widgets.templates.krateo.io/v1beta1

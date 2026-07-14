@@ -17,6 +17,11 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     itemTemplate:
+      # ONLY the Ready row is clickable (route baked server-side): its unfilled trail
+      # IS the failed set, so it drills into /compositions?status=failed. The other
+      # condition types have no equivalent pre-filtered view — route:"" keeps them
+      # inert (never a broken link).
+      navigateTo: '{route}'
       primaryText: '{type}'
       bar:
         percent: '{percent}'
@@ -27,6 +32,6 @@ spec:
     dataSource: []
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.list // []) as $l | ([ $l[].conditions[]?.type ] | unique) as $types | [ $types[] | . as $t | ([ $l[] | select(any(.conditions[]?; .type == $t and .status == "True")) ] | length) as $tc | ([ $l[] | select(any(.conditions[]?; .type == $t)) ] | length) as $n | { type: $t, percent: (if $n > 0 then ($tc * 100 / $n | floor) else 0 end), label: (($tc | tostring) + "/" + ($n | tostring)) } ] }'
+      expression: '${ (.list // []) as $l | ([ $l[].conditions[]?.type ] | unique) as $types | [ $types[] | . as $t | ([ $l[] | select(any(.conditions[]?; .type == $t and .status == "True")) ] | length) as $tc | ([ $l[] | select(any(.conditions[]?; .type == $t)) ] | length) as $n | { type: $t, percent: (if $n > 0 then ($tc * 100 / $n | floor) else 0 end), label: (($tc | tostring) + "/" + ($n | tostring)), route: (if $t == "Ready" then "/compositions?status=failed" else "" end) } ] }'
   resourcesRefs:
     items: []

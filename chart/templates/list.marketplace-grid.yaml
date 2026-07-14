@@ -15,7 +15,9 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [category, q, source]
+  # `spotlight` = a global-search catalog hit's hand-off (?spotlight=<name>): the
+  # catalog RA sorts that card first + stamps its status glyph (gold star).
+  keyExtras: [category, q, source, spotlight]
   apiRef:
     name: blueprints-catalog
     namespace: {{ .Release.Namespace }}

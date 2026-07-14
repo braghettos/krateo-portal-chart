@@ -2,8 +2,10 @@
 # Distinct from blueprint-create (which instantiates an ALREADY-installed blueprint from its
 # generated CRD). Schema = the CompositionDefinition CRD spec (full), via blueprint-install
 # -formdef; chart.{url,repo,version} are pre-filled from the helm index for the selected
-# blueprint. Submit POSTs the CompositionDefinition into the release namespace; on success
-# it lands on /blueprints (the installed set).
+# blueprint. Submit POSTs the CompositionDefinition into the chosen namespace; on success
+# it lands on the NEW blueprint's detail page (/blueprints/{ns}/{name} — resolveJq sees the
+# built request body as `.json`, whose metadata carries name+namespace via payloadToOverride;
+# the exact pattern proven by form.blueprint-create).
 kind: Form
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -32,7 +34,7 @@ spec:
           resourceRefId: create-compdef
           headers:
             - 'Content-Type: application/json'
-          onSuccessNavigateTo: /blueprints
+          onSuccessNavigateTo: '${ "/blueprints/" + .json.metadata.namespace + "/" + .json.metadata.name }'
           successMessage: Blueprint installed
           # Body = metadata (name from the form, namespace fixed to the release ns) + spec
           # (the form values minus the synthetic name). antd registers the hidden-section

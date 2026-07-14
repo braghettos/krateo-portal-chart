@@ -62,6 +62,7 @@ spec:
     | ((.category) // "all") as $sel
     | ((.source) // "all") as $src
     | ((.q) // "") as $q
+    | ((.spotlight) // "") as $spot
     | ($q | ascii_downcase) as $ql
     | (
         [ (((.catalog // {}).entries) // {}) | to_entries[] | (.value[0] + {source: "blueprint"}) ]
@@ -118,5 +119,15 @@ spec:
                    or (.description | ascii_downcase | contains($ql))
                    or ((.keywords | join(" ")) | ascii_downcase | contains($ql)))
           ) ] | sort_by(.name)
+          # ?spotlight=<name> (a global-search catalog hit's hand-off): sort the matching
+          # card FIRST and mark it via the EXISTING status-glyph channel (gold star +
+          # tooltip) — search always lands on installable-only hits, so the installed
+          # check (which this channel normally carries) is guarded, never overwritten.
+          | (if $spot == "" then .
+             else ( map(if (.name == $spot) and (.installed | not)
+                        then . + { installedIcon: "fa-star", installedColor: "gold", installedTooltip: "Matched your search" }
+                        else . end)
+                    | ([ .[] | select(.name == $spot) ] + [ .[] | select(.name != $spot) ]) )
+             end)
         )
       }

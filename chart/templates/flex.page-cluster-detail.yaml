@@ -1,0 +1,52 @@
+# Convention page root for /clusters/{name} — the cluster drill-down ("why is this
+# cluster Down, and what does it take with it?"). A clusters-table row click lands
+# here. Single column, top-to-bottom: back link → title line (name + probe-verdict
+# Tag) → identity card (Descriptions: secret ref / k8s version / last probe) →
+# the targeting-blueprints Listy (each row → its /blueprints/{namespace}/{name}
+# detail). Every figure is shaped server-side by the cluster-detail RA.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-cluster-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    vertical: true
+    gap: middle
+    allowedResources:
+      - buttons
+      - flexes
+      - cards
+    items:
+      - resourceRefId: cluster-detail-back
+      - resourceRefId: cluster-detail-title-line
+      - resourceRefId: cluster-detail-overview-card
+      - resourceRefId: cluster-detail-blueprints-card
+  resourcesRefs:
+    items:
+      - id: cluster-detail-back
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: cluster-detail-back
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
+      - id: cluster-detail-title-line
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: cluster-detail-title-line
+        namespace: {{ .Release.Namespace }}
+        resource: flexes
+        verb: GET
+      - id: cluster-detail-overview-card
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-cluster-detail-overview
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: cluster-detail-blueprints-card
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-cluster-detail-blueprints
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET

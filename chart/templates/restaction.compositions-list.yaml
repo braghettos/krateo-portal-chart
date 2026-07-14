@@ -59,6 +59,9 @@ spec:
   # request `extras` (?status, ?range, ?from, ?to in the URL, read synchronously — same
   # mechanism as dashboard-data's ?range). Each item gains a derived `.state`
   # (healthy/pending/failed from the Ready condition) so filtering/counting is one pass.
+  # ?status=drift is the ONE railState-backed value (Ready+Unsynced — a healthy-state
+  # OVERLAY, so counts.drift overlaps counts.healthy): it powers the Drift chip and the
+  # reconcile-breakdown drill-down; the other status values keep filtering on .state.
   filter: >
     (((.projects // "") | split(",") | map(select(. != ""))) as $projSel
      | ((.project // .namespace) // "") as $proj
@@ -74,8 +77,8 @@ spec:
     | ($all | map(select(((.ts | fromdateiso8601?) // 0) >= $win.lo and ((.ts | fromdateiso8601?) // 0) <= $win.hi))) as $dated
     | {
         list: $all,
-        filtered: ($dated | map(select(($status == "all" or .state == $status) and ($q == "" or ((.name // "") | ascii_downcase | contains($q)) or ((.kind // "") | ascii_downcase | contains($q)))))),
-        counts: {all: ($dated | length), healthy: ($dated | map(select(.state == "healthy")) | length), pending: ($dated | map(select(.state == "pending")) | length), failed: ($dated | map(select(.state == "failed")) | length)},
+        filtered: ($dated | map(select((if $status == "drift" then (.railState == "drift") else ($status == "all" or .state == $status) end) and ($q == "" or ((.name // "") | ascii_downcase | contains($q)) or ((.kind // "") | ascii_downcase | contains($q)))))),
+        counts: {all: ($dated | length), healthy: ($dated | map(select(.state == "healthy")) | length), drift: ($dated | map(select(.railState == "drift")) | length), pending: ($dated | map(select(.state == "pending")) | length), failed: ($dated | map(select(.state == "failed")) | length)},
         status: $status,
         range: $range
       }
