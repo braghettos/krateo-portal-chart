@@ -48,6 +48,10 @@ spec:
     # field, so the installer PICKS a registered KubernetesTarget instead of typing it — the blueprint
     # then deploys its compositions on that spoke. continueOnError + list-UAF: no grant / no spokes →
     # the field stays a plain string and, left empty, the empty-prune drops deploy → deploys on the hub.
+    # KubernetesTarget is namespaced; the cluster-scope collection endpoint returns targets across all
+    # namespaces the caller may see (per-item UAF gates them). NOTE: targetRef resolves same-namespace,
+    # so a picked target must live in the namespace this CompositionDefinition is created in (the release
+    # namespace) — a follow-up can scope the enum to that namespace once the picker carries it.
     - name: targets
       path: /apis/core.krateo.io/v1alpha1/kubernetestargets
       verb: GET
@@ -59,6 +63,7 @@ spec:
         verb: list
         group: core.krateo.io
         resource: kubernetestargets
+        namespaceFrom: .metadata.namespace
       filter: "[.targets.items[]? | .metadata.name]"
   filter: |
     # Drop statusDataTemplate — it's a blueprint-author field (status projection), not something
