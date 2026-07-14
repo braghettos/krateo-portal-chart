@@ -1,5 +1,8 @@
-# Detail chips line — lifecycle chip + trigger badge + affected-resource mono ref
-# (mockup det-head second toprow).
+# Detail chips line — lifecycle chip + trigger badge + affected-resource ref
+# (mockup det-head second toprow). The ref slot is templated SERVER-SIDE off
+# incident-detail's refRoute: when the investigation isolated a composition the ref
+# renders as a LINK Button (one click to /compositions/{ns}/{name}); otherwise the
+# inert mono Paragraph — an alert-only ref never becomes a broken link (CTA audit).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -8,10 +11,16 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
   widgetData:
     allowedResources:
     - tags
     - paragraphs
+    - buttons
     gap: small
     align: center
     wrap: true
@@ -19,8 +28,17 @@ spec:
     - resourceRefId: incident-lifecycle
     - resourceRefId: incident-trigger
     - resourceRefId: incident-ref
+  widgetDataTemplate:
+    - forPath: items
+      expression: '${ [ { resourceRefId: "incident-lifecycle" }, { resourceRefId: "incident-trigger" } ] + (if (.refRoute // "") != "" then [ { resourceRefId: "incident-ref-link" } ] else [ { resourceRefId: "incident-ref" } ] end) }'
   resourcesRefs:
     items:
+    - id: incident-ref-link
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-ref-link
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
     - id: incident-lifecycle
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: incident-lifecycle

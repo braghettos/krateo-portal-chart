@@ -2,7 +2,9 @@
 # percent = share of total, colour per state. Off compositions-list's server-derived
 # .railState (same 4-state grammar as the reconciliation rail + compositions table).
 # Only states with at least one composition are shown. Bar fields (color.value+map,
-# label, variant) match the proven rail-list itemTemplate.
+# label, variant) match the proven rail-list itemTemplate. Each row drills into the
+# compositions list pre-filtered to its state (/compositions?status=… — served by
+# compositions-list's server-side ?status filter, incl. the railState-backed drift).
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -20,6 +22,7 @@ spec:
     itemLayout: horizontal
     split: false
     itemTemplate:
+      navigateTo: '{route}'
       primaryText: '{label}'
       bar:
         percent: '{percent}'
@@ -35,6 +38,6 @@ spec:
     dataSource: []
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.list // []) as $l | ($l | length) as $n | [ {state:"healthy",label:"Converged"}, {state:"drift",label:"Drift"}, {state:"pending",label:"Pending"}, {state:"failed",label:"Failed"} ] | map(. as $s | ([ $l[] | select(.railState == $s.state) ] | length) as $c | { state: $s.state, label: $s.label, count: ($c | tostring), percent: (if $n > 0 then ($c * 100 / $n | floor) else 0 end) }) | map(select((.count | tonumber) > 0)) }'
+      expression: '${ (.list // []) as $l | ($l | length) as $n | [ {state:"healthy",label:"Converged"}, {state:"drift",label:"Drift"}, {state:"pending",label:"Pending"}, {state:"failed",label:"Failed"} ] | map(. as $s | ([ $l[] | select(.railState == $s.state) ] | length) as $c | { state: $s.state, label: $s.label, count: ($c | tostring), percent: (if $n > 0 then ($c * 100 / $n | floor) else 0 end), route: ("/compositions?status=" + $s.state) }) | map(select((.count | tonumber) > 0)) }'
   resourcesRefs:
     items: []

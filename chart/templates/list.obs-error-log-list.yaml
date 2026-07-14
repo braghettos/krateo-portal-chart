@@ -21,6 +21,10 @@ spec:
     itemLayout: horizontal
     split: false
     itemTemplate:
+      # Whole-row click → the log stream scoped to this row's component
+      # (/observability?svc=…). `route` is baked SERVER-SIDE by obs-error-log-digest;
+      # rows with no ServiceName carry route:"" and stay inert.
+      navigateTo: '{route}'
       iconVariant: dot
       color:
         value: '{level}'
@@ -37,6 +41,6 @@ spec:
         subSecondaryText: relative
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ (.rows // [])[] | { msg: (.msg // ""), service: (.service // ""), level: "ERROR", occ: ("×" + ((.occurrences // 0)|tostring)), ts: (.last_ts // "") } ] }'
+      expression: '${ [ (.rows // [])[] | { msg: (.msg // ""), service: (.service // ""), level: "ERROR", occ: ("×" + ((.occurrences // 0)|tostring)), ts: (.last_ts // ""), route: (.route // "") } ] }'
   resourcesRefs:
     items: []

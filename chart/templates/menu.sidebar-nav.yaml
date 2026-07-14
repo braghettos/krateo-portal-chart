@@ -55,6 +55,10 @@ spec:
       # Register a cluster = POST a KubernetesTarget (the clusters page's "Register cluster" CTA
       # navigates here; route-only/hidden → the register-cluster Form via page-clusters-register).
       - { order: 917, path: "/clusters/register", page: clusters-register }
+      # Cluster drill-down — a clusters-table row click lands here (route-only/hidden).
+      # One KubernetesTarget: identity + probe verdict + the blueprints targeting it
+      # (the "Down" investigation surface the registry table links into).
+      - { order: 918, path: "/clusters/{name}", page: cluster-detail }
       # Marketplace blueprint detail — a catalog tile's "Details" lands here (and Autopilot can
       # navigate here). Shows the helm-index metadata (description / versions / links) + Install.
       - { order: 912, path: "/marketplace/{name}", page: marketplace-detail }
