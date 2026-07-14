@@ -2,10 +2,13 @@
 # /clusters/{name} route param) plus the CompositionDefinitions that TARGET it, all
 # shaped server-side (nothing-hardcoded). Mirrors clusters-list's two stages and its
 # health grammar, narrowed to a single spoke:
-#   targets  : cluster-scoped LIST of KubernetesTargets (they live on the hub) — the
-#              per-name row is selected in jq (LIST-then-select, same resolution shape
-#              as incident-detail; avoids a per-name GET and degrades to "Not found"
-#              instead of failing the widget). A target's OWN status is FLAT
+#   targets  : collection LIST of KubernetesTargets (they live on the hub) — the per-name
+#              row is selected in jq (LIST-then-select, same resolution shape as
+#              incident-detail; avoids a per-name GET and degrades to "Not found" instead
+#              of failing the widget). KubernetesTarget is NAMESPACED (core-provider 2.8.0),
+#              but the collection endpoint returns all visible namespaces AND we select in
+#              jq, so no per-name GET path (which would need the namespace segment) is used —
+#              the read works unchanged after the scope migration. A target's OWN status is FLAT
 #              (.status.connectionStatus/.version/.lastProbeTime — probed directly by
 #              core-provider) and is the primary health signal.
 #   compdefs : LIST of CompositionDefinitions — each carries spec.deploy.targetRef.name
@@ -26,8 +29,10 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   api:
-    # KubernetesTarget is cluster-scoped (core.krateo.io/v1alpha1). UAF gates the LIST by the
-    # user's list grant on kubernetestargets; a narrow-RBAC user simply sees "Not found".
+    # KubernetesTarget is namespaced (core.krateo.io/v1alpha1) as of core-provider 2.8.0, but
+    # this is the collection LIST endpoint (no namespace segment → all visible namespaces) and
+    # the per-name row is selected in jq. UAF gates the LIST by the user's list grant on
+    # kubernetestargets; a narrow-RBAC user simply sees "Not found".
     - name: targets
       path: /apis/core.krateo.io/v1alpha1/kubernetestargets
       verb: GET
