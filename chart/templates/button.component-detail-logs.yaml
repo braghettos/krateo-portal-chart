@@ -8,6 +8,13 @@
 # concrete path is baked server-side from ?extras .name (no-apiRef widgets get
 # request extras merged into their template input), so the click is a plain
 # literal navigate.
+# CTA audit #89 F8: the per-POD complement to this component-level button now ships
+# too — table.component-detail-pods and table.obs-resource-table rows deep-link to
+# /observability?svc={pod name}. The pod-name↔OTel-ServiceName match (deferred pending
+# live verification) was confirmed on krateo-installer-release: obs-log-stream's
+# bidirectional case-insensitive contains resolves a raw pod name to its owning service
+# (and, unlike this button's bare component name, does NOT over-match sibling
+# *-controller/*-agent services), so rows carry the precise pod, not the deployment name.
 kind: Button
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
