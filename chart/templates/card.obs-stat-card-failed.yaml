@@ -15,12 +15,14 @@ spec:
           type: navigate
           path: /compositions?status=failed
     items:
-    - resourceRefId: obs-stat-failed
+    # The DASHBOARD's stat-failed Statistic, reused verbatim (the obs copy was
+    # byte-identical; keyExtras exclude `range`, so the cache cell is shared).
+    - resourceRefId: stat-failed
   resourcesRefs:
     items:
-    - id: obs-stat-failed
+    - id: stat-failed
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-stat-failed
+      name: stat-failed
       namespace: {{ .Release.Namespace }}
       resource: statistics
       verb: GET

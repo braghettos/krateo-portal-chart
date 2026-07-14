@@ -8,6 +8,8 @@
 #   awaiting  : firing Alert CRs (state=ALERT) that have NO report yet — the
 #               "awaiting investigation" strip (exception-only; hidden when empty). Each
 #               carries askHref: an /incidents?ask= Autopilot deep-link (@uri, server-built).
+#   projects  : echo of the shell scope param, so the chip Listy (incidents-status-chips)
+#               can rebuild query-merged routes server-side.
 # Severity is DERIVED, not invented (Alert CRs carry no severity field): resolved → gray
 # (calm), confirmed rootCause while unresolved → crimson, still-uninvestigated/no-verdict →
 # amber. v1 prose-only reports degrade to their alertName/CR name and "—" confidence.
@@ -68,6 +70,7 @@ spec:
           resolved: ([ $rows[] | select(.lifecycle == "resolved") ] | length)
         },
         status: $sel,
+        projects: ((.projects // "") | tostring),
         awaiting: $awaiting,
         awaitingCount: ($awaiting | length)
       }

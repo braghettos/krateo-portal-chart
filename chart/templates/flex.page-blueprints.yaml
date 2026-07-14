@@ -17,7 +17,10 @@ spec:
     gap: large
     items:
     - resourceRefId: blueprints-header
-    - resourceRefId: blueprints-category-group
+    # The category chips are ONE data-driven Listy(chip) — the old chips-only
+    # blueprints-category-group Flex and its four looped Buttons are gone
+    # (widget-sprawl collapse).
+    - resourceRefId: blueprints-category-chips
     - resourceRefId: blueprints-grid
   resourcesRefs:
     items:
@@ -27,11 +30,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: blueprints-category-group
+    - id: blueprints-category-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: blueprints-category-group
+      name: blueprints-category-chips
       namespace: {{ .Release.Namespace }}
-      resource: flexes
+      resource: listies
       verb: GET
     - id: blueprints-grid
       apiVersion: widgets.templates.krateo.io/v1beta1

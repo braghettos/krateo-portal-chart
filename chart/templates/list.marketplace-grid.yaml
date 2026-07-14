@@ -1,9 +1,9 @@
 # Marketplace content — antd `List` in 3-col grid mode, ONE templated tile per
 # INSTALLABLE blueprint, iterated over `blueprints-catalog` (the braghettos helm-repo
 # index, ~311 charts). A single itemTemplate renders every tile from the catalog's flat
-# data — name + version·maturity + a soft-tint category pill. `prefix` wires the
-# marketplace category facet. Honest fields only (name/version/category/maturity off
-# the helm index); no invented ratings/install-counts. Each tile's footer Install button
+# data — name + version·maturity + a soft-tint category pill. The category facet rides
+# in via ?category extras (marketplace-category-chips). Honest fields only (name/version/
+# category/maturity off the helm index); no invented ratings/install-counts. Each tile's footer Install button
 # (rowActions → `install`, a navigate action) opens the install form at
 # /marketplace/{name}/install, which renders the CompositionDefinition CRD and deploys it.
 apiVersion: widgets.templates.krateo.io/v1beta1
@@ -22,7 +22,6 @@ spec:
     name: blueprints-catalog
     namespace: {{ .Release.Namespace }}
   widgetData:
-    prefix: marketplace-filters
     grid:
       gutter: 16
       column: 3

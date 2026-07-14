@@ -28,7 +28,11 @@ spec:
     - resourceRefId: obs-sec-reconciliation-label
     - resourceRefId: obs-sec-reconciliation-desc
     - resourceRefId: obs-stats-row
-    - resourceRefId: obs-rail-row
+    # The reconciliation rail is the DASHBOARD's rail-row, reused verbatim: the obs copy
+    # (row.obs-rail-row → card.obs-rail-card → list.obs-rail-list) was byte-identical, so
+    # the obs page now references the shared CRs. Their keyExtras ([projects, q, status])
+    # exclude `range`, so both pages share the same cache cells.
+    - resourceRefId: rail-row
     - resourceRefId: obs-health-row
     - resourceRefId: obs-distribution-row
     # — Performance —
@@ -79,9 +83,9 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
-    - id: obs-rail-row
+    - id: rail-row
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-rail-row
+      name: rail-row
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
