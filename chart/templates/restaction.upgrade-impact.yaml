@@ -78,7 +78,20 @@ spec:
     | ([ ($d.added // [])[]   | { kind: (.kind // ""), name: (.name // ""), namespace: (.namespace // ""), change: "added",    color: "green", detail: ("new object in " + $to) } ]
        + [ ($d.removed // [])[] | { kind: (.kind // ""), name: (.name // ""), namespace: (.namespace // ""), change: "removed",  color: "red",   detail: ("no longer rendered by " + $to) } ]
        + [ ($d.changed // [])[] | { kind: (.ref.kind // ""), name: (.ref.name // ""), namespace: (.ref.namespace // ""), change: "modified", color: "gold", detail: ((.summary // "") | sub("^changed top-level fields: "; "changed: ")) } ]) as $objRows
-    | (if $err != "" then [ { kind: "—", name: "render failed", namespace: "", change: "error", color: "red", detail: $err } ] else $objRows end) as $rows
+    # Field-level create-form (values.schema.json) changes — synthetic "Field" rows so the
+    # SAME table/drawer shows WHICH form fields an Update adds / removes / newly-requires or
+    # changes the default of. helm-render-service >= 0.1.2 emits valuesSchemaDiff; an older
+    # service omits it → $sd is null → zero Field rows (back-compatible, boolean tail kept).
+    | ($d.valuesSchemaDiff // null) as $sd
+    | ([ ($sd.added // [])[]           | { kind: "Field", name: ., namespace: "", change: "added",    color: "green", detail: ("new create-form field in " + $to) } ]
+       + [ ($sd.removed // [])[]        | { kind: "Field", name: ., namespace: "", change: "removed",  color: "red",   detail: ("no longer a create-form field in " + $to) } ]
+       + [ ($sd.nowRequired // [])[]    | { kind: "Field", name: ., namespace: "", change: "modified", color: "gold",  detail: "now REQUIRED" } ]
+       + [ ($sd.changedDefaults // [])[]| { kind: "Field", name: ., namespace: "", change: "modified", color: "gold",  detail: "default changed" } ]) as $schemaRows
+    | ($schemaRows | length) as $sfCount
+    | (if $sfCount > 0 then " · " + ($sfCount | tostring) + " form-field change" + (if $sfCount == 1 then "" else "s" end)
+       elif ($d.valuesSchemaChanged // false) then " · values schema changed"
+       else "" end) as $schemaTail
+    | (if $err != "" then [ { kind: "—", name: "render failed", namespace: "", change: "error", color: "red", detail: $err } ] else ($objRows + $schemaRows) end) as $rows
     | { added: ([ $objRows[] | select(.change == "added") ] | length),
         removed: ([ $objRows[] | select(.change == "removed") ] | length),
         modified: ([ $objRows[] | select(.change == "modified") ] | length) } as $n
@@ -91,9 +104,11 @@ spec:
         rows: $rows,
         counts: $counts,
         summary: (if $err != "" then "Preview failed — the render service reported an error (see below); the update itself is unaffected."
-                  elif $counts.total == 0 then "No manifest changes between " + $from + " and " + $to + " (chart defaults)." + (if $schemaChanged then " The values schema DID change." else "" end)
+                  elif ($counts.total == 0 and $sfCount == 0) then "No manifest changes between " + $from + " and " + $to + " (chart defaults)." + (if $schemaChanged then " The values schema DID change." else "" end)
+                  elif $counts.total == 0 then "No object changes between " + $from + " and " + $to + $schemaTail + " (see below)."
                   else (($counts.added | tostring) + " added · " + ($counts.removed | tostring) + " removed · " + ($counts.modified | tostring) + " modified"
-                        + (if $schemaChanged then " · values schema changed" else "" end)) end),
+                        + $schemaTail) end),
         note: ("Diff of CHART DEFAULTS: both versions rendered with the chart's default values as release \"" + (.name // "") + "\" — the values of real composition instances are not applied, so their objects may differ."),
-        valuesSchemaChanged: $schemaChanged
+        valuesSchemaChanged: $schemaChanged,
+        valuesSchemaDiff: $sd
       }
