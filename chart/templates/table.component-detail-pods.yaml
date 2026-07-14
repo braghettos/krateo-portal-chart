@@ -3,6 +3,15 @@
 # (e.g. CrashLoopBackOff, ImagePullBackOff) when a container is stuck, else the pod
 # phase; cells are tinted only when something needs the eye (not-ready → crimson,
 # restarts>0 → amber, stuck state → crimson / transitional → amber).
+# Rows deep-link to the observability log stream scoped to the pod (CTA audit #89 F8:
+# a pod row was a dead end — "which of these is spewing errors?" had no answer). The
+# hand-off is /observability?svc={name} where {name} is the raw pod name; obs-log-stream's
+# ?svc filter does a bidirectional case-insensitive CONTAINS against OTel ServiceName, so
+# a pod name (e.g. snowplow-6dd6…-mgmqh) resolves to its owning service (ServiceName
+# "snowplow" is a substring of the pod name) — verified live on krateo-installer-release
+# to scope EXACTLY that service (and, unlike the bare deployment name, NOT its sibling
+# *-controller/*-agent services that merely share the token). Empty/absent name → the
+# Table's buildRowPath returns undefined, so the row is inert (no broken link).
 kind: Table
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -17,6 +26,8 @@ spec:
     allowedResources: []
     bordered: false
     size: small
+    # Row → observability log stream, scoped to this pod's owning service (see header).
+    rowNavigateTo: /observability?svc={name}
     columns:
     - valueKey: name
       title: Pod
