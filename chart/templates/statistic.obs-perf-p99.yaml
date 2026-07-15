@@ -16,9 +16,12 @@ spec:
     suffix: ' ms'
     valueStyle:
       color: var(--red-color)
+  # HONESTY (IA obs-deepdive): em-dash, not "0 ms", when zero reconcile spans in range.
   widgetDataTemplate:
   - forPath: value
-    expression: '${ .p99 // 0 }'
+    expression: '${ if (.n // 0) == 0 then "—" else (.p99 // 0) end }'
+  - forPath: suffix
+    expression: '${ if (.n // 0) == 0 then "" else " ms" end }'
   apiRef:
     name: obs-reconcile-perf
     namespace: {{ .Release.Namespace }}

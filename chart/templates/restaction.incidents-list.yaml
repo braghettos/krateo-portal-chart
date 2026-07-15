@@ -56,7 +56,17 @@ spec:
     | ([ ((.alerts.items) // [])[]
          | . as $a
          | select((.status.state // "") == "ALERT")
-         | select(([ $items[] | select((.spec.alertName // "") == ($a.metadata.name // "")) ] | length) == 0)
+         # HONESTY (IA incidents-deepdive): a report keys its alert by DISPLAY name
+         # (spec.alertName, may carry an emoji) while the Alert CR's identity is a slug
+         # (metadata.name) + a separate spec.displayName. The old literal alertName==metadata.name
+         # NEVER matched, so an already-analyzed firing alert was wrongly listed "awaiting".
+         # Match on a NORMALIZED key (lowercased, alphanumerics only) against BOTH the alert's
+         # metadata.name AND its displayName.
+         | (($a.metadata.name // "") | ascii_downcase | gsub("[^a-z0-9]"; "")) as $anorm
+         | (($a.spec.displayName // "") | ascii_downcase | gsub("[^a-z0-9]"; "")) as $dnorm
+         | select(([ $items[]
+                     | (((.spec.alertName // "") | ascii_downcase | gsub("[^a-z0-9]"; ""))) as $rnorm
+                     | select($rnorm != "" and ($rnorm == $anorm or $rnorm == $dnorm)) ] | length) == 0)
          | { name: ($a.spec.displayName // $a.metadata.name // ""),
              state: ($a.status.state // "ALERT"),
              askHref: ("/incidents?ask=" + (("Investigate the \"" + ($a.spec.displayName // $a.metadata.name // "this alert") + "\" observability alert — it is firing but has no troubleshooting report yet. Run a root-cause analysis and give me the concrete next steps.") | @uri)) }

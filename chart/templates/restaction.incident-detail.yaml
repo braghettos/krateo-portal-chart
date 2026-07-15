@@ -118,7 +118,19 @@ spec:
         remSteps: $remSteps,
         remediationDesc: ((($plan | length) | tostring) + " ordered steps · every apply rides the blast-radius gate" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
         similar: $similar,
-        proseMd: (if $structured then "" elif ($st.report // "") != "" then $st.report elif ($st.error // "") != "" then ("**Analysis failed** — " + $st.error) else "_Analysis in progress — the investigation will appear here when the Autopilot run completes._" end),
+        # HONESTY (IA incidents-deepdive): a FAILED run must not be dressed up as analysis.
+        # The old ladder showed $st.report BEFORE $st.error — but a failed run leaves the raw
+        # provider error (e.g. "400 Bad Request … token count exceeds the maximum …") in
+        # status.report AND a truthful status.error. So: if the run recorded an error, OR the
+        # report body IS a provider-error dump, surface the honest failure — never the dump.
+        proseMd: (
+          ($st.report // "") as $rpt
+          | ($st.error // "") as $err
+          | (($rpt | test("Bad Request|token count|exceeds the maximum|no output|^ *[0-9][0-9][0-9] ")) or ($err != "")) as $failed
+          | if $structured then ""
+            elif $failed then ("**Analysis could not complete.** " + (if $err != "" then $err else "The investigation returned a provider error instead of a report; re-run the analysis from the Autopilot rail." end))
+            elif ($rpt != "") then $rpt
+            else "_Analysis in progress — the investigation will appear here when the Autopilot run completes._" end),
         sections: {
           evidence: ((($analyzed | length) > 0) or (($sources | length) > 0)),
           analyzed: (($analyzed | length) > 0),
