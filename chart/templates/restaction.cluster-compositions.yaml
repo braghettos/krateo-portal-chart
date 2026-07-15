@@ -52,10 +52,13 @@
 # k8s LIST carry no kind; nothing hardcoded. ready/synced = status.conditions Ready/Synced.
 #
 # FINAL FILTER: rows + counts + a server-computed statusText/statusColor (value→
-# presentation server-side). endpointRef is NOT jq-templated in snowplow (verified:
-# resolveStageEndpoint passes it verbatim), so this RA is BOUND to one spoke per install
-# (.Values.spokeReadbackCluster); other cluster names get bound=false + an honest
-# "not provisioned" status. Per-spoke RA generation at registration time removes this.
+# presentation server-side). #107 (snowplow ≥1.7.13, braghettos/krateo-snowplow#113):
+# endpointRef.name is now jq-templated from the request extras, so this ONE RA serves EVERY
+# registered spoke — `<name>-endpoint` derived from the /clusters/{name} route param (no
+# per-spoke RA generation, no single-spoke bind). A cluster with no `<name>-endpoint` Secret
+# (or an unreachable spoke) degrades to reachable=false + an honest status; the namespace
+# stays literal (snowplow V1 keeps endpointRef.namespace non-templatable). See
+# [[snowplow-templated-endpointref]].
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -72,7 +75,17 @@ spec:
       headers:
         - 'Accept: application/json'
       endpointRef:
-        name: {{ .Values.spokeReadbackEndpointSecret }}
+        # #107 — snowplow ≥1.7.13 evaluates endpointRef.name against the request extras (r.dict,
+        # a deep-copy of extras — verified in source: resolve.go evalEndpointRef → evalJQ(name, r.dict),
+        # resolved ONCE per stage before the iterator fan-out), so ONE RA dials the spoke named by the
+        # /clusters/{name} route — `<name>-endpoint` — on EVERY step including the iterator steps.
+        # SECURITY: a crafted `.name` cannot select a reserved `<user>-clientconfig` Secret — snowplow's
+        # `-clientconfig` refusal runs on the POST-DNS1123-truncation name at two layers (eval site +
+        # resolveOne). (The `-endpoint` suffix itself is NOT truncation-proof, but the -clientconfig guard
+        # is what holds.) namespace stays literal (V1). PENDING HARDENING before multi-spoke: constrain
+        # `.name` to a registered-KubernetesTarget allow-list (closes cross-spoke read-across + benign
+        # non-spoke-endpoint SSRF; not exploitable on a single-spoke cluster). See [[snowplow-templated-endpointref]].
+        name: '${ ((.name // "") | gsub("[^a-zA-Z0-9.-]"; "")) + "-endpoint" }'
         namespace: {{ .Values.spokeReadbackEndpointNamespace }}
       continueOnError: true
       errorKey: spokeCrdsError
@@ -99,7 +112,8 @@ spec:
       headers:
         - 'Accept: application/json'
       endpointRef:
-        name: {{ .Values.spokeReadbackEndpointSecret }}
+        # #107 — templated per-spoke (see spokeCrds). Evaluated against request extras → `<name>-endpoint`.
+        name: '${ ((.name // "") | gsub("[^a-zA-Z0-9.-]"; "")) + "-endpoint" }'
         namespace: {{ .Values.spokeReadbackEndpointNamespace }}
       continueOnError: true
       errorKey: spokeCompositionsError
@@ -124,7 +138,8 @@ spec:
       headers:
         - 'Accept: application/json'
       endpointRef:
-        name: {{ .Values.spokeReadbackEndpointSecret }}
+        # #107 — templated per-spoke (see spokeCrds). Evaluated against request extras → `<name>-endpoint`.
+        name: '${ ((.name // "") | gsub("[^a-zA-Z0-9.-]"; "")) + "-endpoint" }'
         namespace: {{ .Values.spokeReadbackEndpointNamespace }}
       continueOnError: true
       errorKey: spokeCompositionDefinitionsError
@@ -141,11 +156,10 @@ spec:
   # Rows + counts + the status line, all server-side. `age` stays the raw
   # creationTimestamp — the Table cell renders it `relative` (house pattern).
   filter: >
-    ("{{ .Values.spokeReadbackCluster }}") as $bound
-    | ((.name // "") | gsub("[^a-zA-Z0-9.-]"; "")) as $n
-    | (($n == $bound) and ($n != "")) as $isBound
+    ((.name // "") | gsub("[^a-zA-Z0-9.-]"; "")) as $n
+    | ($n != "") as $named
     | (.spokeCrds != null) as $reachable
-    | (if ($isBound and $reachable)
+    | (if ($named and $reachable)
        then [ (.spokeCompositions // [])[], (.spokeCompositionDefinitions // [])[]
               | . + { readyLabel: (if .ready == "True" then "Ready" elif .ready == "False" then "Not ready" else "Unknown" end),
                       readyColor: (if .ready == "True" then "green" elif .ready == "False" then "red" else "gray" end),
@@ -156,18 +170,17 @@ spec:
     | ([ $rows[] | select(.ready == "True") ] | length) as $ready
     | {
         cluster: $n,
-        bound: $isBound,
-        reachable: ($isBound and $reachable),
+        reachable: ($named and $reachable),
         rows: $rows,
         counts: { total: $total, ready: $ready, notReady: ($total - $ready) },
         statusText: (
-          if ($isBound | not) then "Live read-back is not provisioned for this cluster yet — a derived endpoint secret and binding are created at spoke registration."
-          elif ($reachable | not) then "Spoke unreachable — the live read against the cluster apiserver failed."
+          if ($named | not) then "No cluster selected."
+          elif ($reachable | not) then ("Live read-back unavailable for \($n) — no endpoint secret (\($n)-endpoint) is provisioned for this cluster, or the spoke apiserver is unreachable.")
           elif ($total == 0) then "No compositions deployed to this spoke yet."
           else (($total | tostring) + " resource(s) live on this cluster, read directly from the spoke apiserver — " + ($ready | tostring) + " ready.")
           end),
         statusColor: (
-          if ($isBound | not) then "gray"
+          if ($named | not) then "gray"
           elif ($reachable | not) then "red"
           elif ($total == 0) then "gray"
           elif ($ready < $total) then "orange"
