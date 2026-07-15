@@ -11,6 +11,8 @@ spec:
   keyExtras: [name, namespace]
   widgetData:
     title: Relations
+    titleVariant: eyebrow
+    variant: outlined
     items:
       - resourceRefId: list-composition-detail-relations
   resourcesRefs:
