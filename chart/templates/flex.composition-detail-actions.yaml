@@ -19,6 +19,7 @@ spec:
     allowedResources:
       - buttons
     items:
+      - resourceRefId: composition-detail-blueprint
       - resourceRefId: composition-detail-diagnose
       - resourceRefId: composition-detail-sync
       - resourceRefId: composition-detail-pause
@@ -26,6 +27,12 @@ spec:
       - resourceRefId: composition-detail-delete
   resourcesRefs:
     items:
+      - id: composition-detail-blueprint
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-blueprint
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
       - id: composition-detail-diagnose
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: composition-detail-diagnose

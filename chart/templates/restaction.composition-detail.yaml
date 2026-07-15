@@ -36,6 +36,18 @@ spec:
         - 'Accept: application/json'
       continueOnError: true
       filter: "[.found.items[]? | del(.metadata.managedFields, .metadata.annotations[\"kubectl.kubernetes.io/last-applied-configuration\"])]"
+    # IA correlation (composition → source blueprint): list CompositionDefinitions so we can
+    # reverse-join this composition's kind to the CD that generated it (CD.status.kind ==
+    # composition.kind). continueOnError so the composition still renders if the CD list is
+    # unreadable; the reverse link then falls back to the /blueprints index.
+    - name: compdefs
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: compdefsError
+      filter: "[.compdefs.items[]? | {name:(.metadata.name // \"\"), namespace:(.metadata.namespace // \"\"), kind:(.status.kind // \"\")}]"
   filter: >
     .name as $n
     | .namespace as $ns
@@ -43,6 +55,7 @@ spec:
     | ($d.apiVersion // "") as $av
     | ($d.metadata.name // $n) as $cn
     | ($d.metadata.namespace // $ns) as $cns
+    | ([ .compdefs[]? | select((.kind // "") != "" and .kind == ($d.kind // "__none__")) ][0] // null) as $bp
     | {
         detail: $d,
         gvr: {
@@ -51,6 +64,9 @@ spec:
           name: $cn,
           namespace: $cns
         },
+        blueprintName: ($bp.name // ""),
+        blueprintNamespace: ($bp.namespace // ""),
+        blueprintHref: (if $bp != null then ("/blueprints/" + ($bp.namespace // "") + "/" + ($bp.name // "")) else "/blueprints" end),
         diagnoseHref: ("/compositions/" + $cns + "/" + $cn + "?ask="
           + (("Diagnose composition \"" + $cn + "\" in namespace \"" + $cns
              + "\": is it healthy? If not, explain what is wrong from its conditions and managed"
