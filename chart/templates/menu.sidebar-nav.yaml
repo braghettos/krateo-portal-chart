@@ -89,6 +89,16 @@ spec:
       # gated publish (and the empty-state ?ask= CTA lands here too); a visible
       # author-gated "Builders" nav entry is deferred to the W3-2 grants model.
       - { order: 951, path: /kog-builder, page: kog-builder }
+      # Builder-published pages (#106) — each Autopilot-authored page drops a nav fragment at
+      # files/nav-fragments/<slug>.yaml ({ item: {<nav entry>} }). The Portal builder writes it as
+      # part of the publish PR, so the sidebar entry ships WITH the page — no manual menu edit.
+      # Builder pages use the page:<slug> convention (resolves flexes/page-<slug>), so a fragment
+      # needs ONLY the `item` (no resourcesRefs entry). Glob over an empty/absent dir is a no-op.
+      {{- range $path, $_ := (.Files.Glob "files/nav-fragments/*.yaml") }}
+      {{- with ((($.Files.Get $path) | fromYaml).item) }}
+      - {{ . | toJson }}
+      {{- end }}
+      {{- end }}
   resourcesRefs:
     items:
       - id: dashboard
