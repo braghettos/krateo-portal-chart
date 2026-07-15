@@ -1,5 +1,5 @@
 # Titled panel around the reconcile phase-breakdown list. The `extra` shows the overall
-# reconcile mean + sample count (from the RA's pctl step) — e.g. "avg 1674ms · 11179 reconciles · 6h".
+# reconcile mean + sample count (from the RA's pctl step) — e.g. "avg <ms> · <n> reconciles".
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

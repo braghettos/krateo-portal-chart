@@ -19,7 +19,7 @@ spec:
     itemLayout: horizontal
     split: false
     hideWhenEmpty: true
-    header: Firing alerts awaiting investigation — select one to start it in Autopilot →
+    header: Not yet investigated — firing alerts with no report; select one to start it in Autopilot →
     itemTemplate:
       navigateTo: '{askHref}'
       iconVariant: dot

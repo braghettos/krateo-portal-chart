@@ -18,7 +18,7 @@ spec:
     dataSource: []
     itemLayout: horizontal
     split: false
-    header: Select an alert to continue the investigation in Autopilot →
+    header: Investigation history — select an alert to continue in Autopilot →
     itemTemplate:
       # Whole-row click → the per-alert Autopilot deep-link built server-side in the RA (@uri-encoded).
       navigateTo: '{askHref}'

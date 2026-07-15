@@ -57,8 +57,13 @@ spec:
       color:
         value: '{typeColor}'
         default: gray
-      # "Already installed" check (top-right of the tile) — green when this blueprint is installed;
-      # icon/colour are computed server-side in the catalog RA (empty -> no glyph when available).
+      # "Installed" badge (top-right of the tile) — a SUBTLE green check that appears ONLY when this
+      # blueprint is actually installed (exception-only; empty -> no glyph, no noise on the common
+      # not-installed state). icon/colour/tooltip are all computed server-side in the catalog RA via
+      # the honest repoBase|chartName join against installed helm-repo CompositionDefinitions — never
+      # fabricated. The tooltip reads "Installed · v<version>". This reuses the ONE status channel the
+      # card variant supports (no new widget field); the primary whole-tile navigateTo (-> Details)
+      # is untouched, so the badge is purely informational.
       status:
         icon: '{installedIcon}'
         color: '{installedColor}'
@@ -83,6 +88,6 @@ spec:
           path: /marketplace/${name}/install
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ .cards[] | { name, version, typeLabel, typeColor, category, source, tags, installed, installedIcon, installedColor, installedTooltip, repoUrl, icon, description } ] }'
+      expression: '${ [ .cards[] | { name, version, typeLabel, typeColor, category, source, tags, installed, installedNs, installedName, installedIcon, installedColor, installedTooltip, repoUrl, icon, description } ] }'
   resourcesRefs:
     items: []

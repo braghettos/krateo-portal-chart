@@ -31,7 +31,10 @@ spec:
         | ( ($latest.metadata.annotations["observability.krateo.io/run-count"] // "") as $rc | (try ($rc | tonumber) catch null) ) as $annCount
         | ( ($latest.metadata.annotations["observability.krateo.io/last-run-at"] // "") ) as $annLast
         | {
-            alert: ($latest.spec.alertName // ""),
+            # IA D/3: strip any emoji so the feed spells the alert IDENTICALLY to the awaiting
+            # strip + the /alerts table (which use spec.displayName, no emoji). Keep printable
+            # ASCII only, then trim — one consistent alert label across every panel.
+            alert: (($latest.spec.alertName // "") | gsub("[^ -~]"; "") | sub("^ +"; "") | sub(" +$"; "")),
             phase: ($latest.status.phase // "Pending"),
             report: ($latest.status.report // ""),
             runCount: ( if $annCount != null then $annCount elif ($g | length) > 0 then ($g | length) else 1 end ),
