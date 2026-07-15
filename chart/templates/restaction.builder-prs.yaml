@@ -1,0 +1,28 @@
+# Portal-builder repo state (CHART-P1): the in-flight builder PullRequest CRs — one row per
+# pullrequests.github.krateo.io CR the Portal/Blueprint builder created (the git-publish set's
+# PR op). Cluster-native (lists the CRs directly), so no GitHub token/endpoint; continueOnError
+# so a narrow-RBAC (non-author) user degrades to an empty table instead of a failed widget.
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: builder-prs
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    - name: prs
+      path: /apis/github.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/pullrequests
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: prsError
+  filter: >
+    { rows: [ ((.prs.items) // [])[] | {
+        name:  (.metadata.name // ""),
+        repo:  (((.spec.owner) // "") + "/" + ((.spec.repo) // "")),
+        head:  ((.spec.head) // ""),
+        title: ((.spec.title) // ""),
+        state: ((.status.state) // "pending")
+      } ] }

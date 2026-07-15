@@ -1,0 +1,40 @@
+# Convention page root for /portal-builder (CHART-P1) — the Autopilot builders' home: a
+# how-it-works header above the in-flight builder pull-requests table.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-portal-builder
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - paragraphs
+    - tables
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: portal-builder-title
+    - resourceRefId: portal-builder-note
+    - resourceRefId: builder-prs
+  resourcesRefs:
+    items:
+    - id: portal-builder-title
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: portal-builder-title
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: portal-builder-note
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: portal-builder-note
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: builder-prs
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: builder-prs
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET

@@ -38,6 +38,9 @@ spec:
       - { label: Blueprints,   icon: fa-layer-group,  order: 6, path: /blueprints,   resourceRefId: blueprints }
       - { label: Marketplace,  icon: fa-store,        order: 7, path: /marketplace,  resourceRefId: marketplace }
       - { label: Settings,     icon: fa-gear,         order: 8, path: /settings,     resourceRefId: settings }
+      # Portal Builder (CHART-P1) — the Autopilot builders' home: how-it-works + the in-flight
+      # builder pull-requests table. `page: portal-builder` resolves flexes/page-portal-builder.
+      - { label: Portal Builder, icon: fa-hammer, order: 9, path: /portal-builder, page: portal-builder }
       # Builder Demo — a portal page AUTHORED by the Autopilot Portal builder and published
       # end-to-end via the KOG git-write path (PR #37). `page: builderdemo` resolves the
       # flexes/page-builderdemo convention root. This nav entry is the maintainer step the
