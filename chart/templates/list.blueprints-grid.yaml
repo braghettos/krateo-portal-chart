@@ -37,12 +37,14 @@ spec:
       description: '{desc}'
       # Whole-card click → the blueprint detail page (Delete / version-update live there).
       navigateTo: '/blueprints/{namespace}/{name}'
-      # "Configure" — a footer action button in the SAME style as the Marketplace "Install" button
-      # (amber primary). It opens the create-composition form for THIS blueprint.
+      # "Create" — a footer action button in the SAME style as the Marketplace "Install" button
+      # (amber primary). It opens the create-composition form for THIS blueprint. Labelled
+      # "Create" (not "Configure") to match the detail page's verb and telegraph that it
+      # provisions an instance, not a settings page (CTA-audit B1).
       rowActions:
         - actionId: configure
-          label: Configure
-          icon: fa-sliders
+          label: Create
+          icon: fa-plus
       color:
         value: '{category}'
         map:

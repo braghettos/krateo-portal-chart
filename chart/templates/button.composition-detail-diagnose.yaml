@@ -1,0 +1,39 @@
+# "Diagnose with Autopilot" — a copilot entry-point in the detail action cluster. It
+# navigates to THIS composition's detail page with an ?ask seed the AutopilotProvider
+# consumes on mount (opens the rail pre-seeded with a grounded investigation prompt).
+# The concrete href is baked server-side by composition-detail (.diagnoseHref, @uri-
+# encoded), so the click is a plain literal navigate — same pattern as button.incident-
+# ref-link. Graceful: if Autopilot is disabled the ?ask is simply ignored (the shipped
+# incidents awaiting-strip degrades the same way). Kept type:default (secondary) so Sync
+# stays the amber-primary action.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: composition-detail-diagnose
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: composition-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: Diagnose
+    type: default
+    size: small
+    icon: fa-wand-magic-sparkles
+    clickActionId: diagnose
+    actions:
+      navigate:
+        - id: diagnose
+          type: navigate
+          path: /compositions
+  widgetDataTemplate:
+    # Server-built self-page href with the ?ask seed. Defensive fallback to the bare detail
+    # path (never a 404) if diagnoseHref is somehow empty.
+    - forPath: actions
+      expression: '${ { navigate: [ { id: "diagnose", type: "navigate", path: (if (.diagnoseHref // "") != "" then .diagnoseHref else "/compositions" end) } ] } }'
+  resourcesRefs:
+    items: []

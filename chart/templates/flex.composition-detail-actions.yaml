@@ -19,12 +19,19 @@ spec:
     allowedResources:
       - buttons
     items:
+      - resourceRefId: composition-detail-diagnose
       - resourceRefId: composition-detail-sync
       - resourceRefId: composition-detail-pause
       - resourceRefId: composition-detail-edit
       - resourceRefId: composition-detail-delete
   resourcesRefs:
     items:
+      - id: composition-detail-diagnose
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-detail-diagnose
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
       - id: composition-detail-sync
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: composition-detail-sync
