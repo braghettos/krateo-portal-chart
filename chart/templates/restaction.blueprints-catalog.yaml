@@ -60,6 +60,48 @@ spec:
   filter: |
     def qstr($p): ([ $p | to_entries[] | select(.value != null and .value != "") | (.key + "=" + .value) ] | join("&")) as $s
       | (if $s == "" then "/marketplace" else "/marketplace?" + $s end);
+    # Presentational icon variety (honest — driven by the card's REAL helm data, not invented).
+    # At ~330 charts the two source glyphs (fa-layer-group / fa-gears) make the grid a wall of
+    # identical icons; this maps a card to a Font Awesome glyph off its own keywords first
+    # (the service-family signal — ec2/rds/s3/kafka/...), then its `krateo.io/category`
+    # annotation (compute/network/database/...), then falls back to the source glyph. Every
+    # value here is a plain glyph name; a card with no matching keyword/category just gets the
+    # source fallback (never an error, never a blank).
+    #   $kwIcon: keyword (lower-case, matched by substring) -> glyph. Ordered most→least
+    #   specific; FIRST hit wins. Keys are real tokens seen in the braghettos index keywords.
+    def kwIcon:
+      [ ["database","fa-database"], ["rds","fa-database"], ["dynamodb","fa-database"],
+        ["documentdb","fa-database"], ["memorydb","fa-database"], ["docdb","fa-database"],
+        ["elasticache","fa-bolt"], ["cache","fa-bolt"], ["redis","fa-bolt"],
+        ["s3","fa-hard-drive"], ["storage","fa-hard-drive"], ["efs","fa-hard-drive"],
+        ["backup","fa-box-archive"], ["ecr","fa-box-archive"], ["registry","fa-box-archive"],
+        ["kafka","fa-list"], ["queue","fa-list"], ["sqs","fa-list"], ["sns","fa-bell"],
+        ["eventbridge","fa-bell"], ["network","fa-network-wired"], ["vpc","fa-network-wired"],
+        ["route53","fa-network-wired"], ["elbv2","fa-network-wired"], ["elb","fa-network-wired"],
+        ["alb","fa-network-wired"], ["loadbalancer","fa-network-wired"], ["cloudfront","fa-network-wired"],
+        ["apigateway","fa-route"], ["gateway","fa-route"], ["firewall","fa-shield-halved"],
+        ["waf","fa-shield-halved"], ["security","fa-shield-halved"], ["iam","fa-key"],
+        ["kms","fa-key"], ["identity","fa-key"], ["certificate","fa-certificate"],
+        ["acm","fa-certificate"], ["vault","fa-shield-halved"], ["eks","fa-dharmachakra"],
+        ["ecs","fa-cubes"], ["cluster","fa-dharmachakra"], ["kubernetes","fa-dharmachakra"],
+        ["lambda","fa-bolt"], ["ec2","fa-server"], ["compute","fa-server"], ["ssm","fa-terminal"],
+        ["sagemaker","fa-brain"], ["bedrock","fa-brain"], ["ai-agent","fa-robot"],
+        ["kagent","fa-robot"], ["quicksight","fa-chart-line"], ["dashboard","fa-gauge-high"],
+        ["cloudwatch","fa-chart-line"], ["prometheus","fa-chart-line"], ["observability","fa-chart-line"],
+        ["opentelemetry","fa-chart-line"], ["codegen","fa-code"], ["oasgen","fa-code"],
+        ["kog","fa-code"], ["helm","fa-ship"], ["domain","fa-globe"] ];
+    #   $catIcon: krateo.io/category annotation -> glyph (the coarse fallback when no keyword hit).
+    def catIcon:
+      { "compute":"fa-server", "network":"fa-network-wired", "database":"fa-database",
+        "storage":"fa-hard-drive", "security":"fa-shield-halved", "observability":"fa-chart-line",
+        "application":"fa-cubes", "generator":"fa-code" };
+    # iconFor: first keyword substring hit -> its glyph; else the category glyph; else the
+    # source fallback ($fallback). $kws lower-cased upstream.
+    def iconFor($kws; $cat; $fallback):
+      ( first( kwIcon[] | select( . as $pair | any($kws[]; contains($pair[0])) ) | .[1] ) )
+      // (catIcon[$cat]) // $fallback;
+    # Title-case a lower-case category token for the on-card pill (compute -> Compute).
+    def titlecase: if . == "" then "" else (.[0:1] | ascii_upcase) + .[1:] end;
     ( [ (.compdefs // [])[] | {key: .name, value: .version} ] | from_entries ) as $inst
     | ((.category) // "all") as $sel
     | ((.source) // "all") as $src
@@ -85,7 +127,18 @@ spec:
               source: .source,
               typeLabel: (if .source == "operator" then "Operator" else "Blueprint" end),
               typeColor: (if .source == "operator" then "magenta" else "cyan" end),
-              icon: (if .source == "operator" then "fa-gears" else "fa-layer-group" end),
+              # CATEGORY pill (the mockup's per-tile defining signal) — the REAL
+              # `krateo.io/category` annotation (compute/network/database/...), title-cased for
+              # display. Empty when the chart carries no category (e.g. operators) -> the card
+              # renders no pill (never invented). Type stays on the icon tint (typeColor).
+              category: (((.annotations // {})["krateo.io/category"] // "") | ascii_downcase | titlecase),
+              # Per-card icon: keyword service-family -> category annotation -> source glyph.
+              # Presentational, driven entirely by the card's own real helm data.
+              icon: iconFor(
+                      ((.keywords // []) | map(ascii_downcase));
+                      ((.annotations // {})["krateo.io/category"] // "" | ascii_downcase);
+                      (if .source == "operator" then "fa-gears" else "fa-layer-group" end)
+                    ),
               maturity: ((.annotations // {})["krateo.io/maturity"] // ""),
               version: (.version // ""),
               # helm index publish timestamp (RFC3339); drives the "recently updated" sort.

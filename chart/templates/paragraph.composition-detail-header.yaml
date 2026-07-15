@@ -1,4 +1,4 @@
-# Detail page header — the composition name as an H2 (Paragraph `level`, the new
+# Detail page header — the composition name as the page H1 (Paragraph `level`, the new
 # Part-A field). Text is the composition's real name, resolved server-side by the
 # composition-detail RA from the route's ?extras.
 kind: Paragraph
@@ -16,7 +16,7 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     text: Composition
-    level: 2
+    level: 1
   widgetDataTemplate:
     - forPath: text
       expression: '${ .detail.metadata.name // "composition" }'
