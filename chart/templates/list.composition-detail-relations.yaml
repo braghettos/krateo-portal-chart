@@ -23,6 +23,11 @@ spec:
     split: false
     dataSource: []
     itemTemplate:
+      # IA followup F5: composition-group children carry a non-empty {navHref} → the row
+      # becomes clickable into that child's own composition detail; core-k8s children have
+      # navHref "" → the row stays inert (interpolate() treats "" as falsy). Honest partial
+      # drill-down — only children that HAVE a first-class detail page link onward.
+      navigateTo: '{navHref}'
       rowVariant: tree
       iconVariant: dot
       color:
@@ -37,6 +42,6 @@ spec:
       secondaryText: '{state}'
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.resources // []) | map({ kind: .kind, name: .name, ns: .ns, state: .state }) }'
+      expression: '${ (.resources // []) | map({ kind: .kind, name: .name, ns: .ns, state: .state, navHref: .navHref }) }'
   resourcesRefs:
     items: []

@@ -82,6 +82,12 @@ spec:
         compositionsCount: ($comps | length),
         name: ($d.metadata.name // $n),
         namespace: ($d.metadata.namespace // $ns),
+        # IA followup F3: forward cross-link to the marketplace catalog entry. $bp is the
+        # helm-repo chart name (== the catalog key == the /marketplace/{name} route key),
+        # gated on catalog membership so an OCI/platform CD (empty repo) never builds a broken
+        # /marketplace/oci://... route — it falls back to the /marketplace index instead.
+        marketplaceHref: (if ((((.catalog.entries[$bp]? // []) | length) > 0) and ($bp != "")) then ("/marketplace/" + $bp) else "/marketplace" end),
+        inCatalog: ((((.catalog.entries[$bp]? // []) | length) > 0) and ($bp != "")),
         chart: ($chart.repo // ($chart.url // "")),
         chartUrl: ($chart.url // ""),
         currentVersion: $cur,

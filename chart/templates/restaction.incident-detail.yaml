@@ -101,7 +101,12 @@ spec:
                  ("phase " + $phase),
                  (if $conf != "—" then ("confidence " + $conf) else empty end) ] | join("  ·  ")),
         confidence: $conf,
-        analyzedRows: ($analyzed | map({ gvr: (.gvr // ""), name: (.name // ""), namespace: (.namespace // ""), what: (.whatWasRead // "") })),
+        analyzedRows: ($analyzed | map(
+            ((.gvr // "") | split("/") | .[0]) as $grp
+            | ($grp == "composition.krateo.io") as $isComp
+            | { gvr: (.gvr // ""), name: (.name // ""), namespace: (.namespace // ""), what: (.whatWasRead // ""),
+                navNs: (if $isComp then (.namespace // "") else "" end),
+                navName: (if $isComp then (.name // "") else "" end) })),
         evidenceDesc: ("what the agent read, verbatim — " + (($sources | length) | tostring) + " sources · " + (($analyzed | length) | tostring) + " analyzed resources"),
         evidenceMd: ($sources | to_entries | map("**#" + ((.key + 1) | tostring) + " · " + ((.value.type // "object") | ascii_upcase) + "**" + (if (.value.ref // "") != "" then (" — `" + .value.ref + "`") else "" end) + "\n\n```\n" + (.value.excerpt // "") + "\n```") | join("\n\n")),
         gapsText: (($gaps | join("  •  ")) + (if ($assump | length) > 0 then ((if ($gaps | length) > 0 then "   —   " else "" end) + "Assumed: " + ($assump | join("  •  "))) else "" end)),

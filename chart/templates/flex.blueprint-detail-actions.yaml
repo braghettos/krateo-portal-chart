@@ -18,11 +18,18 @@ spec:
     vertical: false
     gap: small
     items:
+      - resourceRefId: blueprint-detail-marketplace
       - resourceRefId: blueprint-detail-create
       - resourceRefId: blueprint-detail-fleet
       - resourceRefId: blueprint-detail-delete
   resourcesRefs:
     items:
+      - id: blueprint-detail-marketplace
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: blueprint-detail-marketplace
+        namespace: {{ .Release.Namespace }}
+        resource: buttons
+        verb: GET
       - id: blueprint-detail-create
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: blueprint-detail-create

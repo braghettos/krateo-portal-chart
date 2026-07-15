@@ -58,7 +58,7 @@ spec:
             | ($m.path | split("/")) as $p
             | ($p[-2]) as $res | ($p[-1]) as $nm | ($p[0:-2] | join("/")) as $pre
             | ($clusterKinds | index($res)) as $cluster
-            | { _cn: $cn, _cns: $cns, _kind: $res, _name: $nm,
+            | { _cn: $cn, _cns: $cns, _kind: $res, _name: $nm, _group: ($p[2] // ""),
                 _getpath: (if $cluster != null then $m.path
                            else ($pre + "/namespaces/" + $cns + "/" + $res + "/" + $nm) end) } ]
     - name: resources
@@ -110,7 +110,10 @@ spec:
                       else "pending" end),
               healthPercent: (if $noconds or ($ready and ($unsynced|not)) then 100
                               elif $ready and $unsynced then 70
-                              elif $notready then 20 else 50 end)
+                              elif $notready then 20 else 50 end),
+              # IA followup F5: only composition.krateo.io children drill into the existing
+              # /compositions/{ns}/{name} detail; core-k8s / CD children emit "" (row inert).
+              navHref: (if ($m._group == "composition.krateo.io") then ("/compositions/" + $m._cns + "/" + $m._name) else "" end)
             } )
       ) as $rows
     | ($rows | length) as $total
