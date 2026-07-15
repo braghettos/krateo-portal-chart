@@ -1,0 +1,44 @@
+# The published-blueprints registry — ONE row per Autopilot-authored blueprint, off
+# blueprint-builder-deliverables. Columns: Blueprint (chart) / Pull request title /
+# Version / Status chip (Registered=green, Reconciling=gold, In review=blue) / PR # /
+# Published age. Rows are LINKABLE: rowNavigateTo lands on the blueprint detail page
+# (/blueprints/{ns}/{chart}) — the {ns} + {chart} tokens resolve from the row's cells
+# (ns rides as a hidden cell, bound to no column). A merged+registered blueprint opens
+# its detail; an in-review one still links (detail shows not-found until CI registers it).
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: blueprint-builder-deliverables
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: small
+    rowNavigateTo: /blueprints/{ns}/{chart}
+    pagination:
+      defaultPageSize: 15
+    columns:
+    - valueKey: chart
+      title: Blueprint
+    - valueKey: title
+      title: Pull request
+    - valueKey: version
+      title: Version
+    - valueKey: status
+      title: Status
+    - valueKey: pr
+      title: PR
+    - valueKey: age
+      title: Published
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"chart",kind:"jsonSchemaType",type:"string",stringValue:(.chart // "")}, {valueKey:"title",kind:"jsonSchemaType",type:"string",stringValue:(.title // "")}, {valueKey:"version",kind:"jsonSchemaType",type:"string",stringValue:(.version // "—"),color:"#8c8c8c"}, {valueKey:"status",kind:"tag",stringValue:(.status // "In review"),color:(.statusColor // "blue")}, {valueKey:"pr",kind:"jsonSchemaType",type:"string",stringValue:(.pr // ""),color:"#8c8c8c"}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:(.age // ""),format:"relative"}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:(.ns // "")} ] ] }'
+  apiRef:
+    name: blueprint-builder-deliverables
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []
