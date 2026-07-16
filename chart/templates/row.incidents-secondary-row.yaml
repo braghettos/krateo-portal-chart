@@ -1,6 +1,8 @@
-# /incidents secondary band — the two alert-signal panels that moved here in the IA split
-# (page-observability keeps only platform health): the per-alert Autopilot continuation
-# feed (left) and the HyperDX alert-rules table (right).
+# /incidents secondary band — the per-alert Autopilot investigation feed (full width).
+# The alert-RULES table (config: thresholds/intervals, incl. quiet OK rules) moved OFF this
+# triage surface to the dedicated /alerts page (IA incidents-deepdive D/4) — a rule is config,
+# not an incident. /incidents keeps only the firing signal (awaiting strip, above) + this
+# investigation-history feed.
 kind: Row
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,20 +17,12 @@ spec:
     alignment: top
     items:
     - resourceRefId: obs-troubleshooting-card
-      size: 12
-    - resourceRefId: obs-alerts-card
-      size: 12
+      size: 24
   resourcesRefs:
     items:
     - id: obs-troubleshooting-card
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-troubleshooting-card
-      namespace: {{ .Release.Namespace }}
-      resource: cards
-      verb: GET
-    - id: obs-alerts-card
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-alerts-card
       namespace: {{ .Release.Namespace }}
       resource: cards
       verb: GET

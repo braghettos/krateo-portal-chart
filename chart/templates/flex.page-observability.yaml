@@ -28,28 +28,26 @@ spec:
     - resourceRefId: obs-sec-reconciliation-label
     - resourceRefId: obs-sec-reconciliation-desc
     - resourceRefId: obs-stats-row
-    # The reconciliation rail is the DASHBOARD's rail-row, reused verbatim: the obs copy
-    # (row.obs-rail-row → card.obs-rail-card → list.obs-rail-list) was byte-identical, so
-    # the obs page now references the shared CRs. Their keyExtras ([projects, q, status])
-    # exclude `range`, so both pages share the same cache cells.
-    - resourceRefId: rail-row
-    - resourceRefId: obs-health-row
     - resourceRefId: obs-distribution-row
-    # — Performance —
+    # — Performance — (reconcile-trace telemetry: throughput/latency/percentiles/phases).
+    # HONESTY GUARD (IA obs-deepdive): this whole group is backed by otel_traces +
+    # otel_metrics_histogram, which are emitted ONLY by the composition-dynamic-controller.
+    # On a cluster without the CDC + its OTel tracing pipeline those tables are permanently
+    # empty, so the group would render fabricated zeros. Default HIDDEN — opt in with
+    # `observability.reconcileTracing: true` on clusters that actually emit reconcile traces.
+    {{- if (.Values.observability | default dict).reconcileTracing }}
     - resourceRefId: obs-sec-performance-label
     - resourceRefId: obs-sec-performance-desc
     - resourceRefId: obs-telemetry-row
+    - resourceRefId: obs-perf-phases-row
     - resourceRefId: obs-latency-row
     - resourceRefId: obs-perf-stat-row
-    - resourceRefId: obs-perf-phases-row
-    # — Logs —
+    {{- end }}
+    # — Telemetry —
     - resourceRefId: obs-sec-logs-label
     - resourceRefId: obs-sec-logs-desc
     - resourceRefId: obs-errors-row
     - resourceRefId: obs-log-stream-row
-    # — Resources —
-    - resourceRefId: obs-sec-resources-label
-    - resourceRefId: obs-sec-resources-desc
     - resourceRefId: obs-resource-row
   resourcesRefs:
     items:
@@ -83,24 +81,13 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
-    - id: rail-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: rail-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-health-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-health-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
     - id: obs-distribution-row
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-distribution-row
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
+    {{- if (.Values.observability | default dict).reconcileTracing }}
     - id: obs-sec-performance-label
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-sec-performance-label
@@ -137,6 +124,7 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: rows
       verb: GET
+    {{- end }}
     - id: obs-sec-logs-label
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-sec-logs-label
@@ -160,18 +148,6 @@ spec:
       name: obs-log-stream-row
       namespace: {{ .Release.Namespace }}
       resource: rows
-      verb: GET
-    - id: obs-sec-resources-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-resources-label
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-sec-resources-desc
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-resources-desc
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
       verb: GET
     - id: obs-resource-row
       apiVersion: widgets.templates.krateo.io/v1beta1

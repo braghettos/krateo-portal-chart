@@ -67,7 +67,16 @@ spec:
             clusters: {
               type: "array",
               title: "Target clusters",
-              description: "One CompositionDefinition is created per selected cluster, each deploying this blueprint on that cluster (spec.deploy.targetRef). Pick \"local\" to deploy on this (hub) cluster with no targetRef.",
+              # Guidance is CONDITIONAL: when no spokes are registered the only option is the
+              # "local" hub sentinel, so tell the user how to unlock a real fleet rollout
+              # (CTA-audit M2 — fresh-install "why only local?" dead-end). Live-list driven, no
+              # hardcoding: the note appears iff $targetNames is empty.
+              description: (
+                (if ($targetNames | length) == 0
+                 then "No spoke clusters are registered yet — only this hub (\"local\") is available. Register a cluster (Clusters → Register cluster) to fan a blueprint out across your fleet. "
+                 else "" end)
+                + "One CompositionDefinition is created per selected cluster, each deploying this blueprint on that cluster (spec.deploy.targetRef). Pick \"local\" to deploy on this (hub) cluster with no targetRef."
+              ),
               items: { type: "string", enum: $clusterEnum }
             },
             chart: {

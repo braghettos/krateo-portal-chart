@@ -34,10 +34,27 @@ spec:
       # (lifecycle chips, gated remediation on the detail pages). Alerts + the Autopilot
       # troubleshooting feed moved here from /observability in the IA split.
       - { label: Incidents,    icon: fa-triangle-exclamation, order: 5, path: /incidents, resourceRefId: incidents }
+      # Alerts → page-alerts (IA D/4): the alerting CONFIGURATION surface — the alert-rules
+      # table (thresholds/intervals/state). Rules are config, not incidents, so they moved off
+      # the /incidents triage page to here; /incidents keeps only firing signal + investigation.
+      - { label: Alerts,       icon: fa-bell,         order: 6, path: /alerts,       page: alerts }
       # Blueprints → page-blueprints (header + the now-selectable catalog table).
-      - { label: Blueprints,   icon: fa-layer-group,  order: 6, path: /blueprints,   resourceRefId: blueprints }
-      - { label: Marketplace,  icon: fa-store,        order: 7, path: /marketplace,  resourceRefId: marketplace }
-      - { label: Settings,     icon: fa-gear,         order: 8, path: /settings,     resourceRefId: settings }
+      - { label: Blueprints,   icon: fa-layer-group,  order: 7, path: /blueprints,   resourceRefId: blueprints }
+      - { label: Marketplace,  icon: fa-store,        order: 8, path: /marketplace,  resourceRefId: marketplace }
+      - { label: Settings,     icon: fa-gear,         order: 9, path: /settings,     resourceRefId: settings }
+      # The Autopilot builders — three sibling deliverables surfaces, each = how-it-works +
+      # its previously-published deliverables (linkable) + an empty-state rail CTA. The
+      # authoring flow itself lives in the Autopilot rail; these pages show what it produced.
+      #   Portal Builder (CHART-P1)   → in-flight builder pull requests (all repos).
+      #   Blueprint Builder           → authored blueprints (PR ⋈ CompositionDefinition); each
+      #                                 row links to /blueprints/<ns>/<chart>.
+      #   API Builder (KOG, CHART-K1) → the RestDefinition registry (generated API kinds).
+      - { label: Portal Builder,    icon: fa-hammer,    order: 10, path: /portal-builder,    page: portal-builder }
+      - { label: Blueprint Builder, icon: fa-pen-ruler, order: 11, path: /blueprint-builder, page: blueprint-builder }
+      - { label: API Builder,       icon: fa-plug,      order: 12, path: /kog-builder,        page: kog-builder }
+      # (Builder Demo removed from the portal nav — the Autopilot-authored demo page is being
+      #  re-homed as its OWN composition alongside the portal composition, not baked into the
+      #  portal chart. Its page-builderdemo CRs + the /builderdemo route move out with it.)
       # route-only (no label → hidden). /search renders the search-results List; its
       # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
       - { order: 800, path: /search, resourceRefId: search-results }
@@ -76,11 +93,24 @@ spec:
       # form (Role + RoleBinding in ONE gated ops[] submit) + managed-grant revoke.
       # {username} + the ?ns= scope ride through as extras to every RA on the page.
       - { order: 950, path: "/settings/access/{username}", page: access-detail }
-      # KOG builder — the RestDefinition registry + post-publish verification surface
-      # (w4-kog-builder spec §2.5). Route-only/hidden: Autopilot navigates here after a
-      # gated publish (and the empty-state ?ask= CTA lands here too); a visible
-      # author-gated "Builders" nav entry is deferred to the W3-2 grants model.
-      - { order: 951, path: /kog-builder, page: kog-builder }
+      # Generic resource-view (IA F5-full) — the last-mile drill target for ANY k8s object
+      # (composition composed-children of non-composition kinds, incident analyzedResources).
+      # Route-only/hidden. The 5 segments ride through as extras; restaction.resource-detail
+      # DISCOVERS namespaced vs cluster-scoped from the apiserver, so the {namespace} segment is
+      # a filler for cluster-scoped kinds (pass "cluster"). group "core" → the core API group.
+      - { order: 960, path: "/resources/{namespace}/{group}/{version}/{plural}/{name}", page: resource-detail }
+      # (The /kog-builder route is now the visible "API Builder" nav entry above, order 11.
+      #  Autopilot still deep-links here after a gated publish / from the empty-state ?ask= CTA.)
+      # Builder-published pages (#106) — each Autopilot-authored page drops a nav fragment at
+      # files/nav-fragments/<slug>.yaml ({ item: {<nav entry>} }). The Portal builder writes it as
+      # part of the publish PR, so the sidebar entry ships WITH the page — no manual menu edit.
+      # Builder pages use the page:<slug> convention (resolves flexes/page-<slug>), so a fragment
+      # needs ONLY the `item` (no resourcesRefs entry). Glob over an empty/absent dir is a no-op.
+      {{- range $path, $_ := (.Files.Glob "files/nav-fragments/*.yaml") }}
+      {{- with ((($.Files.Get $path) | fromYaml).item) }}
+      - {{ . | toJson }}
+      {{- end }}
+      {{- end }}
   resourcesRefs:
     items:
       - id: dashboard

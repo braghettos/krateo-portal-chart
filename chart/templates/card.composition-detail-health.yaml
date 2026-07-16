@@ -13,6 +13,8 @@ spec:
   keyExtras: [name, namespace]
   widgetData:
     title: Conditions
+    titleVariant: eyebrow
+    variant: outlined
     items:
       - resourceRefId: list-composition-detail-conditions
   resourcesRefs:

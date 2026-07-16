@@ -11,7 +11,7 @@ spec:
   keyExtras: [name, namespace]
   widgetData:
     vertical: true
-    gap: small
+    gap: middle
     allowedResources:
       - cards
     items:

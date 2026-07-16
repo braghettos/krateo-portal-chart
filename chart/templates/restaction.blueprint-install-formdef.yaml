@@ -20,7 +20,14 @@ spec:
       verb: GET
       headers:
         - 'Accept: application/json'
-    # The helm index — used only to pre-fill chart.{url,repo,version} for the selected blueprint.
+    # The helm indexes — used only to pre-fill chart.{url,repo,version} for the selected item.
+    # The marketplace lists items from TWO braghettos helm-repo indexes: /charts/blueprints
+    # (CompositionDefinition blueprints) AND /charts/operators (Kubernetes operators, e.g.
+    # the ACK ec2-chart). Both must be fetched here or an OPERATOR name (not present in the
+    # blueprints index) resolves to an empty $entry → empty url/version → the empty-prune in
+    # form.blueprint-install leaves spec.chart={repo:"<name>"}, which the CD CRD rejects
+    # (chart.url is REQUIRED) → the install silently produces NO CompositionDefinition. Mirror
+    # the two-index fetch of restaction.blueprints-catalog so the pre-fill covers both sources.
     - name: catalog
       endpointRef:
         name: blueprints-endpoint
@@ -31,6 +38,16 @@ spec:
         - 'Accept: application/x-yaml, text/yaml, application/json'
       continueOnError: true
       errorKey: catalogError
+    - name: operators
+      endpointRef:
+        name: blueprints-endpoint
+        namespace: {{ .Release.Namespace }}
+      path: /charts/operators/index.yaml
+      verb: GET
+      headers:
+        - 'Accept: application/x-yaml, text/yaml, application/json'
+      continueOnError: true
+      errorKey: operatorsError
     # Namespaces the user may create CompositionDefinitions in → the Namespace select's enum
     # (UAF SubjectAccessReview, mirrors blueprint-formdef).
     - name: namespaces
@@ -76,7 +93,17 @@ spec:
     | (.name // "") as $bp
     | .namespaces as $namespaces
     | ((.targets // []) | map(select(. != null and . != ""))) as $targetNames
-    | (((.catalog.entries[$bp]?) // [])[0]) as $entry
+    # Resolve the selected item across BOTH helm indexes (blueprints first, then operators).
+    # A helm-repo entry carries urls[0] = the full .tgz URL and version. The core-provider
+    # ChartInfo convention (verified in braghettos-core-provider types.go + composition.go:
+    # Reconcile is called with URL=chart.url, ChartName=chart.repo, ChartVersion=chart.version)
+    # for a helm-repo-INDEX install is: chart.url = the repo BASE URL (tgz filename stripped),
+    # chart.repo = the chart NAME, chart.version = the version. That is exactly what the
+    # marketplace catalog's installed-join keys on (restaction.blueprints-catalog). So for an
+    # operator like ec2-chart this yields url=https://braghettos.github.io/charts/operators,
+    # repo=ec2-chart, version=1.15.2 — a well-formed CD (chart.url is non-empty, so it survives
+    # the form's empty-prune and satisfies the CRD's required:[url]).
+    | (((.catalog.entries[$bp]?) // (.operators.entries[$bp]?) // [])[0]) as $entry
     | ($entry.version // "") as $ver
     | (($entry.urls[0]? // "") | sub("/[^/]+$"; "")) as $repoUrl
     | {

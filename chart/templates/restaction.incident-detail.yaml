@@ -101,7 +101,26 @@ spec:
                  ("phase " + $phase),
                  (if $conf != "—" then ("confidence " + $conf) else empty end) ] | join("  ·  ")),
         confidence: $conf,
-        analyzedRows: ($analyzed | map({ gvr: (.gvr // ""), name: (.name // ""), namespace: (.namespace // ""), what: (.whatWasRead // "") })),
+        # IA F6-full: every analyzed resource drills into the generic /resources view (the
+        # last-mile is closed for ALL kinds, not just compositions). gvr is "group/version/plural"
+        # (3-part) or "version/plural" (2-part core). aNs="cluster" for cluster-scoped rows (empty
+        # namespace); resource-detail re-discovers the real scope. Unparseable rows emit "" → the
+        # Table's buildRowPath finds a missing token → the row stays inert (no 404). Per-segment
+        # cells (not one full-path token) because the Table URI-encodes each interpolated cell.
+        analyzedRows: ($analyzed | map(
+            ((.gvr // "") | split("/")) as $parts
+            | (if ($parts | length) >= 3 then ($parts[0] // "") else "core" end) as $grp
+            | (if ($parts | length) >= 3 then ($parts[1] // "v1") else ($parts[0] // "v1") end) as $ver
+            | ($parts[-1] // "") as $plural
+            | (.name // "") as $nm
+            | (.namespace // "") as $ns
+            | (($nm != "") and ($plural != "")) as $ok
+            | { gvr: (.gvr // ""), name: $nm, namespace: $ns, what: (.whatWasRead // ""),
+                aNs: (if $ok then (if $ns != "" then $ns else "cluster" end) else "" end),
+                aGrp: (if $ok then $grp else "" end),
+                aVer: (if $ok then $ver else "" end),
+                aPlural: (if $ok then $plural else "" end),
+                aName: (if $ok then $nm else "" end) })),
         evidenceDesc: ("what the agent read, verbatim — " + (($sources | length) | tostring) + " sources · " + (($analyzed | length) | tostring) + " analyzed resources"),
         evidenceMd: ($sources | to_entries | map("**#" + ((.key + 1) | tostring) + " · " + ((.value.type // "object") | ascii_upcase) + "**" + (if (.value.ref // "") != "" then (" — `" + .value.ref + "`") else "" end) + "\n\n```\n" + (.value.excerpt // "") + "\n```") | join("\n\n")),
         gapsText: (($gaps | join("  •  ")) + (if ($assump | length) > 0 then ((if ($gaps | length) > 0 then "   —   " else "" end) + "Assumed: " + ($assump | join("  •  "))) else "" end)),
@@ -113,7 +132,19 @@ spec:
         remSteps: $remSteps,
         remediationDesc: ((($plan | length) | tostring) + " ordered steps · every apply rides the blast-radius gate" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
         similar: $similar,
-        proseMd: (if $structured then "" elif ($st.report // "") != "" then $st.report elif ($st.error // "") != "" then ("**Analysis failed** — " + $st.error) else "_Analysis in progress — the investigation will appear here when the Autopilot run completes._" end),
+        # HONESTY (IA incidents-deepdive): a FAILED run must not be dressed up as analysis.
+        # The old ladder showed $st.report BEFORE $st.error — but a failed run leaves the raw
+        # provider error (e.g. "400 Bad Request … token count exceeds the maximum …") in
+        # status.report AND a truthful status.error. So: if the run recorded an error, OR the
+        # report body IS a provider-error dump, surface the honest failure — never the dump.
+        proseMd: (
+          ($st.report // "") as $rpt
+          | ($st.error // "") as $err
+          | (($rpt | test("Bad Request|token count|exceeds the maximum|no output|^ *[0-9][0-9][0-9] ")) or ($err != "")) as $failed
+          | if $structured then ""
+            elif $failed then ("**Analysis could not complete.** " + (if $err != "" then $err else "The investigation returned a provider error instead of a report; re-run the analysis from the Autopilot rail." end))
+            elif ($rpt != "") then $rpt
+            else "_Analysis in progress — the investigation will appear here when the Autopilot run completes._" end),
         sections: {
           evidence: ((($analyzed | length) > 0) or (($sources | length) > 0)),
           analyzed: (($analyzed | length) > 0),

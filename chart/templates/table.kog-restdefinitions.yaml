@@ -4,9 +4,11 @@
 # surface Autopilot lands on after a gated publish ("is it ready?" answers straight
 # from these cells via page context). Rows are INERT — no rowNavigateTo: CHART-K1
 # ships no RestDefinition detail page (the create Form + any drill-down are the
-# deferred CHART-K2). readyReason + auth ride as hidden cells (bound to no column):
-# invisible in the grid, but present in page context so the agent can ground
-# "why Failed?" and the day-2 "configure credentials for <Kind>" hint.
+# deferred CHART-K2). readyReason now surfaces as its own "Reason" column (a blank
+# Ready cell is a dead-end otherwise — CTA-audit K1: "why Failed?" was invisible in
+# the grid); auth rides as a hidden cell (bound to no column): invisible in the grid,
+# but present in page context so the agent can ground the day-2 "configure
+# credentials for <Kind>" hint.
 kind: Table
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -28,6 +30,8 @@ spec:
       title: Namespace
     - valueKey: ready
       title: Ready
+    - valueKey: readyReason
+      title: Reason
     - valueKey: gvk
       title: Generated kind
     - valueKey: oasPath

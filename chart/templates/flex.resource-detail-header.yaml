@@ -1,0 +1,27 @@
+# /resources page head — eyebrow (apiVersion) + H1 (Kind · name) + subtitle stack.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: resource-detail-header
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - paragraphs
+    vertical: true
+    items:
+    - resourceRefId: resource-detail-eyebrow
+    - resourceRefId: resource-detail-title
+    - resourceRefId: resource-detail-subtitle
+  resourcesRefs:
+    items:
+    {{- range (list "resource-detail-eyebrow" "resource-detail-title" "resource-detail-subtitle") }}
+    - id: {{ . }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: {{ . }}
+      namespace: {{ $.Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    {{- end }}

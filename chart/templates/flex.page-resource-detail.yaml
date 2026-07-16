@@ -1,0 +1,46 @@
+# Convention page root for /resources/{namespace}/{group}/{version}/{plural}/{name} — the
+# GENERIC resource-view (IA F5-full). The last-mile drill target for any Kubernetes object:
+# composition composed-children (non-composition kinds), incident analyzedResources, etc.
+# Header (apiVersion / Kind · name / namespace|cluster-scoped) + conditions (hidden when the
+# kind has none) + the full object manifest. All data from restaction.resource-detail, whose
+# scope is discovered structurally from the apiserver (namespaced vs cluster-scoped).
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-resource-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  keyExtras: [namespace, group, version, plural, name]
+  widgetData:
+    allowedResources:
+    - flexes
+    - listies
+    - cards
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: resource-detail-header
+    - resourceRefId: resource-detail-conditions
+    - resourceRefId: card-resource-detail-manifest
+  resourcesRefs:
+    items:
+    - id: resource-detail-header
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: resource-detail-header
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: resource-detail-conditions
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: resource-detail-conditions
+      namespace: {{ .Release.Namespace }}
+      resource: listies
+      verb: GET
+    - id: card-resource-detail-manifest
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: card-resource-detail-manifest
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET

@@ -10,6 +10,6 @@ spec:
   keyExtras: [name, namespace]
   widgetData:
     text: New composition
-    strong: true
+    level: 1
   resourcesRefs:
     items: []

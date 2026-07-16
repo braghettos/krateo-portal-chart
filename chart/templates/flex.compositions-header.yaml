@@ -1,7 +1,9 @@
 # Compositions head row — title+subtitle stack on the left, the primary
-# "New composition" CTA on the right (mockup layout). justify space-between pushes
-# the button to the far edge.
-kind: Flex
+# "New composition" CTA right-aligned (mockup layout). Uses the SAME Row/Col grid as the
+# dashboard header-row (title col size 16 + actions col size 8, button `alignment: right`)
+# so the CTA pins to the far edge reliably — a bare Flex `justify: space-between` only
+# right-aligns when the header stretches full-width, which was inconsistent here.
+kind: Row
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: compositions-header
@@ -15,11 +17,13 @@ spec:
     allowedResources:
     - flexes
     - buttons
-    justify: space-between
-    align: center
+    alignment: middle
     items:
     - resourceRefId: compositions-title-stack
+      size: 16
     - resourceRefId: new-composition
+      size: 8
+      alignment: right
   resourcesRefs:
     items:
     - id: compositions-title-stack

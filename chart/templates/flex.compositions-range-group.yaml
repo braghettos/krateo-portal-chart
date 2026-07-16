@@ -1,7 +1,11 @@
-# Time-range chip group + custom range picker (right side of the compositions toolbar).
-# The preset chips (24h/7d/30d/all) and the custom from/to RangePicker both drive the
-# same compositions-list time window via the URL; the picker (comp-date-range) sets
-# ?from/?to which take precedence over a preset ?range.
+# SUPERSEDED / UNREFERENCED — the compositions toolbar was decluttered to match the mockup
+# (search + status chips only). This Flex used to hold the time-range apparatus (preset
+# chips 24h/7d/30d/all + the custom from/to comp-date-range RangePicker) plus the search
+# box, and was referenced by compositions-toolbar. The time-range controls were removed and
+# the search is now referenced DIRECTLY by compositions-toolbar, so nothing references this
+# Flex anymore. Kept as an empty, inert widget (no items → renders nothing) rather than
+# deleted, mirroring how the compositions-range-chips / comp-date-range CRs are left in place
+# but unreferenced. Safe to delete later.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -20,29 +24,6 @@ spec:
     gap: small
     align: center
     wrap: true
-    items:
-    # The four comp-range-btn-* Buttons collapsed into ONE data-driven Listy(chip)
-    # (widget-sprawl collapse) — same targets, default and active logic.
-    - resourceRefId: compositions-range-chips
-    - resourceRefId: comp-date-range
-    - resourceRefId: comp-search
+    items: []
   resourcesRefs:
-    items:
-    - id: compositions-range-chips
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: compositions-range-chips
-      namespace: {{ .Release.Namespace }}
-      resource: listies
-      verb: GET
-    - id: comp-date-range
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: comp-date-range
-      namespace: {{ $.Release.Namespace }}
-      resource: rangepickers
-      verb: GET
-    - id: comp-search
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: compositions-search
-      namespace: {{ $.Release.Namespace }}
-      resource: inputs
-      verb: GET
+    items: []

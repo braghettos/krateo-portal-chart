@@ -1,0 +1,13 @@
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: portal-builder-note
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: "Ask Autopilot to build a new page, blueprint, or API mapping. It previews the draft live, then publishes it as a gated pull request to the platform's git repos. Your in-flight builder pull requests are listed below."
+    type: secondary
+  resourcesRefs:
+    items: []

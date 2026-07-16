@@ -17,15 +17,17 @@ spec:
   keyExtras: [name, namespace]
   widgetData:
     allowedResources:
+      - cards
       - flexes
-      - forms
       - steps
     vertical: true
     gap: large
     items:
       - resourceRefId: create-header
       - resourceRefId: create-wizard
-      - resourceRefId: blueprint-form
+      # The Form is now wrapped in an outlined "Configuration" Card (create-form-card)
+      # so it reads as a bounded panel under the stepper, not an edge-to-edge band.
+      - resourceRefId: create-form-card
   resourcesRefs:
     items:
       - id: create-header
@@ -40,9 +42,9 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: steps
         verb: GET
-      - id: blueprint-form
+      - id: create-form-card
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: blueprint-create
+        name: create-form-card
         namespace: {{ .Release.Namespace }}
-        resource: forms
+        resource: cards
         verb: GET

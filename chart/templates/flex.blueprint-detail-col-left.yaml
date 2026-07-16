@@ -1,4 +1,5 @@
-# Left column (wider): the Details card (chart / versions / status / synced / created).
+# Left column (wider): the Details card (chart / versions / status / synced / created)
+# + the Running compositions card (the blueprint's live instances — IA followup F1).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -16,11 +17,18 @@ spec:
       - cards
     items:
       - resourceRefId: card-blueprint-detail-info
+      - resourceRefId: card-blueprint-detail-compositions
   resourcesRefs:
     items:
       - id: card-blueprint-detail-info
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: card-blueprint-detail-info
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-blueprint-detail-compositions
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-blueprint-detail-compositions
         namespace: {{ .Release.Namespace }}
         resource: cards
         verb: GET

@@ -23,6 +23,9 @@ spec:
     allowedResources: []
     bordered: false
     size: middle
+    # Row click → the user's access-detail page (CTA-audit S1: the Users table was a
+    # dead-end — informational only, no drill-in). {name} = the username cell.
+    rowNavigateTo: /settings/access/{name}
     columns:
     - valueKey: name
       title: User

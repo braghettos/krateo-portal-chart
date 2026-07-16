@@ -96,8 +96,21 @@ spec:
           created: (.metadata.creationTimestamp // ""),
           images: [ (.spec.containers // [])[] | ((.image // "") | split("/") | last) ]
         } ],
+        # IA F7: per-event deep-link into the generic resource-view. The narrowed
+        # involvedObject set here is a CLOSED, KNOWN kind set — this Deployment, its
+        # ReplicaSets, its live pods — all in {{ .Release.Namespace }}. Their plurals
+        # are reliably known (static k8s API scoping, exactly like the $kindMap in
+        # composition-resources), so /resources/{ns}/{group}/{version}/{plural}/{name}
+        # is derivable WITHOUT guessing a plural. Any event whose kind is not in this
+        # closed map gets route "" and stays inert (nothing fabricated).
         events: ([ (.events // [])[]
           | .obj as $o
-          | select(($o != "") and (($o == $n) or ($podNames | any(. == $o)) or ($rsNames | any(. == $o)))) ]
+          | select(($o != "") and (($o == $n) or ($podNames | any(. == $o)) or ($rsNames | any(. == $o))))
+          | . + { route: (
+              ({"Deployment": "apps/v1/deployments", "ReplicaSet": "apps/v1/replicasets", "Pod": "core/v1/pods"}[.kind] // "") as $gvp
+              | if $gvp == "" then ""
+                else ($gvp | split("/")) as $s
+                  | ("/resources/{{ .Release.Namespace }}/" + $s[0] + "/" + $s[1] + "/" + $s[2] + "/" + $o)
+                end) } ]
           | sort_by(.ts) | reverse | .[0:20])
       }

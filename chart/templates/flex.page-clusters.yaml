@@ -12,6 +12,7 @@ spec:
   widgetData:
     allowedResources:
     - flexes
+    - rows
     - tables
     vertical: true
     gap: middle
@@ -24,7 +25,7 @@ spec:
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: clusters-header
       namespace: {{ .Release.Namespace }}
-      resource: flexes
+      resource: rows
       verb: GET
     - id: clusters-table
       apiVersion: widgets.templates.krateo.io/v1beta1

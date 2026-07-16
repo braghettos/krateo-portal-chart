@@ -59,6 +59,11 @@ spec:
             | ($p[-2]) as $res | ($p[-1]) as $nm | ($p[0:-2] | join("/")) as $pre
             | ($clusterKinds | index($res)) as $cluster
             | { _cn: $cn, _cns: $cns, _kind: $res, _name: $nm,
+                # Real group/version for the resource-view route ($p[1] = "api" for the core group
+                # → group "core", version $p[2]; "apis" → group $p[2], version $p[3]) + cluster-scope.
+                _grp: (if ($p[1] // "") == "apis" then ($p[2] // "") else "core" end),
+                _ver: (if ($p[1] // "") == "apis" then ($p[3] // "v1") else ($p[2] // "v1") end),
+                _cluster: ($cluster != null),
                 _getpath: (if $cluster != null then $m.path
                            else ($pre + "/namespaces/" + $cns + "/" + $res + "/" + $nm) end) } ]
     - name: resources
@@ -110,7 +115,14 @@ spec:
                       else "pending" end),
               healthPercent: (if $noconds or ($ready and ($unsynced|not)) then 100
                               elif $ready and $unsynced then 70
-                              elif $notready then 20 else 50 end)
+                              elif $notready then 20 else 50 end),
+              # IA F5 + F5-full: composition.krateo.io children drill into the first-class
+              # /compositions detail; EVERY other kind drills into the generic /resources view
+              # (namespaced → its ns; cluster-scoped → the "cluster" filler; core group → "core").
+              # The last-mile is now closed for every managed child, whatever its kind.
+              navHref: (if ($m._grp == "composition.krateo.io")
+                        then ("/compositions/" + $m._cns + "/" + $m._name)
+                        else ("/resources/" + (if $m._cluster then "cluster" else $m._cns end) + "/" + $m._grp + "/" + $m._ver + "/" + $m._kind + "/" + $m._name) end)
             } )
       ) as $rows
     | ($rows | length) as $total

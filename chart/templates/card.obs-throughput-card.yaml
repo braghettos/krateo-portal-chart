@@ -18,9 +18,12 @@ spec:
     extra: 'live · per 10 min'
     items:
     - resourceRefId: obs-reconcile-throughput
+  # HONESTY (IA obs-deepdive): when there are zero reconciles in range ($tot==0) show an
+  # explicit "no reconcile-trace data" instead of "p95 0ms · 0 fail" (which reads as a real
+  # healthy measurement). Otherwise the live p95 + failure count + rate.
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ (.current // {}) as $c | (.failures // 0) as $f | (.successes // 0) as $ok | ($f + $ok) as $tot | "p95 " + (($c.p95_ms // 0)|tostring) + "ms · " + ($f|tostring) + " fail" + (if $tot > 0 then " (" + (($f * 100 / $tot)|floor|tostring) + "%)" else "" end) }'
+    expression: '${ (.current // {}) as $c | (.failures // 0) as $f | (.successes // 0) as $ok | ($f + $ok) as $tot | (if $tot == 0 then "no reconcile-trace data" else ("p95 " + (($c.p95_ms // 0)|tostring) + "ms · " + ($f|tostring) + " fail (" + (($f * 100 / $tot)|floor|tostring) + "%)") end) }'
   apiRef:
     name: obs-reconcile-metrics
     namespace: {{ .Release.Namespace }}
