@@ -95,6 +95,12 @@ spec:
       # form (Role + RoleBinding in ONE gated ops[] submit) + managed-grant revoke.
       # {username} + the ?ns= scope ride through as extras to every RA on the page.
       - { order: 950, path: "/settings/access/{username}", page: access-detail }
+      # Generic resource-view (IA F5-full) — the last-mile drill target for ANY k8s object
+      # (composition composed-children of non-composition kinds, incident analyzedResources).
+      # Route-only/hidden. The 5 segments ride through as extras; restaction.resource-detail
+      # DISCOVERS namespaced vs cluster-scoped from the apiserver, so the {namespace} segment is
+      # a filler for cluster-scoped kinds (pass "cluster"). group "core" → the core API group.
+      - { order: 960, path: "/resources/{namespace}/{group}/{version}/{plural}/{name}", page: resource-detail }
       # (The /kog-builder route is now the visible "API Builder" nav entry above, order 11.
       #  Autopilot still deep-links here after a gated publish / from the empty-state ?ask= CTA.)
       # Builder-published pages (#106) — each Autopilot-authored page drops a nav fragment at
