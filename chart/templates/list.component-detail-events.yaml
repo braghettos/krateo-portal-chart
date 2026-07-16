@@ -21,6 +21,11 @@ spec:
     itemLayout: horizontal
     split: false
     itemTemplate:
+      # IA F7: whole-row click → the involved object's generic resource-view. `route`
+      # is resolved SERVER-SIDE in the component-detail RA (Deployment/ReplicaSet/Pod →
+      # /resources/{ns}/{group}/{version}/{plural}/{name}); events whose kind isn't in
+      # that closed map carry route:"" and stay inert (interpolate() treats "" as falsy).
+      navigateTo: '{route}'
       iconVariant: dot
       color:
         value: '{type}'
@@ -36,6 +41,6 @@ spec:
         subSecondaryText: relative
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.events // []) | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.kind // "") + "/" + (.obj // "")), ts: (.ts // "") }) }'
+      expression: '${ (.events // []) | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.kind // "") + "/" + (.obj // "")), ts: (.ts // ""), route: (.route // "") }) }'
   resourcesRefs:
     items: []

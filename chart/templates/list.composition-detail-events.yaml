@@ -23,6 +23,12 @@ spec:
     itemLayout: horizontal
     split: false
     itemTemplate:
+      # IA F7: whole-row click → the involved object's generic resource-view. `route` is
+      # resolved SERVER-SIDE in the composition-events RA (involvedObject apiVersion+kind →
+      # real plural from the CRD registry / built-in k8s scoping → /resources/{ns}/{group}/
+      # {version}/{plural}/{name}); events whose involvedObject kind can't be resolved to a
+      # plural carry route:"" and stay inert (interpolate() treats "" as falsy).
+      navigateTo: '{route}'
       iconVariant: dot
       color:
         value: '{type}'
@@ -39,6 +45,6 @@ spec:
         subSecondaryText: relative
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.list // []) | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.involvedObject.kind // "") + "/" + (.involvedObject.name // "")), ts: (.lastTimestamp // .firstTimestamp // .eventTime // "") }) }'
+      expression: '${ (.list // []) | map({ message: (.message // ""), reason: (.reason // ""), type: (if (.type // "") == "Warning" then "Warning" else "Normal" end), ref: ((.involvedObject.kind // "") + "/" + (.involvedObject.name // "")), ts: (.lastTimestamp // .firstTimestamp // .eventTime // ""), route: (.route // "") }) }'
   resourcesRefs:
     items: []
