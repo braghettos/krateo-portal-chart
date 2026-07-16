@@ -41,7 +41,14 @@ spec:
         | ([ (.status.analyzedResources // [])[] | select((.gvr // "") | contains("composition")) ] | first) as $comp
         | {
             name: (.metadata.name // ""),
-            namespace: (.metadata.namespace // ""),
+            # namespace is DERIVED from the query namespace (this RA lists a fixed
+            # namespaces/<ns>/troubleshootingreports path), NOT from .metadata.namespace: a
+            # namespace-scoped list omits it per item (redundant with the path) and snowplow
+            # does not backfill it — an empty {namespace} made the incidents-table rowNavigateTo
+            # (/incidents/{namespace}/{name}) resolve empty, so Table.buildRowPath returned
+            # undefined and the row click opened nothing. The literal is honest: these reports
+            # ARE in the release namespace we just queried.
+            namespace: "{{ .Release.Namespace }}",
             title: (if ($rc.statement // "") != "" then $rc.statement elif (.spec.alertName // "") != "" then ("Investigation — " + .spec.alertName) else (.metadata.name // "") end),
             trigger: (.spec.trigger // "alert"),
             lifecycle: $lc,

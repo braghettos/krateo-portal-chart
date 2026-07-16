@@ -52,11 +52,9 @@ spec:
       - { label: Portal Builder,    icon: fa-hammer,    order: 10, path: /portal-builder,    page: portal-builder }
       - { label: Blueprint Builder, icon: fa-pen-ruler, order: 11, path: /blueprint-builder, page: blueprint-builder }
       - { label: API Builder,       icon: fa-plug,      order: 12, path: /kog-builder,        page: kog-builder }
-      # Builder Demo — a portal page AUTHORED by the Autopilot Portal builder and published
-      # end-to-end via the KOG git-write path (PR #37). `page: builderdemo` resolves the
-      # flexes/page-builderdemo convention root. This nav entry is the maintainer step the
-      # builder's PR body requested (the page ships via git; the nav ref is added here).
-      - { label: Builder Demo, icon: fa-wand-magic-sparkles, order: 13, path: /builderdemo, page: builderdemo }
+      # (Builder Demo removed from the portal nav — the Autopilot-authored demo page is being
+      #  re-homed as its OWN composition alongside the portal composition, not baked into the
+      #  portal chart. Its page-builderdemo CRs + the /builderdemo route move out with it.)
       # route-only (no label → hidden). /search renders the search-results List; its
       # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
       - { order: 800, path: /search, resourceRefId: search-results }
