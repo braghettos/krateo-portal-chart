@@ -101,12 +101,26 @@ spec:
                  ("phase " + $phase),
                  (if $conf != "—" then ("confidence " + $conf) else empty end) ] | join("  ·  ")),
         confidence: $conf,
+        # IA F6-full: every analyzed resource drills into the generic /resources view (the
+        # last-mile is closed for ALL kinds, not just compositions). gvr is "group/version/plural"
+        # (3-part) or "version/plural" (2-part core). aNs="cluster" for cluster-scoped rows (empty
+        # namespace); resource-detail re-discovers the real scope. Unparseable rows emit "" → the
+        # Table's buildRowPath finds a missing token → the row stays inert (no 404). Per-segment
+        # cells (not one full-path token) because the Table URI-encodes each interpolated cell.
         analyzedRows: ($analyzed | map(
-            ((.gvr // "") | split("/") | .[0]) as $grp
-            | ($grp == "composition.krateo.io") as $isComp
-            | { gvr: (.gvr // ""), name: (.name // ""), namespace: (.namespace // ""), what: (.whatWasRead // ""),
-                navNs: (if $isComp then (.namespace // "") else "" end),
-                navName: (if $isComp then (.name // "") else "" end) })),
+            ((.gvr // "") | split("/")) as $parts
+            | (if ($parts | length) >= 3 then ($parts[0] // "") else "core" end) as $grp
+            | (if ($parts | length) >= 3 then ($parts[1] // "v1") else ($parts[0] // "v1") end) as $ver
+            | ($parts[-1] // "") as $plural
+            | (.name // "") as $nm
+            | (.namespace // "") as $ns
+            | (($nm != "") and ($plural != "")) as $ok
+            | { gvr: (.gvr // ""), name: $nm, namespace: $ns, what: (.whatWasRead // ""),
+                aNs: (if $ok then (if $ns != "" then $ns else "cluster" end) else "" end),
+                aGrp: (if $ok then $grp else "" end),
+                aVer: (if $ok then $ver else "" end),
+                aPlural: (if $ok then $plural else "" end),
+                aName: (if $ok then $nm else "" end) })),
         evidenceDesc: ("what the agent read, verbatim — " + (($sources | length) | tostring) + " sources · " + (($analyzed | length) | tostring) + " analyzed resources"),
         evidenceMd: ($sources | to_entries | map("**#" + ((.key + 1) | tostring) + " · " + ((.value.type // "object") | ascii_upcase) + "**" + (if (.value.ref // "") != "" then (" — `" + .value.ref + "`") else "" end) + "\n\n```\n" + (.value.excerpt // "") + "\n```") | join("\n\n")),
         gapsText: (($gaps | join("  •  ")) + (if ($assump | length) > 0 then ((if ($gaps | length) > 0 then "   —   " else "" end) + "Assumed: " + ($assump | join("  •  "))) else "" end)),

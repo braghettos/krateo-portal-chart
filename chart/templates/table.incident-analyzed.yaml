@@ -15,11 +15,11 @@ spec:
     allowedResources: []
     bordered: false
     size: small
-    # IA followup F6: composition.krateo.io analyzed rows carry non-empty navNs/navName
-    # (hidden cells, no column) → the row drills into that composition's detail; every other
-    # analyzed kind emits "" → Table buildRowPath returns undefined → the row stays inert
-    # (no 404). The RCA's culprit resource, when it's a composition, is now one click away.
-    rowNavigateTo: /compositions/{navNs}/{navName}
+    # IA F6-full: EVERY analyzed resource drills into the generic /resources view (composition
+    # OR any other kind). The 5 route segments ride as hidden cells (no column); an unparseable
+    # row emits "" for them → Table buildRowPath finds a missing token → the row stays inert (no
+    # 404). Per-segment tokens (not one full-path cell) because the Table URI-encodes each cell.
+    rowNavigateTo: /resources/{aNs}/{aGrp}/{aVer}/{aPlural}/{aName}
     columns:
     - valueKey: gvr
       title: analyzedResources · gvr
@@ -32,7 +32,7 @@ spec:
     dataSource: []
   widgetDataTemplate:
   - forPath: dataSource
-    expression: '${ [ (.analyzedRows // [])[] | [ {valueKey:"gvr",kind:"jsonSchemaType",type:"string",stringValue:(.gvr // "")}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // ""),color:"#8c8c8c"}, {valueKey:"what",kind:"jsonSchemaType",type:"string",stringValue:(.what // ""),color:"#8c8c8c"}, {valueKey:"navNs",kind:"jsonSchemaType",type:"string",stringValue:(.navNs // "")}, {valueKey:"navName",kind:"jsonSchemaType",type:"string",stringValue:(.navName // "")} ] ] }'
+    expression: '${ [ (.analyzedRows // [])[] | [ {valueKey:"gvr",kind:"jsonSchemaType",type:"string",stringValue:(.gvr // "")}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // ""),color:"#8c8c8c"}, {valueKey:"what",kind:"jsonSchemaType",type:"string",stringValue:(.what // ""),color:"#8c8c8c"}, {valueKey:"aNs",kind:"jsonSchemaType",type:"string",stringValue:(.aNs // "")}, {valueKey:"aGrp",kind:"jsonSchemaType",type:"string",stringValue:(.aGrp // "")}, {valueKey:"aVer",kind:"jsonSchemaType",type:"string",stringValue:(.aVer // "")}, {valueKey:"aPlural",kind:"jsonSchemaType",type:"string",stringValue:(.aPlural // "")}, {valueKey:"aName",kind:"jsonSchemaType",type:"string",stringValue:(.aName // "")} ] ] }'
   apiRef:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
