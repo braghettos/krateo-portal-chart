@@ -55,13 +55,14 @@ spec:
     | (if (($ti0 | length) > 0) and (($rc.statement // "") != "") then ($ti0[0:-1] + [ ($ti0[-1] + {status: "error"}) ]) else $ti0 end) as $traceItems
     | ($plan | to_entries | map(
         .key as $i | .value as $s
-        | (($s.verb // "patch") | ascii_downcase) as $vb
-        | (if $vb == "delete" then "DELETE" elif $vb == "create" then "POST" elif ($vb == "put" or $vb == "replace") then "PUT" else "PATCH" end) as $rv
+        | (($s.verb // "") | ascii_downcase) as $vb
+        | (if $vb == "delete" then "DELETE" elif ($vb == "create" or $vb == "post") then "POST" elif ($vb == "put" or $vb == "replace") then "PUT" else "PATCH" end) as $rv
         | (($s.gvr // "") | split("/")) as $g
-        | (if ($g | length) >= 3 then { apiVersion: ($g[0] + "/" + $g[1]), resource: $g[2] } elif ($g | length) == 2 then { apiVersion: $g[0], resource: $g[1] } else { apiVersion: "", resource: "" } end) as $tv
+        | (if ($g | length) >= 3 then { apiVersion: ($g[0] + "/" + $g[1]), resource: $g[2] } else { apiVersion: "", resource: "" } end) as $tv
         | ($s.target.name // "") as $tn
         | ($s.target.namespace // "") as $tns
-        | ($rv + " " + $tv.resource + (if $tn != "" then ("/" + $tn) else "" end) + (if $tns != "" then (" -n " + $tns) else "" end)) as $op
+        | (($tv.resource != "") and ($tn != "") and ($vb != "apply") and ($vb != "install")) as $actionable
+        | (if $actionable then ($rv + " " + $tv.resource + "/" + $tn + (if $tns != "" then (" -n " + $tns) else "" end)) else ("provision " + (if $tn != "" then $tn else "the missing resource" end) + (if $tns != "" then (" -n " + $tns) else "" end) + "  ·  Marketplace self-service") end) as $op
         | {
             i: $i,
             restVerb: $rv,
@@ -71,11 +72,13 @@ spec:
             name: $tn,
             namespace: $tns,
             payload: ($s.payload // {}),
-            danger: ($rv == "DELETE"),
+            actionable: $actionable,
+            navigateTo: "/marketplace",
+            danger: ($rv == "DELETE" and $actionable),
             applied: (($s.observedOutcome // "") != ""),
             headers: (if $rv == "PATCH" then ["Content-Type: application/merge-patch+json"] else ["Content-Type: application/json"] end),
             successMessage: ("Remediation step " + (($i + 1) | tostring) + " submitted — verify: " + ($s.successCriterion // "see plan")),
-            md: ("**" + (($i + 1) | tostring) + ". " + ($s.description // "") + "**\n\n```\n" + $op + (if (($s.payload // {}) | length) > 0 then ("\n" + (($s.payload // {}) | tojson)) else "" end) + "\n```" + (if ($s.successCriterion // "") != "" then ("\n\nsuccessCriterion: **" + $s.successCriterion + "**") else "" end) + (if ($s.observedOutcome // "") != "" then ("\n\n✓ observedOutcome: " + $s.observedOutcome) else "" end))
+            md: ("**" + (($i + 1) | tostring) + ". " + ($s.description // "") + "**\n\n```\n" + $op + (if $actionable and (($s.payload // {}) | length) > 0 then ("\n" + (($s.payload // {}) | tojson)) else "" end) + "\n```" + (if ($s.successCriterion // "") != "" then ("\n\nsuccessCriterion: **" + $s.successCriterion + "**") else "" end) + (if ($s.observedOutcome // "") != "" then ("\n\n✓ observedOutcome: " + $s.observedOutcome) else "" end))
           }
       )) as $remSteps
     | (if ($rc.category // "") != "" then
@@ -130,7 +133,7 @@ spec:
         rootCauseCategory: (if ($rc.category // "") != "" then ("category: " + $rc.category) else "uncategorised" end),
         rootCauseConfidence: (if $conf != "—" then ("confidence " + $conf) else "confidence not declared" end),
         remSteps: $remSteps,
-        remediationDesc: ((($plan | length) | tostring) + " ordered steps · every apply rides the blast-radius gate" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
+        remediationDesc: ((($plan | length) | tostring) + " ordered steps · each is a gated action you review before anything changes" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
         similar: $similar,
         # HONESTY (IA incidents-deepdive): a FAILED run must not be dressed up as analysis.
         # The old ladder showed $st.report BEFORE $st.error — but a failed run leaves the raw

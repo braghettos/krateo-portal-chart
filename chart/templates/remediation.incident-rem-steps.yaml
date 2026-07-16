@@ -90,29 +90,38 @@ spec:
     name: incident-detail
     namespace: {{ $.Release.Namespace }}
   widgetData:
+    # Static fallback (used only if the template can't resolve): a safe navigate to the
+    # Marketplace — never a REST call, so a v1/partial report can't dispatch a broken op.
     label: Review & apply
     icon: fa-shield-halved
     type: primary
     size: small
     clickActionId: rem-apply-{{ $i }}
     actions:
-      rest:
+      navigate:
         - id: rem-apply-{{ $i }}
-          type: rest
-          resourceRefId: rem-target-{{ $i }}-patch
-          headers:
-            - 'Content-Type: application/merge-patch+json'
+          type: navigate
+          path: /marketplace
           loading:
             display: true
   widgetDataTemplate:
-    # DELETE is the only crimson verb (mockup): danger + the whole REST action rebuilt
-    # server-side from the step — verb-keyed target ref, per-verb headers, the step's
-    # payload as the request body, and a successMessage that repeats the successCriterion
-    # (checked, not assumed — the criterion is the operator's verification contract).
+    # Two shapes, chosen server-side from the step's `actionable` flag (incident-detail):
+    #  · actionable (full 3-part gvr + name + a real REST verb) → the gated REST action —
+    #    DELETE is the only crimson verb (danger); the whole action is rebuilt from the step
+    #    (verb-keyed target ref, per-verb headers, payload as body, successMessage echoing the
+    #    successCriterion). Mutating verbs ride the frontend blast-radius HITL gate.
+    #  · NOT actionable (an "apply"/"install" provision intent, or an under-specified gvr with
+    #    no resolvable resource) → a NAVIGATE to the Marketplace: the honest gated path to
+    #    provision a MISSING dependency is self-service, not a PATCH of a resource that doesn't
+    #    exist. Removes the "no resource reference" dispatch error on install-type remediations.
     - forPath: danger
       expression: '${ ((.remSteps // [])[{{ $i }}] // {}).danger // false }'
+    - forPath: label
+      expression: '${ if (((.remSteps // [])[{{ $i }}] // {}).actionable // false) then "Review & apply" else "Provision in Marketplace" end }'
+    - forPath: icon
+      expression: '${ if (((.remSteps // [])[{{ $i }}] // {}).actionable // false) then "fa-shield-halved" else "fa-store" end }'
     - forPath: actions
-      expression: '${ (((.remSteps // [])[{{ $i }}]) // {}) as $s | { rest: [ { id: "rem-apply-{{ $i }}", type: "rest", resourceRefId: ("rem-target-{{ $i }}-" + ($s.verbKey // "patch")), headers: ($s.headers // ["Content-Type: application/json"]), payload: ($s.payload // {}), successMessage: ($s.successMessage // "Remediation step submitted"), loading: { display: true } } ] } }'
+      expression: '${ (((.remSteps // [])[{{ $i }}]) // {}) as $s | (if ($s.actionable // false) then { rest: [ { id: "rem-apply-{{ $i }}", type: "rest", resourceRefId: ("rem-target-{{ $i }}-" + ($s.verbKey // "patch")), headers: ($s.headers // ["Content-Type: application/json"]), payload: ($s.payload // {}), successMessage: ($s.successMessage // "Remediation step submitted"), loading: { display: true } } ] } else { navigate: [ { id: "rem-apply-{{ $i }}", type: "navigate", path: ($s.navigateTo // "/marketplace"), loading: { display: true } } ] } end) }'
   resourcesRefs:
     items: []
   resourcesRefsTemplate:
