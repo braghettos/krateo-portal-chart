@@ -15,7 +15,9 @@ spec:
   widgetData:
     json: "{}"
   widgetDataTemplate:
+    # Fall back to "" (not "{}"): an absent manifest renders the YamlViewer's honest
+    # "No data to display" empty state, not a misleading empty object.
     - forPath: json
-      expression: '${ .manifestJson // "{}" }'
+      expression: '${ .manifestJson // "" }'
   resourcesRefs:
     items: []
