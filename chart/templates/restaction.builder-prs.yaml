@@ -19,10 +19,17 @@ spec:
       continueOnError: true
       errorKey: prsError
   filter: >
-    { rows: [ ((.prs.items) // [])[] | {
-        name:  (.metadata.name // ""),
-        repo:  (((.spec.owner) // "") + "/" + ((.spec.repo) // "")),
-        head:  ((.spec.head) // ""),
-        title: ((.spec.title) // ""),
-        state: ((.status.state) // "pending")
-      } ] }
+    { rows: [ ((.prs.items) // [])[]
+        | (((.spec.owner) // "") + "/" + ((.spec.repo) // "")) as $repo
+        | ((.spec.head) // "") as $head
+        | {
+            name:  (.metadata.name // ""),
+            repo:  $repo,
+            head:  $head,
+            sub:   ($repo + (if $head != "" then (" · " + $head) else "" end)),
+            title: ((.spec.title) // ""),
+            state: ((.status.state) // "pending"),
+            # The GitHub PR URL (status.html_url) — the Listy row's external navigateTo. A PR
+            # with no URL yet (freshly created, pre-reconcile) gets "" → the row is inert.
+            url:   ((.status.html_url) // "")
+          } ] }

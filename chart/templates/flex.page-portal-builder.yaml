@@ -11,7 +11,7 @@ spec:
   widgetData:
     allowedResources:
     - paragraphs
-    - tables
+    - listies
     vertical: true
     gap: middle
     items:
@@ -36,5 +36,5 @@ spec:
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: builder-prs
       namespace: {{ .Release.Namespace }}
-      resource: tables
+      resource: listies
       verb: GET

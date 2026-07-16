@@ -1,0 +1,41 @@
+# In-flight builder pull requests — one row per pullrequests.github.krateo.io CR. Each row is
+# EXTERNALLY LINKABLE: navigateTo carries the PR's status.html_url, and the frontend opens an
+# http(s) target in a new tab (navigateOrExternal, frontend ≥ 1.3.36) — so a click lands on the
+# real GitHub PR. A Listy (not a Table) because the Table URI-encodes each interpolated cell,
+# which would mangle a full URL; the Listy passes navigateTo through verbatim. State dot: open→
+# green, closed→magenta, else gold. A PR with no URL yet (pre-reconcile) is inert.
+kind: Listy
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: builder-prs
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  apiRef:
+    name: builder-prs
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    dataSource: []
+    itemLayout: horizontal
+    split: false
+    header: Select a pull request to open it on GitHub →
+    itemTemplate:
+      navigateTo: '{url}'
+      iconVariant: dot
+      color:
+        value: '{state}'
+        map:
+          open: green
+          closed: magenta
+        default: gold
+      primaryText: '{title}'
+      subPrimaryText: '{sub}'
+      subPrimaryTextMono: true
+      secondaryText: '{state}'
+      secondaryTextAsTag: true
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: '${ .rows // [] }'
+  resourcesRefs:
+    items: []
