@@ -1,0 +1,6 @@
+item:
+  label: Cost Overview
+  icon: fa-coins
+  order: 950
+  path: /cost-overview
+  page: cost-overview
