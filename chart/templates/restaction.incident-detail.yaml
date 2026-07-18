@@ -99,10 +99,14 @@ spec:
         phase: $phase,
         ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) elif ($sp.alertName // "") != "" then ("alerts/" + $sp.alertName) else "—" end),
         refRoute: (if $comp then ("/compositions/" + ($comp.namespace // "") + "/" + ($comp.name // "")) else "" end),
+        # HONESTY: the header meta line is lifecycle metadata only (started/updated/phase).
+        # The raw model `confidence` is deliberately NOT surfaced here — a fabricated NN%
+        # presented as if measured erodes trust. The verdict card states the DETERMINISTIC
+        # basis instead (grounded in N verbatim sources · N analyzed resources). The raw
+        # `confidence: $conf` field below is still emitted for anyone who wants it programmatically.
         meta: ([ (if $started != "" then ("started " + $started) else empty end),
                  (if $updated != "" then ("updated " + $updated) else empty end),
-                 ("phase " + $phase),
-                 (if $conf != "—" then ("confidence " + $conf) else empty end) ] | join("  ·  ")),
+                 ("phase " + $phase) ] | join("  ·  ")),
         confidence: $conf,
         # IA F6-full: every analyzed resource drills into the generic /resources view (the
         # last-mile is closed for ALL kinds, not just compositions). gvr is "group/version/plural"

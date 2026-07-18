@@ -56,7 +56,13 @@ spec:
             ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) else "—" end),
             age: (.metadata.creationTimestamp // ""),
             triggeredAt: (.spec.triggeredAt // .metadata.creationTimestamp // ""),
-            confidence: (((($rc.confidence // "") | (try tonumber catch null))) as $n | if $n != null then ((($n * 100) | round | tostring) + "%") else "—" end),
+            # HONEST GROUNDING (mirrors the detail verdict card): the list surfaces the
+            # DETERMINISTIC evidence basis — the real count of verbatim sources + analyzed
+            # resources the agent read — NOT the model's self-reported "confidence NN%" (false
+            # precision paraded as if measured). Raw confidence is dropped from the UI entirely.
+            grounding: ( ((.status.sources // []) | length) as $sc
+                         | ((.status.analyzedResources // []) | length) as $ac
+                         | if ($sc > 0) or ($ac > 0) then (($sc|tostring) + " src · " + ($ac|tostring) + " res") else "—" end ),
             sevColor: (if $lc == "resolved" then "#8c8c8c" elif ($rc.statement // "") != "" then "#cf1322" else "#d48806" end)
           }
       ) | sort_by(.triggeredAt // "") | reverse) as $rows

@@ -35,11 +35,11 @@ spec:
     - valueKey: age
       title: Age
     - valueKey: conf
-      title: Conf.
+      title: Evidence
     dataSource: []
   widgetDataTemplate:
   - forPath: dataSource
-    expression: '${ [ (.rows // [])[] | [ {valueKey:"sev",kind:"jsonSchemaType",type:"string",stringValue:"●",color:(.sevColor // "#8c8c8c")}, {valueKey:"title",kind:"jsonSchemaType",type:"string",stringValue:(.title // "")}, {valueKey:"trigger",kind:"tag",stringValue:(.trigger // "alert"),color:"gray"}, {valueKey:"ref",kind:"jsonSchemaType",type:"string",stringValue:(.ref // "—"),color:"#8c8c8c"}, {valueKey:"lifecycle",kind:"tag",stringValue:(.lifecycle // "open"),color:((.lifecycle // "open") | if . == "open" then "red" elif . == "mitigated" then "orange" else "cyan" end)}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:(.age // ""),format:"relative"}, {valueKey:"conf",kind:"jsonSchemaType",type:"string",stringValue:(.confidence // "—")}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // "")} ] ] }'
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"sev",kind:"jsonSchemaType",type:"string",stringValue:"●",color:(.sevColor // "#8c8c8c")}, {valueKey:"title",kind:"jsonSchemaType",type:"string",stringValue:(.title // "")}, {valueKey:"trigger",kind:"tag",stringValue:(.trigger // "alert"),color:"gray"}, {valueKey:"ref",kind:"jsonSchemaType",type:"string",stringValue:(.ref // "—"),color:"#8c8c8c"}, {valueKey:"lifecycle",kind:"tag",stringValue:(.lifecycle // "open"),color:((.lifecycle // "open") | if . == "open" then "red" elif . == "mitigated" then "orange" else "cyan" end)}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:(.age // ""),format:"relative"}, {valueKey:"conf",kind:"jsonSchemaType",type:"string",stringValue:(.grounding // "—"),color:"#8c8c8c"}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // "")} ] ] }'
   apiRef:
     name: incidents-list
     namespace: {{ .Release.Namespace }}
