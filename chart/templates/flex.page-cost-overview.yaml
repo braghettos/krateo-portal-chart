@@ -1,0 +1,29 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: page-cost-overview
+  namespace: krateo-system
+spec:
+  widgetData:
+    allowedResources:
+      - paragraphs
+      - tables
+    vertical: true
+    gap: middle
+    items:
+      - resourceRefId: cost-overview-heading
+      - resourceRefId: cost-overview-table
+  resourcesRefs:
+    items:
+      - id: cost-overview-heading
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: paragraphs
+        name: cost-overview-heading
+        namespace: krateo-system
+        verb: GET
+      - id: cost-overview-table
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: tables
+        name: cost-overview-table
+        namespace: krateo-system
+        verb: GET
