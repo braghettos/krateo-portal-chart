@@ -1,5 +1,8 @@
-# Declared confidence of the root cause ("confidence 88%") — or the honest
-# "confidence not declared" when the agent didn't state one.
+# DETERMINISTIC evidence basis of the root cause ("grounded in N verbatim sources · N analyzed
+# resources") — a real, countable backing, NOT a model-declared "confidence NN%" (false precision
+# that erodes trust). The RA (restaction.incident-detail) derives it from status.sources +
+# status.analyzedResources; the raw model confidence is still emitted as `.confidence` for anyone
+# who wants it, but the verdict card shows what actually backs the claim.
 kind: Paragraph
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

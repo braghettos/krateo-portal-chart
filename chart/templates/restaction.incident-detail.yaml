@@ -131,7 +131,12 @@ spec:
         traceCurrent: (if ($traceItems | length) > 0 then (($traceItems | length) - 1) else 0 end),
         rootCauseStatement: ($rc.statement // ""),
         rootCauseCategory: (if ($rc.category // "") != "" then ("category: " + $rc.category) else "uncategorised" end),
-        rootCauseConfidence: (if $conf != "—" then ("confidence " + $conf) else "confidence not declared" end),
+        # HONEST GROUNDING (not model theater): the root-cause footer states the DETERMINISTIC
+        # evidence basis — the real count of verbatim sources + analyzed resources the agent read —
+        # NOT a model-declared "confidence NN%" (a fabricated number presented as if measured, which
+        # erodes trust). The raw `confidence: $conf` field is still emitted for anyone who wants it,
+        # but the verdict card shows what actually backs the claim.
+        rootCauseConfidence: (if (($sources | length) > 0) or (($analyzed | length) > 0) then ("grounded in " + (($sources | length) | tostring) + " verbatim source" + (if ($sources | length) == 1 then "" else "s" end) + " · " + (($analyzed | length) | tostring) + " analyzed resource" + (if ($analyzed | length) == 1 then "" else "s" end)) else "grounded in the cited evidence" end),
         remSteps: $remSteps,
         remediationDesc: ((($plan | length) | tostring) + " ordered steps · each is a gated action you review before anything changes" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
         similar: $similar,
