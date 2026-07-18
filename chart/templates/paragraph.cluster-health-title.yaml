@@ -1,0 +1,7 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Paragraph
+metadata:
+  name: cluster-health-title
+  namespace: krateo-system
+spec:
+  value: '# Cluster Health'
