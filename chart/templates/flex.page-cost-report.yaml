@@ -1,0 +1,29 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: page-cost-report
+  namespace: krateo-system
+spec:
+  widgetData:
+    allowedResources:
+      - paragraphs
+      - tables
+    vertical: true
+    gap: middle
+    items:
+      - resourceRefId: cost-report-heading
+      - resourceRefId: cost-report-table
+  resourcesRefs:
+    items:
+      - id: cost-report-heading
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: paragraphs
+        name: cost-report-heading
+        namespace: krateo-system
+        verb: GET
+      - id: cost-report-table
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: tables
+        name: cost-report-table
+        namespace: krateo-system
+        verb: GET
