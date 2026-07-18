@@ -101,7 +101,19 @@ spec:
               | ({ name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
                    namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces } } | tojson) as $id
               | ($pfx + $id[:-1] + "," + $rst[1:]) as $spliced
-              | "{\"required\":[\"name\",\"namespace\"]," + ($spliced | ltrimstr("{"))
+              # name+namespace are the instance identity and MUST be `required` so they render
+              # UP-FRONT, not under the "Advanced" collapse (SchemaFields partitions on required).
+              # The old code PREPENDED a "required":["name","namespace"] key, but the blueprint's
+              # raw schema carries its OWN top-level "required" later in the string; JSON.parse's
+              # duplicate-key-LAST-wins made the raw one win, dropping "name" into Advanced. Fix:
+              # read the raw required (read-only parse — the required ARRAY's order is irrelevant to
+              # rendering; only PROPERTY order must survive, which the splice above preserves) and
+              # APPEND the merged required as the LAST key so it wins. name+namespace first, then
+              # the blueprint's own required (minus any dup).
+              | (((try ($raw | fromjson | .required) catch null) // []) - ["name","namespace"]) as $rawReq
+              | (["name","namespace"] + $rawReq) as $req
+              | (($spliced | sub("\\s+$"; "")) | .[:-1]) as $body
+              | ($body + ",\"required\":" + ($req | tojson) + "}")
             end)
        end) as $stringSchema
     | {
