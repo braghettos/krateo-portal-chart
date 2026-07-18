@@ -1,0 +1,6 @@
+item:
+  label: Cost Report
+  icon: fa-coins
+  order: 950
+  path: /cost-report
+  page: cost-report
