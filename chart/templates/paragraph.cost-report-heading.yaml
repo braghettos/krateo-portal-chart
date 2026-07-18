@@ -1,0 +1,11 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Paragraph
+metadata:
+  name: cost-report-heading
+  namespace: krateo-system
+spec:
+  widgetData:
+    text: Cost Report — platform compositions at a glance
+    strong: true
+  resourcesRefs:
+    items: []
