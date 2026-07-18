@@ -1,0 +1,28 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Table
+metadata:
+  name: my-compositions-table
+  namespace: krateo-system
+spec:
+  apiRef:
+    name: compositions-list
+    namespace: krateo-system
+  widgetData:
+    allowedResources: []
+    columns:
+      - valueKey: name
+        title: Name
+      - valueKey: ns
+        title: Namespace
+      - valueKey: status
+        title: Status
+  resourcesRefs:
+    items: []
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: |-
+        ${ [ .filtered[]? | [ {valueKey:"name",stringValue:.name},
+        {valueKey:"ns",stringValue:.ns},
+        {valueKey:"status",stringValue:(((.conditions // []) | map(select(.type=="Ready")) | (.[0].status // "?")))} ] ] }
+    - forPath: title
+      expression: Compositions
