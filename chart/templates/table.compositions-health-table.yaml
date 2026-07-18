@@ -1,0 +1,22 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Table
+metadata:
+  name: compositions-health-table
+  namespace: krateo-system
+spec:
+  dataSource:
+    restaction:
+      spec:
+        path: /apis/composition.krateo.io/v1alpha1/compositions
+        jq: '.items | map({"Name": .metadata.name, "Namespace": .metadata.namespace, "Ready": (.status.conditions[] | select(.type == "Ready") | .status), "Age": .metadata.creationTimestamp})'
+        verb: get
+  columns:
+    - title: Name
+      key: Name
+    - title: Namespace
+      key: Namespace
+    - title: Ready
+      key: Ready
+    - title: Age
+      key: Age
+      type: date
