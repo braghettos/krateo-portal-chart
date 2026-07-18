@@ -1,0 +1,17 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Table
+metadata:
+  name: cost-overview-table
+  namespace: krateo-system
+spec:
+  widgetData:
+    allowedResources: []
+    columns:
+      - valueKey: name
+        title: Name
+      - valueKey: namespace
+        title: Namespace
+      - valueKey: status
+        title: Status
+  resourcesRefs:
+    items: []
