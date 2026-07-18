@@ -1,0 +1,17 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: page-cluster-health
+  namespace: krateo-system
+spec:
+  resourcesRefs:
+    - id: title
+      resource:
+        kind: Paragraph
+        name: cluster-health-title
+        namespace: krateo-system
+    - id: compositions-table
+      resource:
+        kind: Table
+        name: compositions-health-table
+        namespace: krateo-system
