@@ -1,0 +1,6 @@
+item:
+  label: Cluster Health
+  icon: fa-heartbeat
+  order: 950
+  path: /cluster-health
+  page: cluster-health
