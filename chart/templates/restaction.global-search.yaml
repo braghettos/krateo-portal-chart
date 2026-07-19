@@ -1,6 +1,8 @@
 # Global search aggregator — feeds the header Search field's results view.
-# Returns a unified list of compositions + blueprints whose title matches the
-# search term `q`, which the frontend forwards as ?extras={"q":"..."} on the
+# Returns a unified list of compositions + blueprints + clusters + incidents whose
+# title matches the search term `q` (the placeholder promises "resources", so the
+# scope spans every top-level entity, not just compositions/blueprints), which the
+# frontend forwards as ?extras={"q":"..."} on the
 # widget /call. The term is read in the top-level `spec.filter` — snowplow
 # >= 1.1.0 (extras-to-widgets / PR #27, Fix-1) forwards request `extras` into a
 # widget's apiRef RESTAction jq dict. Filtering is server-side (jq) because the
@@ -67,6 +69,34 @@ spec:
         resource: compositiondefinitions
         namespaceFrom: .metadata.namespace
       filter: '[.compdefs.items[]? | {name: .metadata.name, ns: .metadata.namespace}]'
+    # clusters — registered KubernetesTargets (the fleet), so search finds a spoke by name.
+    # UAF prunes to what the caller may list; continueOnError so no-RBAC / no-spokes degrades.
+    - name: clusters
+      path: /apis/core.krateo.io/v1alpha1/kubernetestargets
+      verb: GET
+      continueOnError: true
+      errorKey: clustersError
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: kubernetestargets
+        namespaceFrom: .metadata.namespace
+      filter: '[.clusters.items[]? | {name: .metadata.name, ns: .metadata.namespace}]'
+    # incidents — TroubleshootingReports (observability), namespaced in the release namespace
+    # (mirrors incidents-list). Searchable title = the rootCause one-liner with honest fallbacks.
+    - name: incidents
+      path: /apis/observability.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/troubleshootingreports
+      verb: GET
+      continueOnError: true
+      errorKey: incidentsError
+      filter: >
+        [.incidents.items[]? | {
+          name: .metadata.name,
+          ns: "{{ .Release.Namespace }}",
+          title: (if (.status.rootCause.statement // "") != "" then .status.rootCause.statement
+                  elif (.spec.alertName // "") != "" then ("Investigation — " + .spec.alertName)
+                  else (.metadata.name // "") end)
+        }]
   # Merge both sources into one result list, then filter by the `q` extra
   # (case-insensitive substring on the title). Empty/absent q → return all.
   filter: >
@@ -93,6 +123,18 @@ spec:
               type: "blueprint",
               installed: false,
               link: ("/marketplace?q=" + ($cn // "") + "&spotlight=" + ($cn // ""))
+            } ]
+          + [ (.clusters // [])[] | {
+              title: (.name // ""),
+              subtitle: ("Cluster · " + (.ns // "")),
+              type: "cluster",
+              link: ("/clusters/" + (.name // ""))
+            } ]
+          + [ (.incidents // [])[] | {
+              title: (.title // .name // ""),
+              subtitle: ("Incident · " + (.ns // "")),
+              type: "incident",
+              link: ("/incidents/" + (.ns // "") + "/" + (.name // ""))
             } ]
         )
         | map(select($q == "" or ((.title | ascii_downcase) | contains($q))))
