@@ -1,9 +1,11 @@
 # GENERIC blueprint create Form — ONE Form for ALL blueprints (replaces every
 # per-blueprint create form, e.g. the hand-authored rancher-create).
-#   - apiRef → blueprint-formdef: returns the CRD's spec schema (with synthetic
-#     name+namespace fields prepended) + the discovered GVR (apiVersion/kind/resource).
-#   - schema ← schemaSpec: SchemaFields renders the instance Name, Namespace, and the
-#     blueprint's own spec fields.
+#   - apiRef → blueprint-formdef: returns the CRD's spec schema (with reserved-key identity
+#     fields __composition_name__ + __composition_namespace__ prepended) + the discovered GVR
+#     (apiVersion/kind/resource). The identity keys are underscore-fenced so they never collide
+#     with a blueprint's own spec property (e.g. a workload blueprint's own `namespace`).
+#   - schema ← schemaSpec: SchemaFields renders the instance Name, the (pinned) blueprint
+#     Namespace, and the blueprint's own spec fields (incl. its own workload `namespace`).
 #   - create target (resourcesRefsTemplate) is built from the discovered GVR — no hardcode.
 #   - submit routes the user's name/namespace into metadata and the rest into spec.
 # page-blueprint-create points its child ref at THIS form (forms/blueprint-create) instead
@@ -78,12 +80,28 @@ spec:
           # (set by payloadToOverride below).
           onSuccessNavigateTo: '${ "/compositions/" + .json.metadata.namespace + "/" + .json.metadata.name }'
           successMessage: Composition created
-          # All from {json} (the form values) — the only context payloadToOverride jq sees.
+          # All from {json} (the form values) — the only context payloadToOverride jq sees
+          # (snowplow resolves this override jq against {json: customPayload}; extras/apiRef data
+          # are NOT visible here, which is why the blueprint namespace must arrive AS a form field).
           # __owner is absent here (onFinish yields only registered fields), so it can't leak.
+          #
+          # metadata.name      ← __composition_name__       (user-entered instance name)
+          # metadata.namespace ← __composition_namespace__  (the BLUEPRINT namespace, pinned by the
+          #                      formdef's enum+default = .namespace route param). Because snowplow's
+          #                      POST /call derives the target namespace EXCLUSIVELY from the URL, and
+          #                      the frontend's updateNameNamespace rewrites that URL from body
+          #                      metadata.namespace, this SINGLE value is BOTH the CR's
+          #                      metadata.namespace AND the create POST-target namespace — they can
+          #                      never disagree. Result: the composition record lands in the blueprint
+          #                      namespace (e.g. krateo-system), matching the staged shape.
+          # spec               ← everything EXCEPT the two reserved identity keys. The blueprint's OWN
+          #                      spec fields — including a workload blueprint's own `namespace` (e.g.
+          #                      payments) — are PRESERVED verbatim; nothing real is del()'d. A simple
+          #                      blueprint (no own namespace) still creates: spec is just its own fields.
           payloadToOverride:
-            - { name: metadata.name,      value: '${ .json.name }' }
-            - { name: metadata.namespace, value: '${ .json.namespace }' }
-            - { name: spec,               value: '${ .json | del(.name) | del(.namespace) }' }
+            - { name: metadata.name,      value: '${ .json.__composition_name__ }' }
+            - { name: metadata.namespace, value: '${ .json.__composition_namespace__ }' }
+            - { name: spec,               value: '${ .json | del(.__composition_name__) | del(.__composition_namespace__) }' }
   widgetDataTemplate:
     - forPath: schema
       expression: '${ .schemaSpec }'

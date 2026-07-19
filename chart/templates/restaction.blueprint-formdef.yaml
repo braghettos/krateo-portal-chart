@@ -67,13 +67,24 @@ spec:
         resourcesFrom: "[.compdef.status.resource]"
         namespaceFrom: .metadata.name
       filter: "[.namespaces.items[] | .metadata.name]"
-  # The returned schemaSpec is the CRD's spec schema with two synthetic fields PREPENDED:
-  # `name` + `namespace` — the instance identity the user enters. The Form routes them to
-  # metadata.* via payloadToOverride and excludes them from spec (del). This is the create
-  # form's schema, so owning the instance-identity fields here is intentional.
+  # The returned schemaSpec is the CRD's spec schema with two RESERVED-KEY identity fields
+  # PREPENDED: `__composition_name__` (the user-entered instance name) + `__composition_namespace__`
+  # (the BLUEPRINT namespace where the CompositionDefinition lives / the RDC controller watches —
+  # i.e. metadata.namespace of the created composition record; NOT the workload target). The
+  # underscore-fenced keys can never collide with a blueprint's own spec property (e.g. a workload
+  # blueprint's OWN `namespace`, which is the payments/workload target and stays a real spec field).
+  # The Form routes these two to metadata.* via payloadToOverride and del()s ONLY them from spec —
+  # every real spec field (including the blueprint's own `namespace`) is preserved. The blueprint
+  # namespace comes from `.namespace` (the /marketplace/{namespace}/{name}/new route param — the
+  # same value that resolves the compdef GET above); it is pinned as the field's enum+default so
+  # metadata.namespace (and therefore the POST-target namespace, which snowplow/updateNameNamespace
+  # derives from body metadata.namespace) always equal the blueprint namespace — no user-picked
+  # nonexistent namespace, no "namespaces X not found" 404. The old synthetic `namespace` field
+  # (a user-picked enum from $namespaces) was the bug: it drove metadata.namespace to the workload
+  # value and del()'d `namespace` from spec, breaking both. $namespaces is now unused for identity.
   filter: |
     (.compdef.status.apiVersion | split("/")[1]) as $ver
-    | .namespaces as $namespaces
+    | ((.namespace // "") | if . == "" then "{{ .Release.Namespace }}" else . end) as $blueprintNs
     | (.crd.spec.versions[]? | select(.name == $ver) | .schema.openAPIV3Schema.properties.spec) as $spec
     # Fields the blueprint marks hidden (title contains "(should be hidden)") are
     # omitted from the generated form — propertiesToHide derived from the schema, not hardcoded.
@@ -87,10 +98,12 @@ spec:
         + "__" + ((.namespace // "") | gsub("[^a-zA-Z0-9_.-]"; "-"))
         + "__" + ((.name // "") | gsub("[^a-zA-Z0-9_.-]"; "-"))) as $draftKey
     # stringSchema (authoring order): the blueprint's raw values.schema.json (from the jsonschema
-    # CM) with name/namespace identity STRING-spliced in as the first properties and a top-level
-    # required injected. Kept as a STRING — never parsed/re-emitted — so JSON key order survives
-    # to the client (which JSON.parses it). null when the CM is absent or has no "properties": —
-    # the Form then falls back to schemaSpec. $namespaces feeds the namespace enum, as in schemaSpec.
+    # CM) with __composition_name__/__composition_namespace__ identity STRING-spliced in as the
+    # first properties and a top-level required injected. Kept as a STRING — never parsed/re-emitted
+    # — so JSON key order survives to the client (which JSON.parses it). null when the CM is absent
+    # or has no "properties": — the Form then falls back to schemaSpec. __composition_namespace__ is
+    # pinned (enum+default) to $blueprintNs so the user cannot retarget the composition record to a
+    # nonexistent namespace; it renders read-only-in-effect (single-option Select, pre-filled).
     | ((.jsonschema.data["values.schema.json"]) // null) as $raw
     | (if $raw == null then null
        else ("\"properties\": ") as $n
@@ -98,20 +111,20 @@ spec:
          | (if $pi == null then null
             else ($raw[0:($pi + ($n | length))]) as $pfx
               | ($raw[($pi + ($n | length)):]) as $rst
-              | ({ name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-                   namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces } } | tojson) as $id
+              | ({ __composition_name__:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
+                   __composition_namespace__: { type: "string", title: "Namespace", description: "Blueprint namespace — where the composition record is created", enum: [$blueprintNs], default: $blueprintNs } } | tojson) as $id
               | ($pfx + $id[:-1] + "," + $rst[1:]) as $spliced
-              # name+namespace are the instance identity and MUST be `required` so they render
-              # UP-FRONT, not under the "Advanced" collapse (SchemaFields partitions on required).
-              # The old code PREPENDED a "required":["name","namespace"] key, but the blueprint's
-              # raw schema carries its OWN top-level "required" later in the string; JSON.parse's
-              # duplicate-key-LAST-wins made the raw one win, dropping "name" into Advanced. Fix:
-              # read the raw required (read-only parse — the required ARRAY's order is irrelevant to
-              # rendering; only PROPERTY order must survive, which the splice above preserves) and
-              # APPEND the merged required as the LAST key so it wins. name+namespace first, then
-              # the blueprint's own required (minus any dup).
-              | (((try ($raw | fromjson | .required) catch null) // []) - ["name","namespace"]) as $rawReq
-              | (["name","namespace"] + $rawReq) as $req
+              # The two identity keys MUST be `required` so they render UP-FRONT, not under the
+              # "Advanced" collapse (SchemaFields partitions on required). The old code PREPENDED a
+              # "required":[...] key, but the blueprint's raw schema carries its OWN top-level
+              # "required" later in the string; JSON.parse's duplicate-key-LAST-wins made the raw one
+              # win, dropping the identity keys into Advanced. Fix: read the raw required (read-only
+              # parse — the required ARRAY's order is irrelevant to rendering; only PROPERTY order must
+              # survive, which the splice above preserves) and APPEND the merged required as the LAST
+              # key so it wins. Identity keys first, then the blueprint's own required (minus any dup —
+              # the blueprint's own `namespace`, if present, stays required as a real spec field).
+              | (((try ($raw | fromjson | .required) catch null) // []) - ["__composition_name__","__composition_namespace__"]) as $rawReq
+              | (["__composition_name__","__composition_namespace__"] + $rawReq) as $req
               | (($spliced | sub("\\s+$"; "")) | .[:-1]) as $body
               | ($body + ",\"required\":" + ($req | tojson) + "}")
             end)
@@ -120,10 +133,10 @@ spec:
         stringSchema: $stringSchema,
         schemaSpec: ($spec
           | .properties = ({
-              name:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-              namespace: { type: "string", title: "Namespace", description: "Target namespace", enum: $namespaces }
+              __composition_name__:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
+              __composition_namespace__: { type: "string", title: "Namespace", description: "Blueprint namespace — where the composition record is created", enum: [$blueprintNs], default: $blueprintNs }
             } + (.properties // {}))
-          | .required = (["name", "namespace"] + (.required // []))),
+          | .required = (["__composition_name__", "__composition_namespace__"] + (.required // []))),
         propertiesToHide: $hidden,
         initialValues: { __owner: $draftKey },
         apiVersion: .compdef.status.apiVersion,
