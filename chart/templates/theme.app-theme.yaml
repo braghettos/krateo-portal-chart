@@ -2,16 +2,22 @@
 # app-shell (layout.app-shell `effects` slot): it applies tenant brand overrides app-wide by
 # setting CSS custom properties on :root, and renders no UI.
 #
-# The DEFAULT ships only `token.fontFamily` — the current Krateo UI font — so it is a visual
-# no-op that matches the frontend defaults in BOTH modes. It deliberately does NOT set colorPrimary
-# or the sidebar gradient: those are mode-AWARE in the frontend (dark #2FBFE6 / light #05629A, rail
-# derived per-mode via issue #52), and a Theme CR value is mode-FIXED — hard-coding one here would
-# force it across both modes and regress the mode adaptivity.
+# It sets `token.fontFamily` (the current Krateo UI font — a visual no-op matching the frontend
+# default) and `custom.sidebar` (the Krateo brand nav rail).
 #
-# To rebrand a tenant, extend this ONE CR (no rebuild): add `token.colorPrimary` (accepting a fixed
-# brand across modes, or pin one mode via `mode`), `logo`, or `custom.sidebar`/`custom.menu`. Only
-# Tier-1 tokens are overridable; Tier-2 (status colours, agent Signal Yellow, focus ring, chart
-# palette) is locked by omission from the schema.
+# On `custom.sidebar` — the issue-#52 sanctioned override. #52's DEFAULT derives the rail per-mode
+# from the active `colorPrimary`: light mode (Sovereign #05629A) → a deep navy #004373→#001426, but
+# dark mode (interaction cyan #2FBFE6) → a saturated TEAL #0f7299→#03334d. #52 explicitly designates
+# `custom.sidebar.bgGradientStart/End` as the escape-hatch for "a sidebar colour INDEPENDENT of
+# colorPrimary" — so we pin the Krateo brand rail to the deep navy in BOTH modes here (the rail is
+# intentionally always-dark), rather than reseeding the frontend DEFAULT off Sovereign Blue (which
+# would reintroduce the hardcoded-invariant anti-pattern #52 exists to kill). Default derivation is
+# untouched for tenants who don't override. NB colorPrimary is deliberately NOT set (it is mode-aware
+# in the frontend; a mode-fixed CR value would regress that).
+#
+# To rebrand a tenant, extend this ONE CR (no rebuild): add `token.colorPrimary`, `logo`, or change
+# `custom.sidebar`/`custom.menu`. Only Tier-1 tokens are overridable; Tier-2 (status colours, agent
+# Signal Yellow, focus ring, chart palette) is locked by omission from the schema.
 kind: Theme
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -23,3 +29,7 @@ spec:
   widgetData:
     token:
       fontFamily: 'Inter, Roboto, "Helvetica Neue", Arial, "Noto Sans", system-ui, sans-serif'
+    custom:
+      sidebar:
+        bgGradientStart: '#004373'
+        bgGradientEnd: '#001426'
