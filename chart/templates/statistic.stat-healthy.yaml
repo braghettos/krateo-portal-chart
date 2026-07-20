@@ -19,7 +19,10 @@ spec:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: value
-    expression: ${ [.list[] | select((.conditions // []) | any(.type=="Ready" and .status=="True"))] | length }
+    # Use the RA's projection-aware `.state == "healthy"` (Ready=True AND workloadHealthy != false),
+    # NOT a re-derived Ready==True — else a composition that is Ready=True but whose managed workload
+    # is unhealthy is wrongly counted healthy here while the rail marks it failed (over-counting by 1).
+    expression: ${ [.list[] | select(.state == "healthy")] | length }
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}

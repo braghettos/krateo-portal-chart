@@ -21,7 +21,9 @@ spec:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: value
-    expression: '${ ([.list[]|select((.conditions//[])|(any(.type=="Ready" and (.status=="True" or .status=="False"))|not))]|length) }'
+    # Use the RA's projection-aware `.state == "pending"` so the four cards partition consistently
+    # via one classifier (healthy + pending + failed = total) and agree with the reconciliation rail.
+    expression: '${ [.list[] | select(.state == "pending")] | length }'
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}

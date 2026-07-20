@@ -19,7 +19,11 @@ spec:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: value
-    expression: ${ [.list[] | select((.conditions // []) | any(.type=="Ready" and .status=="False"))] | length }
+    # Count the RA's projection-aware `.state == "failed"` (Ready=False OR workloadHealthy=false),
+    # NOT a re-derived Ready==False — else a composition that is Ready=True but whose managed
+    # workload is unhealthy (apiRef status-projection) is missed here while the reconciliation rail
+    # counts it (railState=failed), so the FAILED stat and the rail disagreed (2 vs 3).
+    expression: ${ [.list[] | select(.state == "failed")] | length }
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}

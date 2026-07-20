@@ -22,7 +22,7 @@ spec:
   - forPath: watch
     expression: '${ [ .list[] | { apiVersion: .av, kind: .kind } ] | unique }'
   - forPath: label
-    expression: '${ (if (.list|length)>0 then ((([.list[]|select((.conditions//[])|any(.type=="Ready" and .status=="False"))]|length)*100/(.list|length))|floor) else 0 end | tostring) + "%" }'
+    expression: '${ (if (.list|length)>0 then ((([.list[]|select(.state == "failed")]|length)*100/(.list|length))|floor) else 0 end | tostring) + "%" }'
   apiRef:
     name: compositions-list
     namespace: {{ .Release.Namespace }}
