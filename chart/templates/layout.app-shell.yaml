@@ -13,6 +13,10 @@ spec:
       resourceRefId: sider-content
       theme: light
       width: 236
+    # Global side-effect widgets rendered invisibly once for the whole app (issue #49 §7):
+    # the tenant Theme applies brand overrides (CSS custom properties) app-wide.
+    effects:
+      - app-theme
   resourcesRefs:
     items:
       - id: sider-content
@@ -20,4 +24,10 @@ spec:
         name: sider-content
         namespace: {{ .Release.Namespace }}
         resource: flexes
+        verb: GET
+      - id: app-theme
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: app-theme
+        namespace: {{ .Release.Namespace }}
+        resource: themes
         verb: GET

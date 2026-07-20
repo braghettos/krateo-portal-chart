@@ -1,0 +1,25 @@
+# Tenant brand theme (Brand v2, issue #49 §7). A SIDE-EFFECT widget mounted once on the
+# app-shell (layout.app-shell `effects` slot): it applies tenant brand overrides app-wide by
+# setting CSS custom properties on :root, and renders no UI.
+#
+# The DEFAULT ships only `token.fontFamily` — the current Krateo UI font — so it is a visual
+# no-op that matches the frontend defaults in BOTH modes. It deliberately does NOT set colorPrimary
+# or the sidebar gradient: those are mode-AWARE in the frontend (dark #2FBFE6 / light #05629A, rail
+# derived per-mode via issue #52), and a Theme CR value is mode-FIXED — hard-coding one here would
+# force it across both modes and regress the mode adaptivity.
+#
+# To rebrand a tenant, extend this ONE CR (no rebuild): add `token.colorPrimary` (accepting a fixed
+# brand across modes, or pin one mode via `mode`), `logo`, or `custom.sidebar`/`custom.menu`. Only
+# Tier-1 tokens are overridable; Tier-2 (status colours, agent Signal Yellow, focus ring, chart
+# palette) is locked by omission from the schema.
+kind: Theme
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: app-theme
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    token:
+      fontFamily: 'Inter, Roboto, "Helvetica Neue", Arial, "Noto Sans", system-ui, sans-serif'
