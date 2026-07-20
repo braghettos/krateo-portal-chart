@@ -1,0 +1,29 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: page-my-compositions
+  namespace: krateo-system
+spec:
+  widgetData:
+    allowedResources:
+      - paragraphs
+      - tables
+    vertical: true
+    gap: middle
+    items:
+      - resourceRefId: my-compositions-heading
+      - resourceRefId: my-compositions-table
+  resourcesRefs:
+    items:
+      - id: my-compositions-heading
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: paragraphs
+        name: my-compositions-heading
+        namespace: krateo-system
+        verb: GET
+      - id: my-compositions-table
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: tables
+        name: my-compositions-table
+        namespace: krateo-system
+        verb: GET
