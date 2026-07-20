@@ -1,0 +1,6 @@
+item:
+  label: My Compositions
+  icon: fa-cube
+  order: 950
+  path: /my-compositions
+  page: my-compositions
