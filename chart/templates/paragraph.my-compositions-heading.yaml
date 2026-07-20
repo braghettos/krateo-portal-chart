@@ -1,0 +1,11 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Paragraph
+metadata:
+  name: my-compositions-heading
+  namespace: krateo-system
+spec:
+  widgetData:
+    text: My Compositions
+    strong: true
+  resourcesRefs:
+    items: []
