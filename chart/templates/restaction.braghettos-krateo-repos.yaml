@@ -1,0 +1,14 @@
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: braghettos-krateo-repos
+  namespace: krateo-system
+spec:
+  api:
+    - name: github
+      path: /search/repositories?q=user:braghettos+topic:krateo
+      verb: GET
+      endpointRef:
+        name: github-api
+        namespace: krateo-system
+  filter: '{items: .github.items, total_count: .github.total_count}'
