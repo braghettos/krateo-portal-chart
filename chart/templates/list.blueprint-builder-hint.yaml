@@ -28,7 +28,7 @@ spec:
       color:
         default: blue
       primaryText: '{title}'
-      secondaryText: '{detail}'
+      subPrimaryText: '{detail}'
   widgetDataTemplate:
   - forPath: dataSource
     expression: '${ .hint // [] }'

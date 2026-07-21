@@ -10,27 +10,20 @@ metadata:
 spec:
   widgetData:
     allowedResources:
-    - paragraphs
+    - flexes
     - listies
     vertical: true
     gap: middle
     items:
-    - resourceRefId: portal-builder-title
-    - resourceRefId: portal-builder-note
+    - resourceRefId: portal-builder-header
     - resourceRefId: builder-prs
   resourcesRefs:
     items:
-    - id: portal-builder-title
+    - id: portal-builder-header
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: portal-builder-title
+      name: portal-builder-header
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: portal-builder-note
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: portal-builder-note
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
+      resource: flexes
       verb: GET
     - id: builder-prs
       apiVersion: widgets.templates.krateo.io/v1beta1

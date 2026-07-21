@@ -1,7 +1,7 @@
 kind: Paragraph
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
-  name: portal-builder-note
+  name: portal-builder-subtitle
   namespace: {{ .Release.Namespace }}
   annotations:
     "krateo.io/verbose": "true"
