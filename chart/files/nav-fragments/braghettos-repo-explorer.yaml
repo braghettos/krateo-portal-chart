@@ -1,0 +1,6 @@
+item:
+  label: Repo Explorer
+  icon: fa-github
+  order: 950
+  path: /braghettos-repo-explorer
+  page: braghettos-repo-explorer
