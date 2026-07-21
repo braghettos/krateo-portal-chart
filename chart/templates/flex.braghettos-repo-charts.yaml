@@ -1,0 +1,28 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: braghettos-repo-charts
+  namespace: krateo-system
+spec:
+  widgetData:
+    allowedResources:
+      - piecharts
+    vertical: false
+    gap: middle
+    items:
+      - resourceRefId: braghettos-repo-languages
+      - resourceRefId: braghettos-repo-topics
+  resourcesRefs:
+    items:
+      - id: braghettos-repo-languages
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: piecharts
+        name: braghettos-repo-languages
+        namespace: krateo-system
+        verb: GET
+      - id: braghettos-repo-topics
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: piecharts
+        name: braghettos-repo-topics
+        namespace: krateo-system
+        verb: GET
