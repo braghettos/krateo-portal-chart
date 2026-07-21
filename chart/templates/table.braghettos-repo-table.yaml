@@ -1,0 +1,24 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Table
+metadata:
+  name: braghettos-repo-table
+  namespace: krateo-system
+spec:
+  apiRef:
+    name: braghettos-krateo-repos
+    namespace: krateo-system
+  resourcesRefs:
+    items: []
+  widgetData:
+    allowedResources: []
+    columns:
+      - valueKey: name
+        title: Name
+      - valueKey: language
+        title: Language
+      - valueKey: stars
+        title: Stars
+    dataSource: []
+  widgetDataTemplate:
+    - forPath: dataSource
+      expression: ${ [ .items[]? | [ {valueKey:"name",stringValue:.name}, {valueKey:"language",stringValue:(.language // "N/A")}, {valueKey:"stars",stringValue:(.stargazers_count | tostring)} ] ] }
