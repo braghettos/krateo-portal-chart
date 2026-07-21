@@ -1,0 +1,19 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: PieChart
+metadata:
+  name: braghettos-repo-pie
+  namespace: krateo-system
+spec:
+  apiRef:
+    name: braghettos-krateo-repos
+    namespace: krateo-system
+  resourcesRefs:
+    items: []
+  widgetData:
+    title: Repos by Language
+    angleField: count
+    colorField: language
+    data: []
+  widgetDataTemplate:
+    - forPath: data
+      expression: '${ .items | group_by(.language) | map({ language: (.[0].language // "N/A"), count: length }) }'
