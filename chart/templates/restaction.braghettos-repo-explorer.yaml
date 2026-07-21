@@ -1,0 +1,14 @@
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: braghettos-repo-explorer
+  namespace: default
+spec:
+  api:
+    - endpointRef:
+        name: github-endpoint
+        namespace: krateo-system
+      name: repo_search
+      path: /search/repositories?q=user:braghettos+topic:krateo
+      verb: GET
+  filter: '{items: [ .repo_search.items[] | {name, language: (.language // "N/A"), stargazers_count, topics} ]}'
