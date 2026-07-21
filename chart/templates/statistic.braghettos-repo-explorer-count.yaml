@@ -1,0 +1,17 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Statistic
+metadata:
+  name: braghettos-repo-explorer-count
+  namespace: krateo-system
+spec:
+  apiRef:
+    name: braghettos-repo-explorer
+    namespace: krateo-system
+  widgetData:
+    title: Total Repos
+    value: 0
+  resourcesRefs:
+    items: []
+  widgetDataTemplate:
+    - forPath: value
+      expression: ${ .items | length }
