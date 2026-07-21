@@ -1,0 +1,37 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: page-braghettos-repo-explorer
+  namespace: krateo-system
+spec:
+  widgetData:
+    allowedResources:
+      - statistics
+      - flexes
+      - tables
+    vertical: true
+    gap: large
+    items:
+      - resourceRefId: braghettos-repo-count
+      - resourceRefId: braghettos-repo-charts
+      - resourceRefId: braghettos-repo-table
+  resourcesRefs:
+    items:
+      - id: braghettos-repo-count
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: statistics
+        name: braghettos-repo-count
+        namespace: krateo-system
+        verb: GET
+      - id: braghettos-repo-charts
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: flexes
+        name: braghettos-repo-charts
+        namespace: krateo-system
+        verb: GET
+      - id: braghettos-repo-table
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        resource: tables
+        name: braghettos-repo-table
+        namespace: krateo-system
+        verb: GET
