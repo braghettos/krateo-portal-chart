@@ -1,0 +1,40 @@
+# "Investigate with Autopilot" — preserves the ask flow the OLD /alerts row-click used
+# (row-click now deep-links to THIS detail page instead of /incidents?ask=, so the seed had
+# to move somewhere; item 25). Navigates to /incidents with an ?ask seed the AutopilotProvider
+# consumes on mount (opens the rail pre-seeded to investigate THIS alert). The concrete href is
+# baked server-side by alert-detail (.askHref, @uri-encoded once), so the click is a plain
+# literal navigate — same pattern as composition-detail-diagnose / incident-ref-link.
+# Graceful: frontend >= 1.3.76 shows an honest "Autopilot is not enabled" notice and strips
+# the ?ask if the rail is disabled. Kept type:default (secondary, blue/neutral) — an
+# investigate CTA is non-status; cyan/amber-primary is reserved.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: alert-detail-investigate
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: alert-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: Investigate with Autopilot
+    type: default
+    size: small
+    icon: fa-wand-magic-sparkles
+    clickActionId: investigate
+    actions:
+      navigate:
+        - id: investigate
+          type: navigate
+          path: /incidents
+  widgetDataTemplate:
+    # Server-built /incidents?ask= href. Defensive fallback to the bare /incidents triage
+    # page (never a 404) if askHref is somehow empty.
+    - forPath: actions
+      expression: '${ { navigate: [ { id: "investigate", type: "navigate", path: (if (.askHref // "") != "" then .askHref else "/incidents" end) } ] } }'
+  resourcesRefs:
+    items: []

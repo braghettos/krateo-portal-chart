@@ -1,0 +1,25 @@
+# "← Back to alerts" link above the detail title (mirrors incident-detail-back /
+# composition-detail-back). A link-style Button that navigates (SPA) to the /alerts list.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: alert-detail-back
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  widgetData:
+    label: Back to alerts
+    type: link
+    size: small
+    icon: fa-arrow-left
+    clickActionId: back-nav
+    actions:
+      navigate:
+        - id: back-nav
+          path: /alerts
+          type: navigate
+  resourcesRefs:
+    items: []
