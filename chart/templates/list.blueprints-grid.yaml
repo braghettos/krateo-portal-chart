@@ -2,7 +2,7 @@
 # the cluster's INSTALLED CompositionDefinitions (blueprints-cards), per the design "blueprints
 # and marketplace are the same page, distinguished only by source (installed vs installable)".
 # Clicking a tile opens the blueprint DETAIL page (/blueprints/{namespace}/{name}), where Create
-# (instantiate) / Delete (uninstall) / version-update live.
+# (instantiate) / Uninstall / version-update live.
 # The card body shows "provisions · <composition kind>" (status.kind, e.g. KrateoAuthn) — what the
 # blueprint deploys (mockup `.prov`); falls back to the chart source for any compdef with no kind.
 apiVersion: widgets.templates.krateo.io/v1beta1

@@ -71,13 +71,17 @@ spec:
       # Per-tile Install — a VISIBLE footer button (card variant). It NAVIGATES to the install
       # form for THIS row (${name} interpolated from the card's customPayload), where the user
       # reviews the CompositionDefinition (CRD schema, chart pre-filled) and deploys it.
+      # ORDER MATTERS (UX-audit #10): the frontend makes the FIRST rowAction the primary
+      # button (ListView card variant). Install leads — the page's job is acquisition, and the
+      # whole tile already navigates to Details, so a primary Details button would be double
+      # emphasis on navigation. Mirrors blueprints-grid, where Create leads.
       rowActions:
-        - actionId: details
-          label: Details
-          icon: fa-circle-info
         - actionId: install
           label: Install
           icon: fa-download
+        - actionId: details
+          label: Details
+          icon: fa-circle-info
     actions:
       navigate:
         - id: details
