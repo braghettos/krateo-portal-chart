@@ -55,9 +55,10 @@ spec:
       # (Builder Demo removed from the portal nav — the Autopilot-authored demo page is being
       #  re-homed as its OWN composition alongside the portal composition, not baked into the
       #  portal chart. Its page-builderdemo CRs + the /builderdemo route move out with it.)
-      # route-only (no label → hidden). /search renders the search-results List; its
-      # ?q= is forwarded as extras to the global-search RA (server-side jq filter).
-      - { order: 800, path: /search, resourceRefId: search-results }
+      # route-only (no label → hidden). /search renders page-search (header family +
+      # the search-results List); ?q= is forwarded as extras to the global-search RA
+      # (server-side jq filter) and echoed in the header subtitle.
+      - { order: 800, path: /search, resourceRefId: page-search }
       # Templated detail + create routes via the convention. Paths are quoted — the
       # {param} braces would otherwise be read as YAML flow mappings.
       - { order: 900, path: "/compositions/{namespace}/{name}",   page: composition-detail }
@@ -155,11 +156,11 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
-      - id: search-results
+      - id: page-search
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: search-results
+        name: page-search
         namespace: {{ .Release.Namespace }}
-        resource: listies
+        resource: flexes
         verb: GET
       - id: settings
         apiVersion: widgets.templates.krateo.io/v1beta1

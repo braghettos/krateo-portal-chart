@@ -103,6 +103,7 @@ spec:
     (.q // "" | ascii_downcase) as $q
     | [ (.compdefs // [])[] | .name ] as $instNames
     | {
+        q: (.q // ""),
         items: (
           [ (.comps // [])[] | {
               title: (.name // ""),
