@@ -8,14 +8,13 @@
 # failed widget. The RestDefinition NAME is derived server-side from the PR's `kog/<name>`
 # branch; the PR number + html_url ride along so the table can surface the opened PR ("#N").
 #
-# NOTE — PR TARGET CONVENTION (issue #30): the frontend KOG builder currently POSTs
-# restdefinitions DIRECTLY (buildKogPublishOps, src/components/Autopilot/kogMapping.ts); the
-# PR-based publish is a separate frontend agent's future work. There is NO KOG repo default in
-# the frontend yet, so this RA filters on the HEAD-BRANCH PREFIX `kog/` (mirroring the blueprint
-# builder's `builder/<chart>`), which is repo-agnostic — it lights up whatever repo the future
-# KOG-publish path opens PRs against, as long as it names the branch `kog/<restdef-name>`. It
-# also EXCLUDES the blueprints repo so a blueprint PR can never leak into the KOG table. Until
-# that frontend path ships, this RA returns zero rows (the page still shows the restdef table).
+# NOTE — PR TARGET CONVENTION (issue #30): the frontend KOG builder's PR-based publish
+# (kogPublish.ts, frontend >= 1.3.77) opens PRs against repo `krateo-oas` on a `builder/<kind>`
+# head branch (same branch convention the blueprint builder uses; the REPO is the discriminator).
+# So this RA filters on `spec.repo == "krateo-oas"` (NOT a branch prefix — both builders use
+# `builder/`), and derives the RestDefinition name from the `builder/<kind>` branch. A blueprint
+# PR (repo krateo-blueprints) can never leak in. Until a KOG PR is opened this RA returns zero
+# rows and the page still shows the live restdef table.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -25,9 +24,10 @@ metadata:
     krateo.io/verbose: "true"
 spec:
   api:
-    # KOG builder pull requests: head branch `kog/<name>`, any repo EXCEPT the blueprints repo.
-    # status.state (open/closed) + merged + number + html_url are written by the KOG
-    # github-provider after the PR lands; a just-created PR has none, so read defensively.
+    # KOG builder pull requests: repo `krateo-oas` (the discriminator — the frontend targets it),
+    # head branch `builder/<kind>`. status.state (open/closed) + merged + number + html_url are
+    # written by the KOG github-provider after the PR lands; a just-created PR has none, so read
+    # defensively.
     - name: prs
       path: /apis/github.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/pullrequests
       verb: GET
@@ -37,9 +37,8 @@ spec:
       errorKey: prsError
       filter: >
         [ (.prs.items // [])[]
-          | select((((.spec.head) // "") | startswith("kog/"))
-                   and (((.spec.repo) // "") != "krateo-blueprints"))
-          | { restdef: (((.spec.head) // "") | sub("^kog/"; "")),
+          | select(((.spec.repo) // "") == "krateo-oas")
+          | { restdef: (((.spec.head) // "") | sub("^builder/"; "")),
               title: ((.spec.title) // ""),
               number: ((.status.number) // 0),
               state: ((.status.state) // "pending"),
