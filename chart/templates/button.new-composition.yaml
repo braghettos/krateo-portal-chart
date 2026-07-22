@@ -9,7 +9,9 @@ spec:
   # F6 (snowplow#130): extras keys that partition this widget's cache cell.
   keyExtras: [namespace]
   widgetData:
-    label: New composition
+    # "Create composition" not "New composition" (UX-audit #10): Create is THE verb for
+    # making a composition (blueprints grid, blueprint detail, form submit all say Create).
+    label: Create composition
     type: primary
     icon: fa-plus
     # A composition is created ONLY from an installed blueprint → navigate to /blueprints
