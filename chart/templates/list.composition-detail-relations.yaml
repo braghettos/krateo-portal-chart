@@ -1,8 +1,9 @@
 # Related resources — the composition's composed children (its managed resources)
 # WITH live reconcile state. Fed by the composition-resources RA (which fetches
 # each managed resource and derives Ready×Synced / Available / ready-by-presence
-# → state), so each row mirrors the mockup `.rel-row`: a state-colored dot +
-# the resource Kind (· name) + a right-aligned state tag (ready/drift/failed).
+# → state), so each row mirrors the mockup `.rel-row`: a state-colored tree dot +
+# the resource Kind (· name) + a right-aligned FILLED state Tag (status-pill spec:
+# sentence-case label "Healthy"/"Drift"/"Pending"/"Failed", green/violet/orange/red).
 # Honest: rows ARE the real .status.managed children, state IS the live object's
 # condition read — no ownerReferences (those point at the parent, usually empty).
 kind: Listy
@@ -39,9 +40,11 @@ spec:
           failed: red
       primaryText: '{kind}'
       subPrimaryText: '{name}'
-      secondaryText: '{state}'
+      # Sentence-cased server-side (stateLabel); rendered as a filled Tag, not bare text.
+      secondaryText: '{stateLabel}'
+      secondaryTextAsTag: true
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.resources // []) | map({ kind: .kind, name: .name, ns: .ns, state: .state, navHref: .navHref }) }'
+      expression: '${ (.resources // []) | map({ kind: .kind, name: .name, ns: .ns, state: .state, stateLabel: ((.state // "") | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end), navHref: .navHref }) }'
   resourcesRefs:
     items: []

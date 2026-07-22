@@ -27,7 +27,8 @@ spec:
       color:
         value: '{type}'
         map:
-          Normal: green
+          # status-pill spec: green is reserved for HEALTH; a Normal event is neutral info.
+          Normal: gray
           Warning: red
       primaryText: '{message}'
       subPrimaryText: '{ref}'

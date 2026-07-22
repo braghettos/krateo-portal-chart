@@ -1,7 +1,7 @@
 # Reconciliation rail — per-composition desired-vs-actual bars. Real data, no
 # hardcoding: fed by the compositions-list RA, each row a composed antd Progress
-# line whose percent (.healthPercent) + colour (.railState → cyan/magenta/amber/
-# crimson) are derived server-side from the composition's Ready×Synced conditions.
+# line whose percent (.healthPercent) + colour (.railState → green/violet/orange/
+# red) are derived server-side from the composition's Ready×Synced conditions.
 # Non-healthy compositions sort first (a paused/drifting composition surfaces at
 # the top). Per-composition (cheap, composition-level Ready×Synced); the per-
 # managed-resource rail lives on the detail page (composition-resources RA).

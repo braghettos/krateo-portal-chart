@@ -29,10 +29,11 @@ spec:
           ALERT: red
         default: gray
       primaryText: '{name}'
-      secondaryText: '{state}'
+      # Sentence-cased server-side ("ALERT" → "Alert"); the raw state keys the colour map.
+      secondaryText: '{stateLabel}'
       secondaryTextAsTag: true
   widgetDataTemplate:
   - forPath: dataSource
-    expression: '${ .awaiting // [] }'
+    expression: '${ (.awaiting // []) | map(. + { stateLabel: ((.state // "") | ascii_downcase | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end) }) }'
   resourcesRefs:
     items: []

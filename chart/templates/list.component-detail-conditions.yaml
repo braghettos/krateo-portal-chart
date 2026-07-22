@@ -26,7 +26,7 @@ spec:
       color:
         value: '{sev}'
         map:
-          ok: cyan
+          ok: green
           bad: red
         default: gray
     dataSource: []

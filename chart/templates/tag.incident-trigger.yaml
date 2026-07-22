@@ -14,10 +14,10 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
-    label: alert
+    label: Alert
     variant: outlined
   widgetDataTemplate:
     - forPath: label
-      expression: '${ .trigger // "alert" }'
+      expression: '${ (.trigger // "alert") | (.[0:1] | ascii_upcase) + .[1:] }'
   resourcesRefs:
     items: []

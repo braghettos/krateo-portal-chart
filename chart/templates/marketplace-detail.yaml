@@ -279,7 +279,10 @@ spec:
   resourcesRefs:
     items: []
 ---
-# Maturity Tag (e.g. beta / stable); amber for beta, cyan otherwise. Hidden if empty.
+# Maturity Tag (e.g. Beta / Stable), sentence case per the status-pill spec; amber for beta,
+# red for alpha (risk severity), blue otherwise (a maturity level is a category, not health —
+# and cyan is brand/interactive only). Installed keeps green (positive terminal state, same
+# family as "Up to date"). Hidden if empty.
 kind: Tag
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -295,12 +298,12 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     label: ""
-    color: cyan
+    color: blue
   widgetDataTemplate:
     - forPath: label
-      expression: '${ if .installed then ("INSTALLED · v" + .installedVersion) else ((.maturity // "") | ascii_upcase) end }'
+      expression: '${ if .installed then ("Installed · v" + .installedVersion) else ((.maturity // "") | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end) end }'
     - forPath: color
-      expression: '${ if .installed then "green" elif (.maturity == "beta") then "amber" elif (.maturity == "alpha") then "red" else "cyan" end }'
+      expression: '${ if .installed then "green" elif (.maturity == "beta") then "amber" elif (.maturity == "alpha") then "red" else "blue" end }'
   resourcesRefs:
     items: []
 ---

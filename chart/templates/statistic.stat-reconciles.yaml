@@ -12,7 +12,7 @@ spec:
     title: Pending
     value: 0
     # The number takes the pending status colour (orange/warning) so it matches its own
-    # "%" delta tag — same pattern as Failed (var(--error-color)) and Healthy (var(--cyan-color)).
+    # "%" delta tag — same pattern as Failed (var(--error-color)) and Healthy (var(--green-color)).
     valueStyle:
       color: var(--warning-color)
     # live-refresh: watch the composition kinds in the data (computed, not hardcoded)

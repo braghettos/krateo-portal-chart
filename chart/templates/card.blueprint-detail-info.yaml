@@ -17,8 +17,10 @@ spec:
   widgetData:
     title: Details
     extra: ""
-    # Render the extra as a glowing status badge-pill (Petrol): success→cyan when up to date,
-    # warning→amber when a newer version exists (antd Badge status follows the theme tokens).
+    # Render the extra as a status badge-pill: success (green health semantics) when up to
+    # date, warning→amber when a newer version exists. NOTE (status-pill spec): the Card CRD
+    # has no tag-style extra variant (text|badge only), so `badge` + semantic extraStatus is
+    # the nearest schema-valid form; the badge's mono/uppercase/tint styling is frontend CSS.
     extraVariant: badge
     extraStatus: success
     items:

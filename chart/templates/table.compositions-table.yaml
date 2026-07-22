@@ -40,11 +40,13 @@ spec:
   # STATUS cell = the row's REAL conditions as pills, sorted deterministically
   # (Ready, then Synced, then others alphabetical — the raw CR order varied
   # row-to-row) with HONEST labels: a condition whose status != "True" must SAY so,
-  # so Ready=False reads red "Not Ready", not a red pill still captioned "Ready"
-  # (mirrors tag.composition-detail-status's Ready=False → "Not Ready" idiom). The
-  # synthetic Workload condition (RA-injected, always unhealthy) reads "Workload
-  # Unhealthy"; a non-True/False status reads "<Type> Unknown" (gray). Label +
-  # colour are computed HERE server-side — the frontend renders them verbatim.
+  # so Ready=False reads red "Not ready", not a red pill still captioned "Ready"
+  # (mirrors tag.composition-detail-status's Ready=False → "Not ready" idiom; sentence
+  # case per the status-pill spec). The synthetic Workload condition (RA-injected,
+  # always unhealthy) reads "Workload unhealthy"; a non-True/False status reads
+  # "<Type> unknown" (gray). Hues follow the status-pill spec: True=green (health),
+  # False=red, unknown=gray — cyan is brand/interactive only, never a status colour.
+  # Label + colour are computed HERE server-side — the frontend renders them verbatim.
   #
   # RECONCILE cell = a state TAG from the pre-derived `.railState` (4 states incl.
   # drift, so a Ready-but-Synced=false composition reads violet "Drift", not orange
@@ -64,7 +66,7 @@ spec:
   # dashboard sharing this RA) we fall back to the full `.filtered` — behaviour is
   # byte-identical to pre-pagination for those callers.
   - forPath: dataSource
-    expression: '${ (if .slice then (.filtered[.slice.offset : (.slice.offset + .slice.perPage)]) else .filtered end) as $rows | [ $rows[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"conditions",stringValue:(((.conditions // []) | sort_by([(if .type=="Ready" then 0 elif .type=="Synced" then 1 else 2 end), .type]) | map({type:(if .status=="True" then .type elif .status=="False" then (if .type=="Workload" then "Workload Unhealthy" else ("Not " + .type) end) else (.type + " Unknown") end), status:.status, color:(if .status=="True" then "cyan" elif .status=="False" then "red" else "gray" end)})) | tojson)}, {valueKey:"reconcile",kind:"tag",stringValue:( .railState | if .=="healthy" then "Converged" elif .=="failed" then "Failed" elif .=="drift" then "Drift" else "Pending" end),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
+    expression: '${ (if .slice then (.filtered[.slice.offset : (.slice.offset + .slice.perPage)]) else .filtered end) as $rows | [ $rows[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:.kind}, {valueKey:"ns",kind:"jsonSchemaType",type:"string",stringValue:.ns}, {valueKey:"status",kind:"conditions",stringValue:(((.conditions // []) | sort_by([(if .type=="Ready" then 0 elif .type=="Synced" then 1 else 2 end), .type]) | map({type:(if .status=="True" then .type elif .status=="False" then (if .type=="Workload" then "Workload unhealthy" elif .type=="Ready" then "Not ready" elif .type=="Synced" then "Not synced" else ("Not " + .type) end) else (.type + " unknown") end), status:.status, color:(if .status=="True" then "green" elif .status=="False" then "red" else "gray" end)})) | tojson)}, {valueKey:"reconcile",kind:"tag",stringValue:( .railState | if .=="healthy" then "Converged" elif .=="failed" then "Failed" elif .=="drift" then "Drift" else "Pending" end),color:( .railState | if .=="healthy" then "green" elif .=="failed" then "red" elif .=="drift" then "violet" else "orange" end )}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.ts,format:"relative"} ] ] }'
   # Pager needs the TOTAL row count (the full filtered set) so it can render the right
   # number of pages while `dataSource` holds only the current window. `current` mirrors
   # the requested page (`.slice.page`) so the controlled pager stays in sync.

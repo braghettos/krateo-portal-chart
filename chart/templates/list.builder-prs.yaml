@@ -2,8 +2,9 @@
 # EXTERNALLY LINKABLE: navigateTo carries the PR's status.html_url, and the frontend opens an
 # http(s) target in a new tab (navigateOrExternal, frontend ≥ 1.3.36) — so a click lands on the
 # real GitHub PR. A Listy (not a Table) because the Table URI-encodes each interpolated cell,
-# which would mangle a full URL; the Listy passes navigateTo through verbatim. State dot: open→
-# green, closed→magenta, else gold. A PR with no URL yet (pre-reconcile) is inert.
+# which would mangle a full URL; the Listy passes navigateTo through verbatim. State tag
+# (status-pill spec: an open PR is a non-health state, not a success): open→blue, closed→gray,
+# else gold; sentence-cased server-side. A PR with no URL yet (pre-reconcile) is inert.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -26,16 +27,18 @@ spec:
       color:
         value: '{state}'
         map:
-          open: green
-          closed: magenta
+          open: blue
+          closed: gray
         default: gold
       primaryText: '{title}'
       subPrimaryText: '{sub}'
       subPrimaryTextMono: true
-      secondaryText: '{state}'
+      secondaryText: '{stateLabel}'
       secondaryTextAsTag: true
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ .rows // [] }'
+      # stateLabel = sentence-cased state ("Open"/"Closed"/"Pending"); the raw lowercase
+      # state stays for the colour map keys.
+      expression: '${ (.rows // []) | map(. + { stateLabel: ((.state // "") | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end) }) }'
   resourcesRefs:
     items: []

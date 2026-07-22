@@ -37,7 +37,8 @@ spec:
       color:
         value: '{type}'
         map:
-          Normal: green
+          # status-pill spec: green is reserved for HEALTH; a Normal event is neutral info.
+          Normal: gray
           Warning: red
         # The synthetic Empty row falls through to a muted dot.
         default: gray

@@ -15,7 +15,7 @@ spec:
     size: small
     icon:
       name: fa-circle-check
-      color: cyan
+      color: green
     # D4: whole-card CTA → compositions filtered to the healthy ones (?status=healthy).
     clickActionId: view-healthy
     widgetActions:

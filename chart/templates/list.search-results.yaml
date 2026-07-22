@@ -5,7 +5,9 @@
 # Each row is clickable: itemTemplate.navigateTo binds the RA's per-result `link`
 # (compositions → /compositions/{ns}/{name}; blueprints → /marketplace/{ns}/{name}/new),
 # so a hit SPA-navigates to its detail/create route (the §A per-row navigate slice).
-# A leading dot colors by result type (composition vs blueprint) for scannability.
+# A leading dot colors by result type (composition vs blueprint) for scannability —
+# neutral/blue hues only (status-pill spec: green is reserved for HEALTH; a type is
+# not a status). The subtitle carries the type word, so no information rides on hue.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -32,7 +34,7 @@ spec:
         value: '{type}'
         map:
           composition: blue
-          blueprint: green
+          blueprint: slate
         default: gray
   widgetDataTemplate:
     - forPath: dataSource

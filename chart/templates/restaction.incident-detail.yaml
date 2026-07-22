@@ -95,7 +95,7 @@ spec:
     | {
         title: (if ($rc.statement // "") != "" then $rc.statement elif ($sp.alertName // "") != "" then ("Investigation — " + $sp.alertName) else $n end),
         lifecycle: $lc,
-        lifecycleColor: (if $lc == "open" then "red" elif $lc == "mitigated" then "orange" else "cyan" end),
+        lifecycleColor: (if $lc == "open" then "red" elif $lc == "mitigated" then "orange" else "green" end),
         trigger: ($sp.trigger // "alert"),
         phase: $phase,
         ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) elif ($sp.alertName // "") != "" then ("alerts/" + $sp.alertName) else "—" end),

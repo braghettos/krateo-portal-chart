@@ -1,7 +1,7 @@
 # Ready-state pill next to the component title. The rollup logic lives HERE
 # (widget representation); the RA supplies the raw replica counts. Honest states:
-#   Ready        (cyan) — readyReplicas == desired, desired > 0
-#   Not Ready    (red)  — some/all desired replicas are not ready
+#   Ready        (green) — readyReplicas == desired, desired > 0
+#   Not ready    (red)   — some/all desired replicas are not ready
 #   Scaled to 0  (gray) — desired == 0 (intentional, not a failure)
 #   Not found    (gray) — no such Deployment in the Krateo namespace
 kind: Tag
@@ -22,8 +22,8 @@ spec:
     color: default
   widgetDataTemplate:
     - forPath: label
-      expression: '${ if (.found // false) | not then "Not found" elif (.dep.replicas // 0) == 0 then "Scaled to 0" elif (.dep.ready // 0) == (.dep.replicas // 0) then "Ready" else "Not Ready" end }'
+      expression: '${ if (.found // false) | not then "Not found" elif (.dep.replicas // 0) == 0 then "Scaled to 0" elif (.dep.ready // 0) == (.dep.replicas // 0) then "Ready" else "Not ready" end }'
     - forPath: color
-      expression: '${ if (.found // false) | not then "gray" elif (.dep.replicas // 0) == 0 then "gray" elif (.dep.ready // 0) == (.dep.replicas // 0) then "cyan" else "red" end }'
+      expression: '${ if (.found // false) | not then "gray" elif (.dep.replicas // 0) == 0 then "gray" elif (.dep.ready // 0) == (.dep.replicas // 0) then "green" else "red" end }'
   resourcesRefs:
     items: []

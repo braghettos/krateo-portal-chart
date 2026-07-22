@@ -28,16 +28,17 @@ spec:
         map:
           open: red
           mitigated: orange
-          resolved: cyan
+          resolved: green
         default: gray
       primaryText: '{title}'
-      secondaryText: '{lifecycle}'
+      # Sentence-cased server-side (lifecycleLabel); the raw value keys the colour map.
+      secondaryText: '{lifecycleLabel}'
       secondaryTextAsTag: true
       subSecondaryText: '{completedAt}'
       formats:
         subSecondaryText: relative
   widgetDataTemplate:
   - forPath: dataSource
-    expression: '${ .similar // [] }'
+    expression: '${ (.similar // []) | map(. + { lifecycleLabel: ((.lifecycle // "") | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end) }) }'
   resourcesRefs:
     items: []

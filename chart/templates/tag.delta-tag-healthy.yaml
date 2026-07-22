@@ -10,7 +10,7 @@ spec:
   keyExtras: [projects, q, status]
   widgetData:
     label: 0%
-    color: cyan
+    color: green
     style:
       fontSize: '13px'
       fontWeight: 700

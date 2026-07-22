@@ -32,6 +32,6 @@ spec:
     dataSource: []
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ (.rows // [])[] | [ {valueKey:"change",kind:"tag",stringValue:(.change // ""),color:(.color // "gray")}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:(.kind // "")}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"detail",kind:"jsonSchemaType",type:"string",stringValue:(.detail // "")} ] ] }'
+      expression: '${ [ (.rows // [])[] | [ {valueKey:"change",kind:"tag",stringValue:((.change // "") | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end),color:(.color // "gray")}, {valueKey:"kind",kind:"jsonSchemaType",type:"string",stringValue:(.kind // "")}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"detail",kind:"jsonSchemaType",type:"string",stringValue:(.detail // "")} ] ] }'
   resourcesRefs:
     items: []
