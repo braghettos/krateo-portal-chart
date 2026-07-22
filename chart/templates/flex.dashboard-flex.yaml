@@ -31,6 +31,10 @@ spec:
     - resourceRefId: charts-row
     - resourceRefId: rail-row
     - resourceRefId: lists-row
+    # #14: Platform inventory (installed blueprints · composition kinds · active projects) —
+    # the three real obs-stat-* Statistics wrapped in a card, moved onto the dashboard (the
+    # observability agent removes it from the obs page). Bottom of the flow, under the lists.
+    - resourceRefId: dashboard-inventory
   resourcesRefs:
     items:
     - id: header-row
@@ -68,4 +72,10 @@ spec:
       name: lists-row
       namespace: {{ .Release.Namespace }}
       resource: rows
+      verb: GET
+    - id: dashboard-inventory
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: dashboard-inventory
+      namespace: {{ .Release.Namespace }}
+      resource: cards
       verb: GET

@@ -24,11 +24,13 @@ spec:
     - resourceRefId: compositions-table
   resourcesRefs:
     items:
+    # #4: compositions-header is now a Flex (space-between), not a Row — resolve it as `flexes`
+    # so the CTA pins flush-right reliably (the Row/Col grid rendered it ~2/3 across live).
     - id: compositions-header
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: compositions-header
       namespace: {{ .Release.Namespace }}
-      resource: rows
+      resource: flexes
       verb: GET
     - id: compositions-toolbar
       apiVersion: widgets.templates.krateo.io/v1beta1

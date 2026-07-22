@@ -1,8 +1,9 @@
 # Empty-state CTA strip — shown ONLY while zero RestDefinitions exist (the RA emits the
 # hint item exclusively then; hideWhenEmpty removes the strip the moment the first
 # mapping lands — exception-only UX, the calm default is just the table). Mirrors the
-# incidents-awaiting precedent: the row navigates to a server-built /kog-builder?ask=
-# deep-link that opens the Autopilot rail seeded with the paste-an-OpenAPI builder flow.
+# incidents-awaiting precedent: the row navigates to a server-built /api-builder?ask=
+# deep-link (askHref, resolved from the RA) that opens the Autopilot rail seeded with the
+# paste-an-OpenAPI builder flow. (Route renamed /kog-builder → /api-builder, issue #29.)
 # (A Paragraph cannot carry a link — the Listy item is the house pattern for an
 # actionable hint; its primary/secondary text IS the hint prose.)
 kind: Listy

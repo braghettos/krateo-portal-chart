@@ -2,6 +2,13 @@
 # pullrequests.github.krateo.io CR the Portal/Blueprint builder created (the git-publish set's
 # PR op). Cluster-native (lists the CRs directly), so no GitHub token/endpoint; continueOnError
 # so a narrow-RBAC (non-author) user degrades to an empty table instead of a failed widget.
+#
+# STATE is GitHub-domain vocabulary, NOT k8s: a PR is open / merged / closed. The status
+# subresource the KOG github-provider writes carries state (open|closed), merged (bool) and
+# number/html_url; a MERGED PR reports state=closed + merged=true, so merged is derived HERE
+# (closed && merged → "merged") ahead of a plain close. The list.builder-prs Listy maps each
+# state to a domain chip (open→blue Open / merged→green Merged / closed→slate Closed); green is
+# reserved for a genuinely-landed deliverable (merged), matching the health=green rule.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -22,13 +29,27 @@ spec:
     { rows: [ ((.prs.items) // [])[]
         | (((.spec.owner) // "") + "/" + ((.spec.repo) // "")) as $repo
         | ((.spec.head) // "") as $head
+        | ((.status.state) // "pending") as $rawState
+        | ((.status.merged) // false) as $merged
+        # Domain state: a closed PR that landed is "merged" (green), a closed-unmerged one is
+        # "closed" (slate); anything still open is "open" (blue); pre-reconcile is "pending".
+        | (if $rawState == "closed" and $merged then "merged" else $rawState end) as $state
         | {
             name:  (.metadata.name // ""),
             repo:  $repo,
             head:  $head,
-            sub:   ($repo + (if $head != "" then (" · " + $head) else "" end)),
+            # Identity pill: "<owner>/<repo> · #<N>" (+ the head branch when present). The PR
+            # number rides from status.number (written after the provider opens the PR).
+            sub:   ($repo
+                    + (if ((.status.number) // 0) > 0 then (" · #" + ((.status.number) | tostring)) else "" end)
+                    + (if $head != "" then (" · " + $head) else "" end)),
             title: ((.spec.title) // ""),
-            state: ((.status.state) // "pending"),
+            state: $state,
+            # Sentence-cased chip label ("Open"/"Merged"/"Closed"/"Pending") — the raw lowercase
+            # `state` stays for the colour-map keys.
+            stateLabel: (if $state == "" then "" else ((($state)[0:1] | ascii_upcase) + ($state)[1:]) end),
+            # PR open age — the raw creationTimestamp; the Listy formats it `relative` ("14d ago").
+            created: (.metadata.creationTimestamp // ""),
             # The GitHub PR URL (status.html_url) — the Listy row's external navigateTo. A PR
             # with no URL yet (freshly created, pre-reconcile) gets "" → the row is inert.
             url:   ((.status.html_url) // "")

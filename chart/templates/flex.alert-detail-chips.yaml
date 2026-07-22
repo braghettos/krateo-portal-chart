@@ -1,0 +1,30 @@
+# Detail chips line — the live State tag (only chip on this row; the alert's identity IS its
+# state). Mirrors incident-detail-chips structure (a wrap/align:center Flex) so the alert and
+# incident detail pageheads read identically. Kept as its own Flex (not inline in the header)
+# so a future second chip (e.g. a paused/muted badge) slots in without touching the header.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: alert-detail-chips
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  widgetData:
+    allowedResources:
+    - tags
+    gap: small
+    align: center
+    wrap: true
+    items:
+    - resourceRefId: alert-detail-state
+  resourcesRefs:
+    items:
+    - id: alert-detail-state
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: alert-detail-state
+      namespace: {{ .Release.Namespace }}
+      resource: tags
+      verb: GET

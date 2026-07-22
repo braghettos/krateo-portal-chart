@@ -1,11 +1,13 @@
-# Convention page root for /kog-builder — the KOG builder's post-publish verification
-# surface (w4-kog-builder spec §2.5 + CHART-K1): pagehead, the always-visible
-# "Ask Autopilot →" CTA (the page's own entry into the flow), the RestDefinition registry
-# table (READY / generated kind+apiVersion / OAS source, all derived server-side), and
-# the empty-state Autopilot CTA strip (visible only while zero mappings exist). The
-# route is hidden (label-less nav item) — Autopilot navigates here after a gated
-# publish; the authoring flow itself lives in the rail, not on this page (the create
-# Form is the deferred CHART-K2).
+# Convention page root for /api-builder (page slug stays kog-builder — internal; route renamed
+# from /kog-builder, issue #29) — the KOG builder's post-publish verification surface
+# (w4-kog-builder spec §2.5 + CHART-K1): pagehead, the always-visible "Ask Autopilot →" CTA
+# (the page's own entry into the flow), the PR-published DELIVERABLES table (blueprint-builder
+# parity, issue #30 — the API mappings shipped via a gated PR, joined to their generated
+# RestDefinition Ready status), the RestDefinition REGISTRY table (READY / generated
+# kind+apiVersion / OAS source, all derived server-side — the full live-CRD state), and the
+# empty-state Autopilot CTA strip (visible only while zero mappings exist). The route is hidden
+# (label-less nav item) — Autopilot navigates here after a gated publish; the authoring flow
+# itself lives in the rail, not on this page (the create Form is the deferred CHART-K2).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -25,6 +27,12 @@ spec:
     items:
     - resourceRefId: kog-builder-header
     - resourceRefId: kog-builder-ask
+    # The PR-published deliverables (KOG API mappings opened via a gated pull request), JOINED
+    # to their generated RestDefinition Ready status — the blueprint-builder-parity surface
+    # (issue #30). Above the raw restdef registry: the deliverables are the "what did I ship?"
+    # answer, the registry below is the full live-CRD state. Empty (zero KOG PRs) until the
+    # frontend KOG-publish-via-PR path ships — then it fills like the blueprint table.
+    - resourceRefId: kog-deliverables
     - resourceRefId: kog-restdefinitions
     - resourceRefId: kog-builder-hint
   resourcesRefs:
@@ -40,6 +48,12 @@ spec:
       name: kog-builder-ask
       namespace: {{ .Release.Namespace }}
       resource: buttons
+      verb: GET
+    - id: kog-deliverables
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: kog-deliverables
+      namespace: {{ .Release.Namespace }}
+      resource: tables
       verb: GET
     - id: kog-restdefinitions
       apiVersion: widgets.templates.krateo.io/v1beta1

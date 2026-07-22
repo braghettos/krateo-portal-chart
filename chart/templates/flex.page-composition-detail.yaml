@@ -21,8 +21,14 @@ spec:
       - flexes
       - rows
       - cards
+      - listies
     items:
       - resourceRefId: composition-detail-header-block
+      # #6: Incidents strip — troubleshooting reports that analyzed THIS composition. Sits
+      # directly under the pagehead so an active incident is visible up front. EXCEPTION-ONLY:
+      # the Listy hideWhenEmpty renders nothing for a healthy composition (no incidents), and
+      # the vertical Flex gap collapses around the absent child — the calm default shows no strip.
+      - resourceRefId: composition-incidents
       # Rail wrapped in a full-width Row (composition-detail-rail-row) so it shares the grid's
       # gutter inset and aligns with the Spec/Health cards below (was a bare full-width card).
       - resourceRefId: composition-detail-rail-row
@@ -40,6 +46,12 @@ spec:
         name: composition-detail-header-block
         namespace: {{ .Release.Namespace }}
         resource: flexes
+        verb: GET
+      - id: composition-incidents
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: composition-incidents
+        namespace: {{ .Release.Namespace }}
+        resource: listies
         verb: GET
       - id: composition-detail-rail-row
         apiVersion: widgets.templates.krateo.io/v1beta1

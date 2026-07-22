@@ -51,7 +51,11 @@ spec:
       #   API Builder (KOG, CHART-K1) → the RestDefinition registry (generated API kinds).
       - { label: Portal Builder,    icon: fa-hammer,    order: 10, path: /portal-builder,    page: portal-builder }
       - { label: Blueprint Builder, icon: fa-pen-ruler, order: 11, path: /blueprint-builder, page: blueprint-builder }
-      - { label: API Builder,       icon: fa-plug,      order: 12, path: /kog-builder,        page: kog-builder }
+      # /api-builder is the canonical path (UX round-2 #29 — consistent with the "API Builder"
+      # label + H1); the page: slug stays kog-builder (internal). The hidden alias below keeps
+      # old /kog-builder deep-links resolving to the same page.
+      - { label: API Builder,       icon: fa-plug,      order: 12, path: /api-builder,        page: kog-builder }
+      - { order: 12.5, path: /kog-builder, page: kog-builder }
       # (Builder Demo removed from the portal nav — the Autopilot-authored demo page is being
       #  re-homed as its OWN composition alongside the portal composition, not baked into the
       #  portal chart. Its page-builderdemo CRs + the /builderdemo route move out with it.)
@@ -62,6 +66,8 @@ spec:
       # Templated detail + create routes via the convention. Paths are quoted — the
       # {param} braces would otherwise be read as YAML flow mappings.
       - { order: 900, path: "/compositions/{namespace}/{name}",   page: composition-detail }
+      # per-alert detail page (UX round-2 #25) — rule config, live State, HyperDX links, incident back-link.
+      - { order: 935, path: "/alerts/{namespace}/{name}", page: alert-detail }
       # per-namespace compositions list — the namespace breadcrumb crumb links here.
       # Reuses page-compositions; its compositions-table self-filters by ?extras.namespace
       # (compositions-list RA) since the route param rides through as extras.

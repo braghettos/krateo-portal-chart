@@ -12,7 +12,9 @@
 #            "configure credentials for <Kind>" hint).
 #   counts : total/ready/failed/pending over the full set (header/summary use).
 #   hint   : the empty-state CTA — ONLY when zero RestDefinitions exist (exception-only
-#            UX), one item carrying askHref: a /kog-builder?ask= Autopilot deep-link
+#            UX), one item carrying askHref: an /api-builder?ask= Autopilot deep-link
+#            (the page's public route was renamed /kog-builder to /api-builder, issue
+#            #29; the widget names + page slug stay kog-builder — internal)
 #            (@uri, server-built) seeding the paste-an-OpenAPI builder flow.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
@@ -80,6 +82,6 @@ spec:
         hint: (if ($rows | length) == 0
                then [ { title: "Create your first API mapping with Autopilot",
                         detail: "Paste an OpenAPI document (or give its URL) in the rail — the agent proposes the RestDefinition mapping, you preview it, one gated confirm publishes it.",
-                        askHref: ("/kog-builder?ask=" + (("I want to onboard a new API with the KOG builder. I will paste an OpenAPI document (or give you its URL): propose the RestDefinition mapping (kind, resourceGroup, verbs, identifiers), preview it with previewRestDef, and publish it only after I confirm.") | @uri)) } ]
+                        askHref: ("/api-builder?ask=" + (("I want to onboard a new API with the KOG builder. I will paste an OpenAPI document (or give you its URL): propose the RestDefinition mapping (kind, resourceGroup, verbs, identifiers), preview it with previewRestDef, and publish it only after I confirm.") | @uri)) } ]
                else [] end)
       }

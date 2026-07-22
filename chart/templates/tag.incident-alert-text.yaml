@@ -1,0 +1,25 @@
+# UX-22: the triggering alert as INERT text — used when incident-detail could NOT resolve the
+# alert's real metadata.name (alertRoute empty), so the name is shown WITHOUT a link (never a
+# broken /alerts/… navigation). The alert display name (spec.alertName) is kept verbatim; the chip
+# is neutral (non-status, blue/neutral — an alert reference is not itself a health signal here).
+kind: Tag
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-alert-text
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    label: 'Alert'
+    variant: outlined
+  widgetDataTemplate:
+    - forPath: label
+      expression: '${ "Alert: " + (.alertName // "") }'
+  resourcesRefs:
+    items: []

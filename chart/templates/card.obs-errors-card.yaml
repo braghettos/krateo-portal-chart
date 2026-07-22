@@ -1,6 +1,10 @@
-# Titled panel around the ERROR-log digest list. The `extra` shows the live headline totals
-# (total error lines + distinct problems over 6h) from the same RA's `tot` step — so the
-# panel header reads e.g. "1495 errors · 15 distinct · 6h".
+# Titled panel around the ERROR-log digest list. GROUPED, COUNTED, most-frequent-first — the
+# distinct problems, collapsing the same error repeating every reconcile into one counted row
+# (the chronological complement is the "Live error & warning stream" card below). R2 #13: the
+# title says "Top recurring errors" so grouped-vs-chronological reads at a glance; the `extra`
+# shows the live headline totals (total error lines + distinct problems over the selected
+# window) from the same RA's `tot` step + a "grouped" cue — so the header reads e.g.
+# "1495 errors · 15 distinct · grouped".
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -12,15 +16,15 @@ spec:
   # F6 (snowplow#130): extras keys that partition this widget's cache cell.
   keyExtras: [range]
   widgetData:
-    title: What's going wrong
+    title: Top recurring errors
     titleVariant: eyebrow
     variant: outlined
-    extra: 'errors'
+    extra: 'grouped · most frequent first'
     items:
     - resourceRefId: obs-error-log-list
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ ((.total // 0)|tostring) + " errors · " + ((.distinct // 0)|tostring) + " distinct" }'
+    expression: '${ ((.total // 0)|tostring) + " errors · " + ((.distinct // 0)|tostring) + " distinct · grouped" }'
   apiRef:
     name: obs-error-log-digest
     namespace: {{ .Release.Namespace }}
