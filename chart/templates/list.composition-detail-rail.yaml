@@ -5,6 +5,11 @@
 # Relations card (same RA). Nothing hardcoded: convergencePercent + state derive
 # server-side from every managed resource's Ready×Synced / Available / ready-by-
 # presence. Reuses the Petrol `bar.variant: rail` engine (cyan fill + amber tick).
+# Workload projection outranks resource-match: when the RA says workloadUnhealthy
+# (crashlooping pods behind matching resources) the gauge goes failed-red, the fill
+# caps at 20 (the compositions-list wh-failed language — the two rails must agree),
+# the label leads with "workload unhealthy" and the healthMessage rides the sub-line.
+# "100% match" alone over a down workload is a false all-clear.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -38,6 +43,6 @@ spec:
         variant: rail
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ { name: "", ns: "", healthPercent: .convergencePercent, railState: (if .converged then "healthy" elif (.failedCount > 0) then "failed" elif (.driftCount > 0) then "drift" else "pending" end), label: ((.convergencePercent | tostring) + "% match · " + (.healthyCount | tostring) + "/" + (.total | tostring) + " resources") } ] }'
+      expression: '${ [ (.workloadUnhealthy == true) as $whBad | { name: "", ns: (if $whBad then (.workloadMessage // "") else "" end), healthPercent: (if $whBad then ([.convergencePercent, 20] | min) else .convergencePercent end), railState: (if $whBad then "failed" elif .converged then "healthy" elif (.failedCount > 0) then "failed" elif (.driftCount > 0) then "drift" else "pending" end), label: ((if $whBad then "workload unhealthy · " else "" end) + (.convergencePercent | tostring) + "% match · " + (.healthyCount | tostring) + "/" + (.total | tostring) + " resources") } ] }'
   resourcesRefs:
     items: []

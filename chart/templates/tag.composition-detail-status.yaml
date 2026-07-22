@@ -21,10 +21,13 @@ spec:
     color: default
   # Title tag = the composition's REAL `Ready` condition (not a derived Healthy/Drift label):
   # Ready=True → "Ready" (cyan), Ready=False → "Not Ready" (red/crimson), absent → "Unknown" (gray).
+  # ONE override outranks Ready: the engine's workload projection. workloadHealthy == false
+  # (crashlooping pods behind a Ready=True comp) → "Unhealthy" (red) — the pill must not
+  # read green while the actual workload is down. (.workloadHealthy = RA-exposed raw field.)
   widgetDataTemplate:
     - forPath: label
-      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if $r == null then "Unknown" elif $r.status == "True" then "Ready" else "Not Ready" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "Unhealthy" elif $r == null then "Unknown" elif $r.status == "True" then "Ready" else "Not Ready" end }'
     - forPath: color
-      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if $r == null then "gray" elif $r.status == "True" then "cyan" else "red" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "red" elif $r == null then "gray" elif $r.status == "True" then "cyan" else "red" end }'
   resourcesRefs:
     items: []
