@@ -20,13 +20,14 @@ spec:
     label: Unknown
     color: default
   # Title tag = the composition's REAL `Ready` condition (not a derived Healthy/Drift label):
-  # Ready=True → "Ready" (green — health), Ready=False → "Not ready" (red), absent → "Unknown" (gray).
+  # Ready=True → "Ready" (green — health), Ready=False → "NotReady" (red, the K8s-native
+  # kubectl token — never spaced/sentence-cased), absent → "Unknown" (gray).
   # ONE override outranks Ready: the engine's workload projection. workloadHealthy == false
   # (crashlooping pods behind a Ready=True comp) → "Unhealthy" (red) — the pill must not
   # read green while the actual workload is down. (.workloadHealthy = RA-exposed raw field.)
   widgetDataTemplate:
     - forPath: label
-      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "Unhealthy" elif $r == null then "Unknown" elif $r.status == "True" then "Ready" else "Not ready" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "Unhealthy" elif $r == null then "Unknown" elif $r.status == "True" then "Ready" else "NotReady" end }'
     - forPath: color
       expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "red" elif $r == null then "gray" elif $r.status == "True" then "green" else "red" end }'
   resourcesRefs:

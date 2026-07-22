@@ -20,6 +20,6 @@ spec:
     type: secondary
   widgetDataTemplate:
     - forPath: text
-      expression: '${ if (.found // false) then ("Deployment · " + "{{ .Release.Namespace }}" + " · created " + ((.dep.created // "") as $ts | if ($ts | length) == 0 then "?" else ((now - ($ts | fromdateiso8601)) as $sec | if $sec < 60 then "just now" elif $sec < 3600 then ((($sec/60)|floor)|tostring) + "m ago" elif $sec < 86400 then ((($sec/3600)|floor)|tostring) + "h ago" else ((($sec/86400)|floor)|tostring) + "d ago" end) end)) else ("Deployment · " + "{{ .Release.Namespace }}" + " · not found") end }'
+      expression: '${ if (.found // false) then ("Deployment · " + "{{ .Release.Namespace }}" + " · created " + ((.dep.created // "") as $ts | if ($ts | length) == 0 then "?" else ((now - ($ts | fromdateiso8601)) as $sec | if $sec < 60 then "just now" elif $sec < 3600 then ((($sec/60)|floor)|tostring) + "m ago" elif $sec < 86400 then ((($sec/3600)|floor)|tostring) + "h ago" else ((($sec/86400)|floor)|tostring) + "d ago" end) end)) else ("Deployment · " + "{{ .Release.Namespace }}" + " · NotFound") end }'
   resourcesRefs:
     items: []

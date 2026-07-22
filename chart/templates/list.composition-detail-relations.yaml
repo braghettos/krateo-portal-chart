@@ -3,7 +3,8 @@
 # each managed resource and derives Ready×Synced / Available / ready-by-presence
 # → state), so each row mirrors the mockup `.rel-row`: a state-colored tree dot +
 # the resource Kind (· name) + a right-aligned FILLED state Tag (status-pill spec:
-# sentence-case label "Healthy"/"Drift"/"Pending"/"Failed", green/violet/orange/red).
+# single PascalCase tokens "Healthy"/"Drift"/"Pending"/"Failed", green/violet/orange/red
+# — K8s-native vocabulary rule, no spaced/sentence-cased state words).
 # Honest: rows ARE the real .status.managed children, state IS the live object's
 # condition read — no ownerReferences (those point at the parent, usually empty).
 kind: Listy
@@ -40,7 +41,7 @@ spec:
           failed: red
       primaryText: '{kind}'
       subPrimaryText: '{name}'
-      # Sentence-cased server-side (stateLabel); rendered as a filled Tag, not bare text.
+      # Single-token label computed server-side (stateLabel); a filled Tag, not bare text.
       secondaryText: '{stateLabel}'
       secondaryTextAsTag: true
   widgetDataTemplate:

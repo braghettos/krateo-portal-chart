@@ -4,7 +4,7 @@
 # health grammar, narrowed to a single spoke:
 #   targets  : collection LIST of KubernetesTargets (they live on the hub) — the per-name
 #              row is selected in jq (LIST-then-select, same resolution shape as
-#              incident-detail; avoids a per-name GET and degrades to "Not found" instead
+#              incident-detail; avoids a per-name GET and degrades to "NotFound" instead
 #              of failing the widget). KubernetesTarget is NAMESPACED (core-provider 2.8.0),
 #              but the collection endpoint returns all visible namespaces AND we select in
 #              jq, so no per-name GET path (which would need the namespace segment) is used —
@@ -19,7 +19,7 @@
 #              fallback when the target's own probe is silent.
 # Health verdict = clusters-list's exact mapping (own probe first, compdef roll-up as
 # fallback): Healthy → green, Down → red, otherwise Unknown → gray. Both list steps
-# continueOnError so the page degrades (Not found / empty rows), never a broken widget.
+# continueOnError so the page degrades (NotFound / empty rows), never a broken widget.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -32,7 +32,7 @@ spec:
     # KubernetesTarget is namespaced (core.krateo.io/v1alpha1) as of core-provider 2.8.0, but
     # this is the collection LIST endpoint (no namespace segment → all visible namespaces) and
     # the per-name row is selected in jq. UAF gates the LIST by the user's list grant on
-    # kubernetestargets; a narrow-RBAC user simply sees "Not found".
+    # kubernetestargets; a narrow-RBAC user simply sees "NotFound".
     - name: targets
       path: /apis/core.krateo.io/v1alpha1/kubernetestargets
       verb: GET
@@ -97,7 +97,7 @@ spec:
         found: $found,
         name: (if $found then $t.name else $n end),
         health: $health,
-        healthLabel: (if ($found | not) then "Not found" elif $health == "healthy" then "Healthy" elif $health == "failed" then "Down" else "Unknown" end),
+        healthLabel: (if ($found | not) then "NotFound" elif $health == "healthy" then "Healthy" elif $health == "failed" then "Down" else "Unknown" end),
         healthColor: (if ($found | not) then "gray" elif $health == "healthy" then "green" elif $health == "failed" then "red" else "gray" end),
         secretRef: ($t.secretRef // ""),
         secretNamespace: ($t.secretNamespace // ""),
