@@ -23,12 +23,15 @@ spec:
     - resourceRefId: list-composition-detail-rail
   # Badge = the composition's REAL `Synced` condition (not a derived CONVERGED/RECONCILING label):
   # Synced=True → "SYNCED" (cyan/success), False → "NOT SYNCED" (crimson/error), absent → "UNKNOWN".
+  # When the engine's workload projection says the workload is down (workloadHealthy == false)
+  # the badge keeps the sync FACT but appends "· UNHEALTHY" and goes error — "SYNCED" alone
+  # over a CrashLoopBackOff workload reads as all-clear, which is false.
   # (The per-resource bars below still come from composition-resources via the rail List's own apiRef.)
   widgetDataTemplate:
   - forPath: extra
-    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if $s == null then "UNKNOWN" elif $s.status == "True" then "SYNCED" else "NOT SYNCED" end }'
+    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | (if $s == null then "UNKNOWN" elif $s.status == "True" then "SYNCED" else "NOT SYNCED" end) as $base | if .workloadHealthy == false then ($base + " · UNHEALTHY") else $base end }'
   - forPath: extraStatus
-    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if $s == null then "default" elif $s.status == "True" then "success" else "error" end }'
+    expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Synced")) | .[0]) as $s | if .workloadHealthy == false then "error" elif $s == null then "default" elif $s.status == "True" then "success" else "error" end }'
   apiRef: { name: composition-detail, namespace: {{ .Release.Namespace }} }
   resourcesRefs:
     items:

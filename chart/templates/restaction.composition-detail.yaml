@@ -3,7 +3,16 @@
 # .name/.namespace): compositions are heterogeneous per-blueprint kinds, so
 # discover generically (list composition.krateo.io CRDs, list each cluster-wide,
 # pick name+namespace). Returns ONLY raw data:
-#   detail : the full composition object (managedFields stripped)
+#   detail     : the full composition object (managedFields stripped)
+#   conditions : .status.conditions PLUS a synthesized Workload condition when the
+#                engine's status-projection says the managed workload is unhealthy
+#                (.status.workloadHealthy == false) — the SAME synthesis as the
+#                compositions-list RA, so a CrashLoopBackOff comp can't read
+#                all-green here while its raw Ready/Synced stay True. `detail`
+#                itself stays UNTOUCHED (the manifest viewer must never show a
+#                condition the cluster doesn't hold).
+#   workloadHealthy / healthMessage : the raw projection fields (null when the
+#                engine doesn't project them — absence is not a health claim).
 # Every detail widget (header/status/subtitle/spec/health/manifest/metadata/
 # relations) shapes its own slice from this in its widgetDataTemplate. Events are
 # a separate concern → restaction.composition-events (the events-presenter/SSE).
@@ -58,6 +67,9 @@ spec:
     | ([ .compdefs[]? | select((.kind // "") != "" and .kind == ($d.kind // "__none__")) ][0] // null) as $bp
     | {
         detail: $d,
+        conditions: (($d.status.conditions // []) + (if $d.status.workloadHealthy == false then [{type: "Workload", status: "False", reason: "Unhealthy", message: ($d.status.healthMessage // "")}] else [] end)),
+        workloadHealthy: $d.status.workloadHealthy,
+        healthMessage: ($d.status.healthMessage // ""),
         gvr: {
           apiVersion: $av,
           resource: ([ .crds[]? | select(.group == ($av | split("/")[0]) and .kind == $d.kind) ][0].plural // ""),
