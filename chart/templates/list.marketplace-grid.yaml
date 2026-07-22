@@ -25,6 +25,14 @@ spec:
     grid:
       gutter: 16
       column: 3
+    # UX-audit #21: the catalog is ~400 cards — one unpaginated wall. Plain antd List
+    # pagination over the DELIVERED array, 24 tiles (8 rows × 3 cols) per page. The
+    # category/source/q/sort facets filter server-side in the catalog RA (?extras) BEFORE
+    # delivery, so paging composes with them: antd clamps the current page into the
+    # filtered range, and a single-page result hides the pager entirely (hideOnSinglePage
+    # in the frontend — chrome is exception-only).
+    pagination:
+      pageSize: 24
     dataSource: []
     # `card` rowVariant: each grid cell is a full antd Card — icon-tile + name + version
     # badge (subPrimaryText) + category tag (secondaryText) + 2-line description + a footer

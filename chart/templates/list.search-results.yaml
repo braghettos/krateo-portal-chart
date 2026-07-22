@@ -24,6 +24,13 @@ spec:
   widgetData:
     itemLayout: horizontal
     split: false
+    # UX-audit #21: an empty/short q returns the whole merged estate (compositions +
+    # installed blueprints + the ~400-chart catalog + clusters + incidents) as one wall.
+    # Plain antd pagination over the delivered rows; the q filter runs server-side in the
+    # global-search RA BEFORE delivery, so a narrowed search collapses to one page and
+    # hides the pager (hideOnSinglePage in the frontend).
+    pagination:
+      pageSize: 20
     dataSource: []
     itemTemplate:
       primaryText: '{title}'
