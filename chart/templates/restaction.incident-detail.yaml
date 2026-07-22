@@ -41,7 +41,9 @@ spec:
     | (($st.reasoningTrace // []) | sort_by(.step // 0)) as $trace
     | ($st.remediationPlan // []) as $plan
     | ($st.lifecycle // "open") as $lc
-    | ($st.phase // "Pending") as $phase
+      # UX-20 (Ready homonym): the CR's analysis-complete phase is spelled "Ready" — presented
+      # as "Analyzed" (matches the troubleshooting feed; "Ready" stays K8s-readiness-only).
+    | (($st.phase // "Pending") | if . == "Ready" then "Analyzed" else . end) as $phase
     | ($sp.triggeredAt // ($r.metadata.creationTimestamp // "")) as $started
     | ($st.completedAt // "") as $updated
     | ((($rc.confidence // "") | (try tonumber catch null)) as $cn | if $cn != null then ((($cn * 100) | round | tostring) + "%") else "—" end) as $conf

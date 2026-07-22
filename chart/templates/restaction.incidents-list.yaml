@@ -52,7 +52,9 @@ spec:
             title: (if ($rc.statement // "") != "" then $rc.statement elif (.spec.alertName // "") != "" then ("Investigation — " + .spec.alertName) else (.metadata.name // "") end),
             trigger: (.spec.trigger // "alert"),
             lifecycle: $lc,
-            phase: (.status.phase // "Pending"),
+            # UX-20 (Ready homonym): same presentation map as obs-troubleshooting/incident-detail —
+            # the CR's analysis-complete "Ready" reads "Analyzed" everywhere in the incident domain.
+            phase: ((.status.phase // "Pending") | if . == "Ready" then "Analyzed" else . end),
             ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) else "—" end),
             age: (.metadata.creationTimestamp // ""),
             triggeredAt: (.spec.triggeredAt // .metadata.creationTimestamp // ""),
