@@ -23,10 +23,17 @@ spec:
     gap: small
     wrap: true
     items:
+    - resourceRefId: compositions-scope-chips
     - resourceRefId: compositions-status-chips
     - resourceRefId: compositions-search
   resourcesRefs:
     items:
+    - id: compositions-scope-chips
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: compositions-scope-chips
+      namespace: {{ .Release.Namespace }}
+      resource: listies
+      verb: GET
     - id: compositions-status-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: compositions-status-chips

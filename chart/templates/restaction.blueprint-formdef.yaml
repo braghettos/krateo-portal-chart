@@ -112,7 +112,7 @@ spec:
             else ($raw[0:($pi + ($n | length))]) as $pfx
               | ($raw[($pi + ($n | length)):]) as $rst
               | ({ __composition_name__:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-                   __composition_namespace__: { type: "string", title: "Namespace", description: "Blueprint namespace — where the composition record is created", enum: [$blueprintNs], default: $blueprintNs } } | tojson) as $id
+                   __composition_namespace__: { type: "string", title: "Composition namespace", description: "Where the composition record is created — distinct from any namespace the blueprint itself provisions", enum: [$blueprintNs], default: $blueprintNs } } | tojson) as $id
               | ($pfx + $id[:-1] + "," + $rst[1:]) as $spliced
               # The two identity keys MUST be `required` so they render UP-FRONT, not under the
               # "Advanced" collapse (SchemaFields partitions on required). The old code PREPENDED a
@@ -134,7 +134,7 @@ spec:
         schemaSpec: ($spec
           | .properties = ({
               __composition_name__:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-              __composition_namespace__: { type: "string", title: "Namespace", description: "Blueprint namespace — where the composition record is created", enum: [$blueprintNs], default: $blueprintNs }
+              __composition_namespace__: { type: "string", title: "Composition namespace", description: "Where the composition record is created — distinct from any namespace the blueprint itself provisions", enum: [$blueprintNs], default: $blueprintNs }
             } + (.properties // {}))
           | .required = (["__composition_name__", "__composition_namespace__"] + (.required // []))),
         propertiesToHide: $hidden,
