@@ -1,6 +1,7 @@
-# Incident detail pagehead — back-link, H2 title (root-cause one-liner), chips line
-# (lifecycle / trigger / mono ref) and the meta line (started · updated · phase ·
-# confidence). Mirrors composition-detail-header-block.
+# Incident detail pagehead — back-link, H1 title (UX-17: the short alert name, incident-first),
+# chips line (lifecycle / trigger / affected-resource ref / triggering-alert link) and the meta
+# strip (started · updated · phase as an antd Descriptions — UX-19). Mirrors
+# composition-detail-header-block.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -16,13 +17,16 @@ spec:
     - buttons
     - paragraphs
     - flexes
+    - cards
     vertical: true
     gap: small
     items:
     - resourceRefId: incident-detail-back
     - resourceRefId: incident-detail-title
     - resourceRefId: incident-detail-chips
-    - resourceRefId: incident-meta
+    # UX-19: the meta is now a Descriptions list hosted in a borderless Card (the Descriptions
+    # plural isn't in the Flex child enum; Card children are unconstrained — incident-meta-card).
+    - resourceRefId: incident-meta-card
   resourcesRefs:
     items:
     - id: incident-detail-back
@@ -43,9 +47,9 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: incident-meta
+    - id: incident-meta-card
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-meta
+      name: incident-meta-card
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
+      resource: cards
       verb: GET

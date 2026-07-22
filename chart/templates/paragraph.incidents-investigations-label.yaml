@@ -1,0 +1,18 @@
+# UX-16: section label for the secondary band. The incident TABLE is the page's clear primary;
+# the per-alert Autopilot investigation feed below is a clearly-labelled SECONDARY section (the
+# feed card's own title reads "Continue in Autopilot", a CTA — not a section heading), so this
+# muted strong label names the band "Autopilot investigations" and keeps the two surfaces from
+# reading as mixed-in.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incidents-investigations-label
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    text: Autopilot investigations
+    strong: true
+  resourcesRefs:
+    items: []
