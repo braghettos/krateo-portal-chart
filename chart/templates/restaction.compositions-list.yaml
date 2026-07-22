@@ -51,7 +51,7 @@ spec:
       namespaceFrom: .metadata.namespace
     filter: >
       [.allCompositions.items[]?
-       | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // []), wh: .status.workloadHealthy, whMsg: (.status.healthMessage // "")}]
+       | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // []), wh: .status.workloadHealthy, whMsg: (.status.healthMessage // ""), platform: ((((.metadata.labels // {})["krateo.io/composition-name"]) == "installer") or (((.metadata.labels // {})["krateo.io/composition-definition-name"]) == "installer"))}]
   # Final shape. `list` stays the FULL (ns-scoped) set — the dashboard stat/donut/delta
   # widgets share this RA and read `.list` for totals, so it must NOT be date/status
   # filtered. The compositions PAGE reads `.filtered` (status + time-window applied) and
@@ -70,6 +70,7 @@ spec:
      | ((.project // .namespace) // "") as $proj
      | if ($projSel | length) > 0 then $projSel elif $proj != "" then [$proj] else [] end) as $projects
     | (.status // "all") as $status
+    | (.scope // "workloads") as $scope
     | (.range // "") as $range
     | ((.from // "") | tostring) as $from
     | ((.to // "") | tostring) as $to
@@ -78,10 +79,13 @@ spec:
     | ((.allCompositions // []) | map(select(($projects | length) == 0 or (([.ns] - $projects) | length == 0))) | map(. + ((.conditions // []) as $c | (any($c[]?; .type == "Ready" and .status == "True")) as $ready | (any($c[]?; .type == "Ready" and .status == "False")) as $notready | (any($c[]?; .type == "Synced" and .status == "False")) as $unsynced | {conditions: ((.conditions // []) + (if .wh == false then [{type: "Workload", status: "False", reason: "Unhealthy", message: (.whMsg // "")}] else [] end)), state: (if .wh == false then "failed" elif $ready then "healthy" elif $notready then "failed" else "pending" end), railState: (if .wh == false then "failed" elif $ready and ($unsynced | not) then "healthy" elif $ready and $unsynced then "drift" elif $notready then "failed" else "pending" end), healthPercent: (if .wh == false then 20 elif $ready and ($unsynced | not) then 100 elif $ready and $unsynced then 50 elif $notready then 20 else 50 end)}))) as $all
     | (if $range == "24h" then {lo: ($now - 86400), hi: ($now + 86400)} elif $range == "7d" then {lo: ($now - 604800), hi: ($now + 86400)} elif $range == "30d" then {lo: ($now - 2592000), hi: ($now + 86400)} elif $range == "all" then {lo: 0, hi: ($now + 86400)} elif $from != "" and $to != "" then {lo: ($from | tonumber), hi: ($to | tonumber)} else {lo: 0, hi: ($now + 86400)} end) as $win
     | ($all | map(select(((.ts | fromdateiso8601?) // 0) >= $win.lo and ((.ts | fromdateiso8601?) // 0) <= $win.hi))) as $dated
+    | ($dated | map(select(if $scope == "all" then true elif $scope == "platform" then .platform else (.platform | not) end))) as $scoped
     | {
         list: $all,
-        filtered: ($dated | map(select((if $status == "drift" then (.railState == "drift") else ($status == "all" or .state == $status) end) and ($q == "" or ((.name // "") | ascii_downcase | contains($q)) or ((.kind // "") | ascii_downcase | contains($q)))))),
-        counts: {all: ($dated | length), healthy: ($dated | map(select(.state == "healthy")) | length), drift: ($dated | map(select(.railState == "drift")) | length), pending: ($dated | map(select(.state == "pending")) | length), failed: ($dated | map(select(.state == "failed")) | length)},
+        filtered: ($scoped | map(select((if $status == "drift" then (.railState == "drift") else ($status == "all" or .state == $status) end) and ($q == "" or ((.name // "") | ascii_downcase | contains($q)) or ((.kind // "") | ascii_downcase | contains($q)))))),
+        counts: {all: ($scoped | length), healthy: ($scoped | map(select(.state == "healthy")) | length), drift: ($scoped | map(select(.railState == "drift")) | length), pending: ($scoped | map(select(.state == "pending")) | length), failed: ($scoped | map(select(.state == "failed")) | length)},
+        scopeCounts: {workloads: ($dated | map(select(.platform | not)) | length), platform: ($dated | map(select(.platform)) | length), all: ($dated | length)},
+        scope: $scope,
         status: $status,
         range: $range,
         q: ((.q // "") | tostring),
