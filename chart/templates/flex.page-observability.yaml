@@ -2,7 +2,9 @@
 # split: Reconciliation (composition snapshots) · Performance (traces/metrics) · Logs
 # (otel_logs) · Resources (otel_metrics_gauge + inventory). Alerts, the troubleshooting
 # feed and the activity/event feed moved to /incidents (events remain on the composition
-# detail page); the header range-group carries an "Incidents" link. Every value is REAL —
+# detail page); the head row carries the "Incidents" hand-off, right-aligned NEXT TO the
+# title (UX-audit #15: navigation lives in the header actions cluster, the range band
+# below is filter chips ONLY). Every value is REAL —
 # composition snapshots from compositions-list/blueprints, live telemetry from the
 # clickstack ClickHouse OTel tables via the obs-* RESTActions. antd-only widgets; the
 # section headers are plain Paragraphs (strong label + secondary caption).
@@ -22,7 +24,7 @@ spec:
     vertical: true
     gap: middle
     items:
-    - resourceRefId: obs-header
+    - resourceRefId: obs-header-row
     - resourceRefId: obs-range-group
     # — Reconciliation —
     - resourceRefId: obs-sec-reconciliation-label
@@ -51,11 +53,11 @@ spec:
     - resourceRefId: obs-resource-row
   resourcesRefs:
     items:
-    - id: obs-header
+    - id: obs-header-row
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-header
+      name: obs-header-row
       namespace: {{ .Release.Namespace }}
-      resource: flexes
+      resource: rows
       verb: GET
     - id: obs-range-group
       apiVersion: widgets.templates.krateo.io/v1beta1

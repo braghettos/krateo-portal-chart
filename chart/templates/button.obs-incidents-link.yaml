@@ -1,6 +1,9 @@
-# "Incidents" link in the observability header band — after the IA split the alerts +
-# troubleshooting signal lives on /incidents; this is the one-click hand-off from
-# platform health to investigations. Plain SPA navigate, nothing hardcoded beyond the route.
+# "Incidents" link in the observability head row (obs-header-actions, right-aligned) —
+# after the IA split the alerts + troubleshooting signal lives on /incidents; this is the
+# one-click hand-off from platform health to investigations. Plain SPA navigate, nothing
+# hardcoded beyond the route. UX-audit #15: this NAVIGATION button used to sit in the
+# time-range band at chip size, indistinguishable from the 1h/6h/24h/7d FILTER chips —
+# now a default-size outlined Button in the header's CTA position (compositions pattern).
 kind: Button
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -12,7 +15,6 @@ spec:
   widgetData:
     label: Incidents
     icon: fa-triangle-exclamation
-    size: small
     type: default
     variant: outlined
     clickActionId: obs-open-incidents

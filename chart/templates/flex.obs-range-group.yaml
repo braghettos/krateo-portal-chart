@@ -1,6 +1,9 @@
-# Time-range chip group for the observability page (sits under the page header). The preset
+# Time-range chip group for the observability page (sits under the head row). The preset
 # chips (1h/6h/24h/7d) drive every range-scoped obs panel via ?range= in the URL → extras →
 # each RESTAction's ClickHouse INTERVAL. Mirrors the dashboard/compositions range groups.
+# FILTER CHIPS ONLY (UX-audit #15): the "Incidents" / "View in console" NAVIGATION buttons
+# used to sit in this band styled like the chips — one band, two semantics. They moved to
+# obs-header-actions (right-aligned in obs-header-row), so everything here scopes THIS page.
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -11,7 +14,6 @@ metadata:
 spec:
   widgetData:
     allowedResources:
-    - buttons
     - listies
     - paragraphs
     gap: small
@@ -22,11 +24,6 @@ spec:
     # The four obs-range-btn-* Buttons collapsed into ONE data-driven Listy(chip)
     # (widget-sprawl collapse) — same targets, default and active logic.
     - resourceRefId: obs-range-chips
-    # Hand-off to the SRE page (alerts + investigations moved there in the IA split).
-    - resourceRefId: obs-incidents-link
-    {{- if .Values.observabilityConsoleUrl }}
-    - resourceRefId: obs-console-link
-    {{- end }}
   resourcesRefs:
     items:
     - id: obs-range-label
@@ -41,17 +38,3 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: listies
       verb: GET
-    - id: obs-incidents-link
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-incidents-link
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    {{- if .Values.observabilityConsoleUrl }}
-    - id: obs-console-link
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-console-link
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    {{- end }}
