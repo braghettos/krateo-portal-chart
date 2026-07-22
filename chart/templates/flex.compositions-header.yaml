@@ -1,9 +1,14 @@
 # Compositions head row — title+subtitle stack on the left, the primary
-# "Create composition" CTA right-aligned (mockup layout). Uses the SAME Row/Col grid as the
-# dashboard header-row (title col size 16 + actions col size 8, button `alignment: right`)
-# so the CTA pins to the far edge reliably — a bare Flex `justify: space-between` only
-# right-aligns when the header stretches full-width, which was inconsistent here.
-kind: Row
+# "Create composition" CTA pinned to the far-right edge (mockup layout).
+#
+# #4: the previous Row/Col grid (title Col size16 + button Col size8 alignment:right)
+# still rendered the CTA ~2/3 across live, not flush at the edge — the size-8 Col's
+# right-justify never reliably pinned the compact button to the header's true right edge.
+# Switched to the SAME pattern the composition-detail pagehead uses and which DOES pin
+# right: a full-width Flex `justify: space-between` with exactly two children
+# [title-stack, button]. antd Flex is display:flex so it spans the page width; the
+# title-stack anchors left, the button anchors hard right.
+kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: compositions-header
@@ -17,13 +22,13 @@ spec:
     allowedResources:
     - flexes
     - buttons
-    alignment: middle
+    vertical: false
+    justify: space-between
+    align: flex-start
+    gap: middle
     items:
     - resourceRefId: compositions-title-stack
-      size: 16
     - resourceRefId: new-composition
-      size: 8
-      alignment: right
   resourcesRefs:
     items:
     - id: compositions-title-stack
