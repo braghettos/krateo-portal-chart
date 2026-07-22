@@ -7,6 +7,9 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # F6 (snowplow#130): route params of /resources/{namespace}/{group}/{version}/{plural}/{name}
+  # arrive as extras; declared so the cache guard accepts Puts (was the last lint failure).
+  keyExtras: [namespace, group, version, plural, name]
   widgetData:
     allowedResources:
     - paragraphs
