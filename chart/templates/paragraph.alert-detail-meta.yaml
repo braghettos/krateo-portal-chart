@@ -1,0 +1,25 @@
+# Detail meta line — reconcile phase + last-synced age, joined server-side with empty parts
+# OMITTED (never a dash for data we don't have; mirrors incident-meta). lastSynced is the
+# compact relative age the rest of the portal uses. phase is the CR's own reconcile phase
+# (K8s-native word, verbatim) — NOT the alert State (that's the tag above).
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: alert-detail-meta
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: alert-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ' '
+    type: secondary
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ [ (if (.phase // "") != "" then ("phase " + .phase) else empty end), (if (.lastSyncedRel // "") != "" then ("synced " + .lastSyncedRel) else empty end) ] | join("  ·  ") | if . == "" then " " else . end }'
+  resourcesRefs:
+    items: []

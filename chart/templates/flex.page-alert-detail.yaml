@@ -1,0 +1,67 @@
+# Convention page root for /alerts/{namespace}/{name} — the per-alert detail (item 25;
+# there was none before, /alerts was header + rules table and the row-click deep-linked to
+# /incidents?ask=). Strict top-to-bottom: pagehead (back-link + H1 + State tag + meta +
+# "Investigate with Autopilot") → Rule card (Watching/Threshold/Every/Message) → Console card
+# (HyperDX external links) → Investigation card (linked-incident back-link).
+#
+# Reuses the composition-detail / incident-detail page structure/wrappers for consistency. The
+# Console and Investigation cards are templated SERVER-SIDE off alert-detail's `sections` flags:
+# each renders ONLY when its data exists (a configured console + recorded id; a matched report),
+# so an alert with no console and no incident degrades to just pagehead + Rule — nothing ever
+# renders as fabricated empty structure (exception-only, honest data). resourcesRefs stay static
+# (the full pool); unreferenced children are simply never fetched.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: page-alert-detail
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: alert-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    allowedResources:
+    - flexes
+    - cards
+    vertical: true
+    gap: middle
+    items:
+    - resourceRefId: alert-detail-header-block
+    - resourceRefId: card-alert-detail-config
+  widgetDataTemplate:
+    - forPath: items
+      expression: >-
+        ${ (.sections // {}) as $s
+        | [ { resourceRefId: "alert-detail-header-block" }, { resourceRefId: "card-alert-detail-config" } ]
+        + (if ($s.console // false) then [ { resourceRefId: "card-alert-detail-console" } ] else [] end)
+        + (if ($s.incident // false) then [ { resourceRefId: "card-alert-detail-incident" } ] else [] end) }
+  resourcesRefs:
+    items:
+    - id: alert-detail-header-block
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: alert-detail-header-block
+      namespace: {{ .Release.Namespace }}
+      resource: flexes
+      verb: GET
+    - id: card-alert-detail-config
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: card-alert-detail-config
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
+    - id: card-alert-detail-console
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: card-alert-detail-console
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
+    - id: card-alert-detail-incident
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: card-alert-detail-incident
+      namespace: {{ .Release.Namespace }}
+      resource: cards
+      verb: GET
