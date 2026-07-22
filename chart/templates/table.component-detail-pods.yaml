@@ -1,8 +1,11 @@
 # The component's pods — name / ready x/y / restarts / state / age / image, all real
 # values shaped by the component-detail RA. State shows the first waiting reason
 # (e.g. CrashLoopBackOff, ImagePullBackOff) when a container is stuck, else the pod
-# phase; cells are tinted only when something needs the eye (not-ready → crimson,
-# restarts>0 → amber, stuck state → crimson / transitional → amber).
+# phase. State renders as a FILLED TAG (status-pill spec — no bare coloured status
+# text): Running/Completed/Succeeded → green, transitional (Pending/ContainerCreating/
+# PodInitializing) → gold, stuck (CrashLoopBackOff, ImagePullBackOff, …) → red; the
+# state word stays the truthful k8s value. Count cells still tint only when something
+# needs the eye (not-ready → crimson, restarts>0 → amber).
 # Rows deep-link to the observability log stream scoped to the pod (CTA audit #89 F8:
 # a pod row was a dead end — "which of these is spewing errors?" had no answer). The
 # hand-off is /observability?svc={name} where {name} is the raw pod name; obs-log-stream's
@@ -44,7 +47,7 @@ spec:
     dataSource: []
   widgetDataTemplate:
   - forPath: dataSource
-    expression: '${ [ (.pods // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, ({valueKey:"ready",kind:"jsonSchemaType",type:"string",stringValue:.ready} + ((.ready | split("/")) as $p | if $p[0] == $p[1] then {} else {color:"#cf1322"} end)), ({valueKey:"restarts",kind:"jsonSchemaType",type:"string",stringValue:(.restarts|tostring)} + (if .restarts > 0 then {color:"#d48806"} else {color:"#8c8c8c"} end)), ({valueKey:"state",kind:"jsonSchemaType",type:"string",stringValue:.state} + (if .state == "Running" then {color:"#8c8c8c"} elif (.state == "Pending" or .state == "ContainerCreating" or .state == "PodInitializing") then {color:"#d48806"} else {color:"#cf1322"} end)), {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.created,format:"relative"}, {valueKey:"image",kind:"jsonSchemaType",type:"string",stringValue:(.images | join(", ")),color:"#8c8c8c"} ] ] }'
+    expression: '${ [ (.pods // [])[] | [ {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:.name}, ({valueKey:"ready",kind:"jsonSchemaType",type:"string",stringValue:.ready} + ((.ready | split("/")) as $p | if $p[0] == $p[1] then {} else {color:"#cf1322"} end)), ({valueKey:"restarts",kind:"jsonSchemaType",type:"string",stringValue:(.restarts|tostring)} + (if .restarts > 0 then {color:"#d48806"} else {color:"#8c8c8c"} end)), {valueKey:"state",kind:"tag",stringValue:.state,color:(if (.state == "Running" or .state == "Completed" or .state == "Succeeded") then "green" elif (.state == "Pending" or .state == "ContainerCreating" or .state == "PodInitializing") then "gold" else "red" end)}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:.created,format:"relative"}, {valueKey:"image",kind:"jsonSchemaType",type:"string",stringValue:(.images | join(", ")),color:"#8c8c8c"} ] ] }'
   apiRef:
     name: component-detail
     namespace: {{ .Release.Namespace }}

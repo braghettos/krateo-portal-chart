@@ -5,7 +5,7 @@
 #   Healthy   (green) — the target's probe (or all targeting blueprints) report Healthy
 #   Down      (red)   — the target's probe (or any targeting blueprint) reports Down
 #   Unknown   (gray)  — no probe signal yet
-#   Not found (gray)  — no such KubernetesTarget (or not visible to this user)
+#   NotFound  (gray)  — no such KubernetesTarget (or not visible to this user)
 kind: Tag
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

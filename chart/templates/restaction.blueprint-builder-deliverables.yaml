@@ -66,8 +66,7 @@ spec:
                       elif ($cd != null) then "Reconciling"
                       else "In review" end),
              statusColor: (if ($cd != null and $cd.ready == "True") then "green"
-                           elif ($cd != null) then "gold"
-                           else "blue" end),
+                           else "gold" end),
              ns: "{{ .Release.Namespace }}",
              age: $pr.created }
        ] | sort_by(.age // "") | reverse) as $rows
