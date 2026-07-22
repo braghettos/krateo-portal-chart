@@ -17,21 +17,26 @@ spec:
   # cluster metadata a tenant legitimately cannot enumerate.
   #
   # NEW SHAPE: stage 1 lists core.krateo.io CompositionDefinitions (the shared
-  # blueprint TYPES), which a tenant CAN be granted read on (get/list) via a
-  # cluster-scoped ClusterRole — types are non-sensitive; per-INSTANCE
-  # visibility stays gated by the allCompositions userAccessFilter below. The
-  # generated plural + served version are read straight off the CD .status
-  # (.status.resource, .status.apiVersion). The `name: crds` key and the
-  # {plural, version} output shape are UNCHANGED, so allCompositions's
-  # dependsOn/iterator and resourcesFrom are untouched.
+  # blueprint TYPES) via the NAMESPACED path — CDs are registered in the Krateo
+  # system namespace, so a tenant can be granted read with a plain namespaced
+  # Role + RoleBinding there. NO user ever needs a ClusterRole: the namespaced
+  # LIST is authorizable by a namespaced grant (a cluster-scope LIST is not).
+  # Types are non-sensitive shared metadata; per-INSTANCE visibility stays
+  # gated by the allCompositions userAccessFilter below (which honors the
+  # tenant's per-namespace RoleBindings). The generated plural + served version
+  # are read straight off the CD .status (.status.resource, .status.apiVersion).
+  # The `name: crds` key and the {plural, version} output shape are UNCHANGED,
+  # so allCompositions's dependsOn/iterator and resourcesFrom are untouched.
   #
-  # Companion RBAC (ships in the platform/tenant RBAC layer, NOT this chart):
-  #   ClusterRole get,list,watch on core.krateo.io/compositiondefinitions,
-  #   bound to authenticated tenants.
+  # Companion RBAC (ships in the platform/tenant RBAC layer, NOT this chart) —
+  # all NAMESPACED, zero ClusterRoles:
+  #   Role (in the Krateo system namespace): get,list,watch on
+  #   core.krateo.io/compositiondefinitions (+ portal widget/restaction read),
+  #   with a per-tenant RoleBinding.
   # See also snowplow #118 (userAccessFilter cache staleness + refilter
-  # over-deny) — the instance-step userAccessFilter still depends on that path.
+  # fidelity) — the instance-step userAccessFilter still depends on that path.
   - name: crds
-    path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
+    path: /apis/core.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/compositiondefinitions
     verb: GET
     filter: "[.crds.items[]? | select(.status.resource != null and .status.apiVersion != null) | {plural: .status.resource, version: (.status.apiVersion | split(\"/\")[1])}] | unique"
     continueOnError: true
