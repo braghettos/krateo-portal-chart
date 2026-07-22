@@ -1,0 +1,43 @@
+# Observability main Tabs (R2 #9) — splits the page into Reconciliation (composition health
+# from live cluster snapshots) and Telemetry (OTel → ClickHouse error digest, log stream and
+# resource usage). Mirrors tabs.settings-admin: each tab's content is a single Col wrapper
+# resolved through resourcesRefs and rendered by the Tabs widget's nested WidgetRenderer (the
+# Tabs allowedResources enum has `cols` but not `flexes`). The range chips stay ABOVE the tabs
+# (shared filter), so both tabs re-render on a range change — hence keyExtras carries `range`
+# (and `projects`, the shell scope selector that rides every route) so the Tabs' own cache cell
+# partitions per range+scope like its children do.
+kind: Tabs
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-main
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): the shared range chips write ?range=, the shell writes ?projects= —
+  # both reach the Tabs on every visit, so both are declared here.
+  keyExtras: [projects, range]
+  widgetData:
+    allowedResources:
+      - cols
+    items:
+      - label: Reconciliation
+        title: Composition health from live cluster snapshots
+        resourceRefId: obs-tab-reconciliation
+      - label: Telemetry
+        title: Live telemetry from the OTel → ClickHouse pipeline
+        resourceRefId: obs-tab-telemetry
+  resourcesRefs:
+    items:
+      - id: obs-tab-reconciliation
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: obs-tab-reconciliation
+        namespace: {{ .Release.Namespace }}
+        resource: cols
+        verb: GET
+      - id: obs-tab-telemetry
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: obs-tab-telemetry
+        namespace: {{ .Release.Namespace }}
+        resource: cols
+        verb: GET

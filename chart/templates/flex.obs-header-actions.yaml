@@ -1,9 +1,13 @@
 # Right-aligned NAVIGATION cluster for the observability head row (UX-audit #15): the
-# "Incidents" hand-off and the optional "View in console" deep-link used to sit INSIDE the
-# time-range band, styled like the 1h/6h/24h/7d chips — one chip band, two semantics
-# (navigate-away vs filter-this-page), no visual distinction. Navigation now lives here,
-# pinned to the header's right edge (the compositions-header / clusters-header CTA
-# position, dashboard header-actions-flex layout); the range band keeps FILTER chips only.
+# optional "View in console" deep-link used to sit INSIDE the time-range band, styled like
+# the 1h/6h/24h/7d chips — one chip band, two semantics (navigate-away vs filter-this-page),
+# no visual distinction. Navigation now lives here, pinned to the header's right edge (the
+# compositions-header / clusters-header CTA position, dashboard header-actions-flex layout);
+# the range band keeps FILTER chips only.
+# R2 #8: the "Incidents" hand-off Button was REMOVED (reverses batch-2 #15, which had added
+# it here) — /incidents is already a first-class nav item, so a duplicate header button was
+# redundant. "View in console" stays. When no observabilityConsoleUrl is configured this
+# cluster has no children and simply renders nothing (the header collapses to its title stack).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -19,18 +23,11 @@ spec:
     align: center
     gap: small
     items:
-    - resourceRefId: obs-incidents-link
     {{- if .Values.observabilityConsoleUrl }}
     - resourceRefId: obs-console-link
     {{- end }}
   resourcesRefs:
     items:
-    - id: obs-incidents-link
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-incidents-link
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
     {{- if .Values.observabilityConsoleUrl }}
     - id: obs-console-link
       apiVersion: widgets.templates.krateo.io/v1beta1

@@ -1,13 +1,13 @@
 # Convention page root for /observability — PLATFORM HEALTH ONLY after the /incidents IA
-# split: Reconciliation (composition snapshots) · Performance (traces/metrics) · Logs
-# (otel_logs) · Resources (otel_metrics_gauge + inventory). Alerts, the troubleshooting
-# feed and the activity/event feed moved to /incidents (events remain on the composition
-# detail page); the head row carries the "Incidents" hand-off, right-aligned NEXT TO the
-# title (UX-audit #15: navigation lives in the header actions cluster, the range band
-# below is filter chips ONLY). Every value is REAL —
-# composition snapshots from compositions-list/blueprints, live telemetry from the
-# clickstack ClickHouse OTel tables via the obs-* RESTActions. antd-only widgets; the
-# section headers are plain Paragraphs (strong label + secondary caption).
+# split. R2 #9: the page body is now a Tabs widget (obs-main) with two tabs —
+# Reconciliation (composition snapshots from compositions-list/blueprints) and Telemetry
+# (live otel_logs / otel_metrics_gauge via the obs-* RESTActions, plus the opt-in reconcile-
+# trace Performance sub-group). Alerts, the troubleshooting feed and the activity/event feed
+# moved to /incidents (events remain on the composition detail page); R2 #8 dropped the header
+# "Incidents" hand-off Button (a duplicate of the first-class /incidents nav item). The range
+# chips stay ABOVE the tabs as a SHARED filter (obs-range-group), so switching range re-scopes
+# both tabs at once. Every value is REAL. antd-only widgets; the section headers (inside each
+# tab's Col) are plain Paragraphs (strong label + secondary caption).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -20,37 +20,13 @@ spec:
     allowedResources:
     - flexes
     - rows
-    - paragraphs
+    - tabs
     vertical: true
     gap: middle
     items:
     - resourceRefId: obs-header-row
     - resourceRefId: obs-range-group
-    # — Reconciliation —
-    - resourceRefId: obs-sec-reconciliation-label
-    - resourceRefId: obs-sec-reconciliation-desc
-    - resourceRefId: obs-stats-row
-    - resourceRefId: obs-distribution-row
-    # — Performance — (reconcile-trace telemetry: throughput/latency/percentiles/phases).
-    # HONESTY GUARD (IA obs-deepdive): this whole group is backed by otel_traces +
-    # otel_metrics_histogram, which are emitted ONLY by the composition-dynamic-controller.
-    # On a cluster without the CDC + its OTel tracing pipeline those tables are permanently
-    # empty, so the group would render fabricated zeros. Default HIDDEN — opt in with
-    # `observability.reconcileTracing: true` on clusters that actually emit reconcile traces.
-    {{- if (.Values.observability | default dict).reconcileTracing }}
-    - resourceRefId: obs-sec-performance-label
-    - resourceRefId: obs-sec-performance-desc
-    - resourceRefId: obs-telemetry-row
-    - resourceRefId: obs-perf-phases-row
-    - resourceRefId: obs-latency-row
-    - resourceRefId: obs-perf-stat-row
-    {{- end }}
-    # — Telemetry —
-    - resourceRefId: obs-sec-logs-label
-    - resourceRefId: obs-sec-logs-desc
-    - resourceRefId: obs-errors-row
-    - resourceRefId: obs-log-stream-row
-    - resourceRefId: obs-resource-row
+    - resourceRefId: obs-main
   resourcesRefs:
     items:
     - id: obs-header-row
@@ -65,95 +41,9 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: obs-sec-reconciliation-label
+    - id: obs-main
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-reconciliation-label
+      name: obs-main
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-sec-reconciliation-desc
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-reconciliation-desc
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-stats-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-stats-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-distribution-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-distribution-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    {{- if (.Values.observability | default dict).reconcileTracing }}
-    - id: obs-sec-performance-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-performance-label
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-sec-performance-desc
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-performance-desc
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-telemetry-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-telemetry-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-latency-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-latency-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-perf-stat-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-perf-stat-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-perf-phases-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-perf-phases-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    {{- end }}
-    - id: obs-sec-logs-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-logs-label
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-sec-logs-desc
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-sec-logs-desc
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: obs-errors-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-errors-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-log-stream-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-log-stream-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
-      verb: GET
-    - id: obs-resource-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-resource-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
+      resource: tabs
       verb: GET

@@ -3,7 +3,8 @@
 # each chip navigates to /observability?range=<k>, which the frontend forwards into the request
 # `extras` — so every range-scoped obs RESTAction interpolates the window into its ClickHouse
 # query (INTERVAL) and the chips' own active flag reads `.range` from extras SYNCHRONOUSLY, per
-# request. Default 6h when no ?range in the URL. Chip navigateTo bypasses the client-side
+# request. Default 24h when no ?range in the URL (R2 #10: matches the dashboard default so
+# the two pages agree on the initial window). Chip navigateTo bypasses the client-side
 # same-path query merge the old Buttons used, so the routes are merged SERVER-SIDE: ?projects
 # (the shell scope selector, rides every route) is re-emitted onto each chip's route from
 # extras (@uri-encoded).
@@ -28,6 +29,6 @@ spec:
   # widgetDataTemplate data source (same mechanism the old range Buttons used).
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ ((.range // "6h") | tostring) as $sel | ((.projects // "") | tostring) as $projects | (if $projects != "" then ("&projects=" + ($projects | @uri)) else "" end) as $carry | [{key: "1h", label: "1h"}, {key: "6h", label: "6h"}, {key: "24h", label: "24h"}, {key: "7d", label: "7d"}] | map({label: .label, active: (.key == $sel), route: ("/observability?range=" + .key + $carry)}) }'
+      expression: '${ ((.range // "24h") | tostring) as $sel | ((.projects // "") | tostring) as $projects | (if $projects != "" then ("&projects=" + ($projects | @uri)) else "" end) as $carry | [{key: "1h", label: "1h"}, {key: "6h", label: "6h"}, {key: "24h", label: "24h"}, {key: "7d", label: "7d"}] | map({label: .label, active: (.key == $sel), route: ("/observability?range=" + .key + $carry)}) }'
   resourcesRefs:
     items: []
