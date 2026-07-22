@@ -17,8 +17,11 @@
 #               target's ~N resources are fetched), GETs each at _getpath, and
 #               its filter shapes the live object to {kind,name,ns,conditions}.
 # Final filter derives per-resource state (Ready×Synced / Available / ready-by-
-# presence) + aggregate. Nothing hardcoded (the cluster-scoped kind list is
-# static k8s API scoping, not derived data).
+# presence) + aggregate, folding in the composition's own workload projection
+# (workloadUnhealthy/workloadMessage from .status.workloadHealthy/.healthMessage,
+# ridden through `found` as _wh/_whMsg) so `converged` can't claim full
+# convergence over a crashlooping workload. Nothing hardcoded (the cluster-scoped
+# kind list is static k8s API scoping, not derived data).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -58,7 +61,10 @@ spec:
             | ($m.path | split("/")) as $p
             | ($p[-2]) as $res | ($p[-1]) as $nm | ($p[0:-2] | join("/")) as $pre
             | ($clusterKinds | index($res)) as $cluster
+            # The parent's workload projection rides on every row (_wh/_whMsg): the final
+            # aggregate folds it in, and this step filter is the only place that sees $comp.
             | { _cn: $cn, _cns: $cns, _kind: $res, _name: $nm,
+                _wh: $comp.status.workloadHealthy, _whMsg: ($comp.status.healthMessage // ""),
                 # Real group/version for the resource-view route ($p[1] = "api" for the core group
                 # → group "core", version $p[2]; "apis" → group $p[2], version $p[3]) + cluster-scope.
                 _grp: (if ($p[1] // "") == "apis" then ($p[2] // "") else "core" end),
@@ -90,7 +96,10 @@ spec:
   # core kinds). Live state is JOINED from the fetched objects (.resources) by
   # name(+ns); kind prefers the fetched object's kind, falls back to the managed
   # plural. A managed resource with no fetched conditions = healthy-by-presence.
-  filter: >
+  # LITERAL block (|), not folded (>): folding joins same-indent lines with spaces,
+  # so a base-indent jq `#` comment would swallow the code joined after it (the
+  # composition-events filter shipped broken exactly this way).
+  filter: |
     (.name) as $n | (.namespace) as $ns
     | ({"serviceaccounts":"ServiceAccount","configmaps":"ConfigMap","secrets":"Secret","services":"Service","endpoints":"Endpoints","persistentvolumeclaims":"PersistentVolumeClaim","deployments":"Deployment","replicasets":"ReplicaSet","statefulsets":"StatefulSet","daemonsets":"DaemonSet","pods":"Pod","jobs":"Job","cronjobs":"CronJob","clusterroles":"ClusterRole","clusterrolebindings":"ClusterRoleBinding","roles":"Role","rolebindings":"RoleBinding","ingresses":"Ingress","networkpolicies":"NetworkPolicy","namespaces":"Namespace"}) as $kindMap
     | ( [ .found[]? | select(._cn == $n and ._cns == $ns) ] ) as $managed
@@ -127,6 +136,13 @@ spec:
       ) as $rows
     | ($rows | length) as $total
     | ($rows | map(select(.state == "healthy")) | length) as $healthy
+    # Workload projection of the COMPOSITION itself (ridden in on _wh/_whMsg): resources can
+    # all match declared-vs-actual while the pods behind them crashloop — `converged` must not
+    # claim full convergence then, and the rail widget caps/annotates from these two keys.
+    # ($managed[0] on an empty list is null → null._wh == false → false: safe when the comp
+    # declares no managed resources.)
+    | ($managed[0]._wh == false) as $whBad
+    | (if $whBad then ($managed[0]._whMsg // "") else "" end) as $whMsg
     | {
         resources: $rows,
         total: $total,
@@ -135,5 +151,7 @@ spec:
         failedCount: ($rows | map(select(.state == "failed")) | length),
         pendingCount: ($rows | map(select(.state == "pending")) | length),
         convergencePercent: (if $total > 0 then (($healthy * 100 / $total) | floor) else 0 end),
-        converged: ($total > 0 and $healthy == $total)
+        converged: ($total > 0 and $healthy == $total and ($whBad | not)),
+        workloadUnhealthy: $whBad,
+        workloadMessage: $whMsg
       }

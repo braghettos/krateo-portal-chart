@@ -20,9 +20,11 @@ spec:
     # row emits "" for them → Table buildRowPath finds a missing token → the row stays inert (no
     # 404). Per-segment tokens (not one full-path cell) because the Table URI-encodes each cell.
     rowNavigateTo: /resources/{aNs}/{aGrp}/{aVer}/{aPlural}/{aName}
+    # Human header, not the status-field name — 'analyzedResources · gvr' rendered as a
+    # shouting 'ANALYZEDRESOURCES · GVR' column caption.
     columns:
     - valueKey: gvr
-      title: analyzedResources · gvr
+      title: Analyzed resource
     - valueKey: name
       title: Name
     - valueKey: namespace

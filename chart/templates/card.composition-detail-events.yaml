@@ -1,6 +1,10 @@
 # "Events" card → this composition's recent events, as an antd List feed (the
-# non-antd EventList is retired). "Live" badge stays (live events flow via the
-# global SSE bell); the in-card feed is the composition-events historical snapshot.
+# non-antd EventList is retired). The "Live" badge is DATA-DRIVEN, not a static
+# claim (throughput-card rule: never assert an unverified pill): it shows only
+# when composition-events actually delivered entries — a pulsing "Live" over an
+# empty feed reads as "streaming fine, nothing happening", which is false when
+# the pipeline yielded nothing. The list below renders its own explanatory
+# empty-state row for that case.
 kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,9 +19,16 @@ spec:
     title: Events
     titleVariant: eyebrow
     variant: outlined
-    live: true
+    # Honest default: no badge. Flipped on server-side only when the feed has entries.
+    live: false
     items:
       - resourceRefId: list-composition-detail-events
+  widgetDataTemplate:
+    - forPath: live
+      expression: '${ ((.list // []) | length) > 0 }'
+  apiRef:
+    name: composition-events
+    namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items:
       - id: list-composition-detail-events

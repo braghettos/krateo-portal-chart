@@ -1,7 +1,10 @@
 # The composition's REAL status.conditions — NOT a derived "Healthy/Drift/Pending/converged" label.
 # Every condition is shown (Ready, Synced, …) with its type + status (True/False) + reason·message;
 # a leading dot and a right-aligned status Tag are BOTH coloured cyan (status True) / crimson (False).
-# Honest: the raw k8s conditions, all of them, coloured by their own truth value.
+# Honest: the raw k8s conditions, all of them, coloured by their own truth value — PLUS the
+# Workload condition the detail RA synthesizes from .status.workloadHealthy == false (same idiom
+# as compositions-list), so a CrashLoopBackOff comp shows Workload=False here instead of an
+# all-green Ready/Synced pair that hides the failing pods.
 kind: Listy
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -36,6 +39,7 @@ spec:
     dataSource: []
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ [ (.detail.status.conditions // [])[] | { type: .type, status: (.status | tostring), desc: ((.reason // "") + (if ((.message // "") | length) > 0 then (" · " + .message) else "" end)) } ] }'
+      # .conditions = raw status.conditions + the synthesized Workload condition (RA-side).
+      expression: '${ [ (.conditions // [])[] | { type: .type, status: (.status | tostring), desc: ((.reason // "") + (if ((.message // "") | length) > 0 then (" · " + .message) else "" end)) } ] }'
   resourcesRefs:
     items: []

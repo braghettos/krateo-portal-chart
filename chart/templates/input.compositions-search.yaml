@@ -18,7 +18,9 @@ spec:
   widgetData:
     name: q
     queryParam: q
-    placeholder: Search by name or type…
+    # The filter applies on SUBMIT (Enter), not per keystroke — say so in the placeholder
+    # or the box reads as broken while the user types.
+    placeholder: Search by name or type · press Enter
     allowClear: true
   resourcesRefs:
     items: []

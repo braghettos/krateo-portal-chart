@@ -16,6 +16,11 @@
 # (the proxy validates it only when JWT_SIGN_KEY is set). DEPENDS ON the
 # `sse-proxy-internal-endpoint` Endpoint + the krateo-sse-proxy stack; absent it,
 # getEvents fails gracefully (continueOnError).
+#
+# GOTCHA (P0, fixed): the final filter MUST be a LITERAL block (|). A folded block (>)
+# joins same-indent lines with spaces, so a base-indent jq `#` comment swallowed the
+# rest of the joined line — $builtin/$crdPlural and the result-object opener never
+# reached jq, the filter never compiled, and the feed was ALWAYS empty.
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -69,7 +74,7 @@ spec:
         - 'Accept: application/json'
       continueOnError: true
       filter: '[.allcrds.items[]? | {group: .spec.group, kind: .status.acceptedNames.kind, plural: .status.acceptedNames.plural}]'
-  filter: >
+  filter: |
     (.name) as $n
     | (.namespace) as $ns
     | ([ .found[]? | select(.name == $n and .namespace == $ns) ][0].compositionId // "") as $cid
@@ -117,5 +122,9 @@ spec:
                             route: $route } ]
                       | .[0:20] )
                end),
-        compositionId: $cid
+        compositionId: $cid,
+        # Echo the target back (compositions-list idiom) so the events widget can build its
+        # honest empty-state text ("check kubectl events -n <ns>") server-side.
+        name: $n,
+        namespace: $ns
       }
