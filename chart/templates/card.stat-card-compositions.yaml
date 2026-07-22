@@ -16,13 +16,15 @@ spec:
     icon:
       name: fa-cubes
       color: cyan
-    # D4: whole-card CTA → the full compositions list (total count → all rows).
+    # D4: whole-card CTA → the full compositions list. ?scope=all because the stat counts
+    # EVERY composition (workloads + platform) while the list DEFAULTS to the workloads
+    # scope — landing scoped would show fewer rows than the number just promised.
     clickActionId: view-all
     widgetActions:
       navigate:
         - id: view-all
           type: navigate
-          path: /compositions
+          path: /compositions?scope=all
     items:
     - resourceRefId: stat-compositions
     - resourceRefId: delta-compositions

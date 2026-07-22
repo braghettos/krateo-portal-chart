@@ -1,0 +1,27 @@
+# "Ask Autopilot →" header CTA on /kog-builder — the page's own entry into the API-onboarding
+# flow. The empty-state hint strip disappears once the first RestDefinition lands, which left
+# the page with no way to start the NEXT mapping; this button is always visible. Same ?ask=
+# deep-link (and prompt text) the kog-builder-hint rows carry, encoded here with urlquery
+# instead of the RA's jq @uri.
+kind: Button
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: kog-builder-ask
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    label: Ask Autopilot →
+    icon: fa-wand-magic-sparkles
+    size: small
+    type: default
+    variant: outlined
+    clickActionId: kog-builder-ask
+    actions:
+      navigate:
+        - id: kog-builder-ask
+          type: navigate
+          path: /kog-builder?ask={{ "I want to onboard a new API with the KOG builder. I will paste an OpenAPI document (or give you its URL): propose the RestDefinition mapping (kind, resourceGroup, verbs, identifiers), preview it with previewRestDef, and publish it only after I confirm." | urlquery }}
+  resourcesRefs:
+    items: []

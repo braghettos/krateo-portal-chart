@@ -1,5 +1,6 @@
 # Convention page root for /blueprint-builder — the Blueprint builder's home: a
-# how-it-works header, the published-blueprints deliverables table (each row links to
+# how-it-works header, the always-visible "Ask Autopilot →" CTA (the page's own entry
+# into the flow), the published-blueprints deliverables table (each row links to
 # its blueprint detail), and the empty-state Autopilot CTA (visible only while zero
 # blueprints have been authored). The authoring flow itself lives in the Autopilot rail
 # (previewBlueprint → gated git publish); this page is the deliverables surface.
@@ -16,10 +17,12 @@ spec:
     - flexes
     - tables
     - listies
+    - buttons
     vertical: true
     gap: middle
     items:
     - resourceRefId: blueprint-builder-header
+    - resourceRefId: blueprint-builder-ask
     - resourceRefId: blueprint-builder-deliverables
     - resourceRefId: blueprint-builder-hint
   resourcesRefs:
@@ -29,6 +32,12 @@ spec:
       name: blueprint-builder-header
       namespace: {{ .Release.Namespace }}
       resource: flexes
+      verb: GET
+    - id: blueprint-builder-ask
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: blueprint-builder-ask
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
       verb: GET
     - id: blueprint-builder-deliverables
       apiVersion: widgets.templates.krateo.io/v1beta1
