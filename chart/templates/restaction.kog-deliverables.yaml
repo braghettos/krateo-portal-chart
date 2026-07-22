@@ -1,0 +1,100 @@
+# /api-builder (KOG) deliverables — one row per Autopilot-authored API mapping that was
+# published VIA A PULL REQUEST, mirroring the blueprint-builder deliverables surface. Sourced
+# from the git PullRequest CRs whose head branch is the KOG namespace `kog/<name>` (the
+# convention the frontend KOG-publish agent uses — see NOTE below), JOINED to the generated
+# RestDefinition (ogen.krateo.io) so each row shows the generated GVK + its Ready verdict.
+# Cluster-native for the CR joins (no GitHub token/endpoint); continueOnError everywhere so a
+# narrow-RBAC user (or a not-yet-installed KOG git path) degrades to an empty table, never a
+# failed widget. The RestDefinition NAME is derived server-side from the PR's `kog/<name>`
+# branch; the PR number + html_url ride along so the table can surface the opened PR ("#N").
+#
+# NOTE — PR TARGET CONVENTION (issue #30): the frontend KOG builder currently POSTs
+# restdefinitions DIRECTLY (buildKogPublishOps, src/components/Autopilot/kogMapping.ts); the
+# PR-based publish is a separate frontend agent's future work. There is NO KOG repo default in
+# the frontend yet, so this RA filters on the HEAD-BRANCH PREFIX `kog/` (mirroring the blueprint
+# builder's `builder/<chart>`), which is repo-agnostic — it lights up whatever repo the future
+# KOG-publish path opens PRs against, as long as it names the branch `kog/<restdef-name>`. It
+# also EXCLUDES the blueprints repo so a blueprint PR can never leak into the KOG table. Until
+# that frontend path ships, this RA returns zero rows (the page still shows the restdef table).
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: kog-deliverables
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    krateo.io/verbose: "true"
+spec:
+  api:
+    # KOG builder pull requests: head branch `kog/<name>`, any repo EXCEPT the blueprints repo.
+    # status.state (open/closed) + merged + number + html_url are written by the KOG
+    # github-provider after the PR lands; a just-created PR has none, so read defensively.
+    - name: prs
+      path: /apis/github.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/pullrequests
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: prsError
+      filter: >
+        [ (.prs.items // [])[]
+          | select((((.spec.head) // "") | startswith("kog/"))
+                   and (((.spec.repo) // "") != "krateo-blueprints"))
+          | { restdef: (((.spec.head) // "") | sub("^kog/"; "")),
+              title: ((.spec.title) // ""),
+              number: ((.status.number) // 0),
+              state: ((.status.state) // "pending"),
+              merged: ((.status.merged) // false),
+              url: ((.status.html_url) // ""),
+              created: ((.metadata.creationTimestamp) // "") } ]
+    # The generated RestDefinitions (ogen.krateo.io, cluster-wide list). The join key is
+    # metadata.name == the PR's restdef name (`kog/<name>` branch names the RestDefinition CR).
+    # Its generated kind + apiVersion + Ready condition are the post-merge verification signal.
+    - name: restdefs
+      path: /apis/ogen.krateo.io/v1alpha1/restdefinitions
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: restdefsError
+      userAccessFilter:
+        verb: list
+        group: ogen.krateo.io
+        resource: restdefinitions
+        namespaceFrom: .metadata.namespace
+      filter: >
+        [ .restdefs.items[]?
+          | { name: (.metadata.name // ""),
+              genKind: (.status.resource.kind // ""),
+              genApiVersion: (.status.resource.apiVersion // ""),
+              ready: ([ (.status.conditions // [])[] | select((.type // "") == "Ready") ] | first // {} | (.status // "")) } ]
+  # Join PRs → RestDefinitions. The generated GVK + Ready verdict chip (Ready=green,
+  # Failed=red, Pending=gold) are computed HERE, server-side. Rows are newest-first. The PR
+  # domain state (open/merged/closed) rides too so the age + PR "#N" columns read honestly.
+  # Empty-state hint is emitted ONLY when zero KOG PRs exist (exception-only UX), carrying an
+  # /api-builder?ask= Autopilot deep-link seeding the paste-an-OpenAPI flow.
+  filter: >
+    (.restdefs // []) as $rds
+    | ([ (.prs // [])[]
+         | . as $pr
+         | ( [ $rds[] | select(.name == $pr.restdef) ] | first ) as $rd
+         | ($rd.ready // "") as $rs
+         | { restdef: $pr.restdef,
+             title: $pr.title,
+             pr: ("#" + ($pr.number | tostring)),
+             url: $pr.url,
+             gvk: (if ($rd != null and (($rd.genKind // "") != ""))
+                   then ($rd.genKind + " · " + ($rd.genApiVersion // "")) else "—" end),
+             ready: (if $rs == "True" then "Ready" elif $rs == "False" then "Failed"
+                     elif $rd != null then "Pending" else "In review" end),
+             readyColor: (if $rs == "True" then "green" elif $rs == "False" then "red"
+                          else "gold" end),
+             age: $pr.created }
+       ] | sort_by(.age // "") | reverse) as $rows
+    | { rows: $rows,
+        counts: { total: ($rows | length),
+                  ready: ([ $rows[] | select(.ready == "Ready") ] | length) },
+        hint: (if ($rows | length) == 0
+               then [ { title: "Onboard your first API with Autopilot",
+                        detail: "Paste an OpenAPI document in the rail — the agent proposes the RestDefinition mapping, previews it, and opens a gated pull request. Merged, its generated kind lands here Ready.",
+                        askHref: ("/api-builder?ask=" + (("I want to onboard a new API with the KOG builder. I will paste an OpenAPI document (or give you its URL): propose the RestDefinition mapping (kind, resourceGroup, verbs, identifiers), preview it with previewRestDef, and publish it only after I confirm.") | @uri)) } ]
+               else [] end) }
