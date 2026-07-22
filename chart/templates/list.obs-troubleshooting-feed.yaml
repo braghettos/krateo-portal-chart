@@ -23,10 +23,13 @@ spec:
       # Whole-row click → the per-alert Autopilot deep-link built server-side in the RA (@uri-encoded).
       navigateTo: '{askHref}'
       iconVariant: dot
+      # Phase vocabulary is the RA's presentation map (UX-20: the CR's "Ready" arrives as
+      # "Analyzed" — "Ready" stays reserved for K8s resource readiness). Analyzed is blue,
+      # not green: a finished RCA is a non-health completion — the incident may still be open.
       color:
         value: '{phase}'
         map:
-          Ready: green
+          Analyzed: blue
           Analyzing: gold
           Pending: gray
           Failed: red

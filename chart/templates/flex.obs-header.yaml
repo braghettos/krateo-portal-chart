@@ -1,4 +1,5 @@
-# Observability page head — eyebrow + H1 + subtitle stack (mirrors compositions-title-stack).
+# Observability title stack — eyebrow + H1 + subtitle (mirrors compositions-title-stack).
+# Left col of obs-header-row (the nav actions sit in the right col, obs-header-actions).
 # Static copy; no data dependency (the page's data lives in the rows below).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1

@@ -35,7 +35,11 @@ spec:
             # strip + the /alerts table (which use spec.displayName, no emoji). Keep printable
             # ASCII only, then trim — one consistent alert label across every panel.
             alert: (($latest.spec.alertName // "") | gsub("[^ -~]"; "") | sub("^ +"; "") | sub(" +$"; "")),
-            phase: ($latest.status.phase // "Pending"),
+            # UX-20 (Ready homonym): the troubleshooter CR spells the analysis-complete phase
+            # "Ready" — a word the portal reserves for K8s resource readiness (Ready condition /
+            # READY columns). Present it as "Analyzed" (Pending → Analyzing → Analyzed / Failed);
+            # mapped HERE server-side because the CR field belongs to the troubleshooter.
+            phase: (($latest.status.phase // "Pending") | if . == "Ready" then "Analyzed" else . end),
             report: ($latest.status.report // ""),
             runCount: ( if $annCount != null then $annCount elif ($g | length) > 0 then ($g | length) else 1 end ),
             lastRunAt: ( if $annLast != "" then $annLast else ($latest.spec.triggeredAt // "") end )

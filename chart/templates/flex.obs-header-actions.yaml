@@ -1,0 +1,41 @@
+# Right-aligned NAVIGATION cluster for the observability head row (UX-audit #15): the
+# "Incidents" hand-off and the optional "View in console" deep-link used to sit INSIDE the
+# time-range band, styled like the 1h/6h/24h/7d chips — one chip band, two semantics
+# (navigate-away vs filter-this-page), no visual distinction. Navigation now lives here,
+# pinned to the header's right edge (the compositions-header / clusters-header CTA
+# position, dashboard header-actions-flex layout); the range band keeps FILTER chips only.
+kind: Flex
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: obs-header-actions
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  widgetData:
+    allowedResources:
+    - buttons
+    justify: flex-end
+    align: center
+    gap: small
+    items:
+    - resourceRefId: obs-incidents-link
+    {{- if .Values.observabilityConsoleUrl }}
+    - resourceRefId: obs-console-link
+    {{- end }}
+  resourcesRefs:
+    items:
+    - id: obs-incidents-link
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-incidents-link
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    {{- if .Values.observabilityConsoleUrl }}
+    - id: obs-console-link
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-console-link
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    {{- end }}
