@@ -22,6 +22,12 @@ spec:
     grid:
       gutter: 16
       column: 3
+    # UX-audit #21: same page pattern as the Marketplace grid (24 tiles = 8 rows × 3 cols
+    # per page). The installed set is small today but scales with the catalog; the
+    # category/q facets filter server-side BEFORE delivery, a single-page result hides
+    # the pager (hideOnSinglePage in the frontend), so small installs see no change.
+    pagination:
+      pageSize: 24
     dataSource: []
     itemTemplate:
       rowVariant: card
