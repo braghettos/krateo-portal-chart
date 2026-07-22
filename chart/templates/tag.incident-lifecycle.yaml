@@ -1,5 +1,8 @@
-# Lifecycle chip (Open / Mitigated / Resolved, sentence case) — colour computed server-side
-# by incident-detail (open→red severity / mitigated→orange transitional / resolved→green).
+# Lifecycle chip — colour computed server-side by incident-detail (open→red severity /
+# mitigated→orange transitional / resolved→green).
+# UX-18: the chip carries a muted "Lifecycle:" prefix so the bare token ("Open") isn't
+# context-free next to the trigger chip; the lifecycle token stays verbatim after the label
+# (Open / Mitigated / Resolved, sentence-cased) and keeps its health colour.
 kind: Tag
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -14,11 +17,11 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
-    label: Open
+    label: 'Lifecycle: Open'
     color: red
   widgetDataTemplate:
     - forPath: label
-      expression: '${ (.lifecycle // "open") | (.[0:1] | ascii_upcase) + .[1:] }'
+      expression: '${ "Lifecycle: " + ((.lifecycle // "open") | (.[0:1] | ascii_upcase) + .[1:]) }'
     - forPath: color
       expression: '${ .lifecycleColor // "red" }'
   resourcesRefs:

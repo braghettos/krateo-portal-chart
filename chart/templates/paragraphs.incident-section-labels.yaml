@@ -1,97 +1,23 @@
-# Incident-detail section labels + captions (mockup .blocklabel). Static copy except the
-# evidence + remediation captions, whose counts are shaped server-side by incident-detail.
-# Each section is included by the page Flex ONLY when its data exists (sections flags),
-# so these never render over empty structure.
-kind: Paragraph
+# Incident-detail SECTION CARDS — one unified visual language for the investigation anatomy
+# (UX-20/#23/#24). Every major section (Evidence · Reasoning trace · Remediation · — and the
+# Root cause + Missing-context cards defined in their own files) is the SAME antd Card treatment:
+# titleVariant: eyebrow (small mono uppercase section caption), variant: outlined (one border +
+# padding family), an optional headerLeft one-line desc, and the section's content widgets as Card
+# children. This replaces the old bare "strong Paragraph label + secondary Paragraph desc + loose
+# widget" run, so Evidence(Table+Markdown), Reasoning(Steps) and Remediation(rows) read as ONE
+# family instead of three different UIs. Each card is included by the page Flex ONLY when its data
+# exists (sections flags), so none renders over empty structure. All copy/counts are server-side.
+#
+# NB Card children are NOT constrained by the container allowedResources enum (Cards are
+# unconstrained — see card.incident-gaps-card), so a Card can host Table/Markdown/Steps/Flex freely.
+
+# EVIDENCE section (UX-23): the "N sources · N analyzed resources" count folds into the CARD TITLE
+# (one presentation with the list, no separate grey caption); the card hosts the analyzed Table and
+# the numbered source cards Markdown as one block.
+kind: Card
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
-  name: incident-sec-evidence-label
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name, namespace]
-  widgetData:
-    text: Evidence
-    strong: true
-  resourcesRefs:
-    items: []
----
-kind: Paragraph
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: incident-sec-evidence-desc
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name, namespace]
-  apiRef:
-    name: incident-detail
-    namespace: {{ .Release.Namespace }}
-  widgetData:
-    text: what the agent read, verbatim
-    type: secondary
-  widgetDataTemplate:
-    - forPath: text
-      expression: '${ .evidenceDesc // "what the agent read, verbatim" }'
-  resourcesRefs:
-    items: []
----
-kind: Paragraph
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: incident-sec-trace-label
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name, namespace]
-  widgetData:
-    text: Reasoning trace
-    strong: true
-  resourcesRefs:
-    items: []
----
-kind: Paragraph
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: incident-sec-trace-desc
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name, namespace]
-  widgetData:
-    text: each step cites its evidence — no uncited claims
-    type: secondary
-  resourcesRefs:
-    items: []
----
-kind: Paragraph
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: incident-sec-remediation-label
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name, namespace]
-  widgetData:
-    text: Remediation plan
-    strong: true
-  resourcesRefs:
-    items: []
----
-kind: Paragraph
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: incident-sec-remediation-desc
+  name: incident-sec-evidence-card
   namespace: {{ .Release.Namespace }}
   annotations:
     "krateo.io/verbose": "true"
@@ -102,14 +28,113 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
-    text: ordered · every apply is gated
-    type: secondary
+    title: Evidence
+    titleVariant: eyebrow
+    variant: outlined
+    icon:
+      name: fa-magnifying-glass
+      color: cyan
+    headerLeft: what the agent read, verbatim
+    items:
+    - resourceRefId: incident-analyzed
+    - resourceRefId: incident-evidence
   widgetDataTemplate:
-    - forPath: text
+    # Title carries the live source/analyzed counts (UX-23); the two content widgets are included
+    # only when their own data exists (evidence section is shown when EITHER is non-empty).
+    - forPath: title
+      expression: '${ .evidenceCardTitle // "Evidence" }'
+    - forPath: items
+      expression: '${ (if ((.analyzedRows // []) | length) > 0 then [ { resourceRefId: "incident-analyzed" } ] else [] end) + (if ((.evidenceMd // "") != "") then [ { resourceRefId: "incident-evidence" } ] else [] end) }'
+  resourcesRefs:
+    items:
+    - id: incident-analyzed
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-analyzed
+      namespace: {{ .Release.Namespace }}
+      resource: tables
+      verb: GET
+    - id: incident-evidence
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-evidence
+      namespace: {{ .Release.Namespace }}
+      resource: markdowns
+      verb: GET
+---
+# REASONING TRACE section — the antd Steps timeline under the shared card header.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-trace-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  widgetData:
+    title: Reasoning trace
+    titleVariant: eyebrow
+    variant: outlined
+    icon:
+      name: fa-list-ol
+      color: cyan
+    headerLeft: each step cites its evidence — no uncited claims
+    items:
+    - resourceRefId: incident-trace
+  resourcesRefs:
+    items:
+    - id: incident-trace
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-trace
+      namespace: {{ .Release.Namespace }}
+      resource: steps
+      verb: GET
+---
+# REMEDIATION PLAN section — the gated apply rows under the shared card header. The card hosts
+# only the first `sections.remCount` rows (server-side templated `items`), so a 3-step plan renders
+# exactly 3 rows inside one card and a v1 report renders no card at all.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sec-remediation-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    title: Remediation plan
+    titleVariant: eyebrow
+    variant: outlined
+    icon:
+      name: fa-screwdriver-wrench
+      color: cyan
+    headerLeft: ordered · every apply is gated
+    items:
+    - resourceRefId: incident-rem-step-0
+  widgetDataTemplate:
+    - forPath: headerLeft
       expression: '${ .remediationDesc // "ordered · every apply is gated" }'
+    # Include exactly the first sections.remCount rows (0..remCount-1), mirroring the page Flex.
+    - forPath: items
+      expression: '${ [ range(0; (.sections.remCount // 0)) ] | map({ resourceRefId: ("incident-rem-step-" + tostring) }) }'
   resourcesRefs:
-    items: []
+    items:
+    {{- range $i := until 6 }}
+    - id: incident-rem-step-{{ $i }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-step-{{ $i }}
+      namespace: {{ $.Release.Namespace }}
+      resource: flexes
+      verb: GET
+    {{- end }}
 ---
+# SIMILAR INCIDENTS label — the Similar strip below stays a lightweight related-links list, not a
+# heavy content card, so it reads as a footer affordance rather than a fifth investigation section.
 kind: Paragraph
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:

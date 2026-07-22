@@ -14,6 +14,7 @@ spec:
   widgetData:
     allowedResources:
     - flexes
+    - paragraphs
     - tables
     - listies
     - rows
@@ -24,8 +25,12 @@ spec:
     # The lifecycle chips are ONE data-driven Listy(chip) — the old chips-only
     # incidents-toolbar Flex and its four looped Buttons are gone (widget-sprawl collapse).
     - resourceRefId: incidents-status-chips
+    # PRIMARY: the incident table.
     - resourceRefId: incidents-table
     - resourceRefId: incidents-awaiting
+    # UX-16: SECONDARY band, clearly labelled — the per-alert Autopilot investigation feed sits
+    # below a "Autopilot investigations" section label so it never reads as mixed into the table.
+    - resourceRefId: incidents-investigations-label
     - resourceRefId: incidents-secondary-row
   resourcesRefs:
     items:
@@ -52,6 +57,12 @@ spec:
       name: incidents-awaiting
       namespace: {{ .Release.Namespace }}
       resource: listies
+      verb: GET
+    - id: incidents-investigations-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incidents-investigations-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
       verb: GET
     - id: incidents-secondary-row
       apiVersion: widgets.templates.krateo.io/v1beta1
