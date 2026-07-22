@@ -155,6 +155,8 @@ spec:
               synced: ([ .status.conditions[]? | select(.type == "Synced") | (.status // "") ] | first // "") } ]
   # Rows + counts + the status line, all server-side. `age` stays the raw
   # creationTimestamp — the Table cell renders it `relative` (house pattern).
+  # The status line counts "N Ready" with the VERBATIM K8s token (capital R) — it tallies the
+  # table's Ready pills right below it, so generic prose "ready" would read ambiguous (UX-20).
   filter: >
     ((.name // "") | gsub("[^a-zA-Z0-9.-]"; "")) as $n
     | ($n != "") as $named
@@ -177,7 +179,7 @@ spec:
           if ($named | not) then "No cluster selected."
           elif ($reachable | not) then ("Live read-back unavailable for \($n) — no endpoint secret (\($n)-endpoint) is provisioned for this cluster, or the spoke apiserver is unreachable.")
           elif ($total == 0) then "No compositions deployed to this spoke yet."
-          else (($total | tostring) + " resource(s) live on this cluster, read directly from the spoke apiserver — " + ($ready | tostring) + " ready.")
+          else (($total | tostring) + " resource(s) live on this cluster, read directly from the spoke apiserver — " + ($ready | tostring) + " Ready.")
           end),
         statusColor: (
           if ($named | not) then "gray"
