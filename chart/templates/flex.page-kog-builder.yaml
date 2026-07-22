@@ -1,5 +1,6 @@
 # Convention page root for /kog-builder — the KOG builder's post-publish verification
-# surface (w4-kog-builder spec §2.5 + CHART-K1): pagehead, the RestDefinition registry
+# surface (w4-kog-builder spec §2.5 + CHART-K1): pagehead, the always-visible
+# "Ask Autopilot →" CTA (the page's own entry into the flow), the RestDefinition registry
 # table (READY / generated kind+apiVersion / OAS source, all derived server-side), and
 # the empty-state Autopilot CTA strip (visible only while zero mappings exist). The
 # route is hidden (label-less nav item) — Autopilot navigates here after a gated
@@ -18,10 +19,12 @@ spec:
     - flexes
     - tables
     - listies
+    - buttons
     vertical: true
     gap: middle
     items:
     - resourceRefId: kog-builder-header
+    - resourceRefId: kog-builder-ask
     - resourceRefId: kog-restdefinitions
     - resourceRefId: kog-builder-hint
   resourcesRefs:
@@ -31,6 +34,12 @@ spec:
       name: kog-builder-header
       namespace: {{ .Release.Namespace }}
       resource: flexes
+      verb: GET
+    - id: kog-builder-ask
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: kog-builder-ask
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
       verb: GET
     - id: kog-restdefinitions
       apiVersion: widgets.templates.krateo.io/v1beta1

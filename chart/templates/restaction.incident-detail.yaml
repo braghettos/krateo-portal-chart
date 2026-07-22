@@ -26,6 +26,7 @@ spec:
       continueOnError: true
       errorKey: reportsError
   filter: >
+    def rel: (fromdateiso8601? // null) as $t | if $t == null then . else (now - $t) as $dt | (if $dt < 60 then "just now" elif $dt < 3600 then ((($dt/60)|floor|tostring) + "m ago") elif $dt < 86400 then ((($dt/3600)|floor|tostring) + "h ago") elif $dt < 5184000 then ((($dt/86400)|floor|tostring) + "d ago") else .[0:10] end) end;
     (.name // "") as $n
     | (.namespace // "") as $ns
     | ((.reports.items) // []) as $items
@@ -104,8 +105,10 @@ spec:
         # presented as if measured erodes trust. The verdict card states the DETERMINISTIC
         # basis instead (grounded in N verbatim sources · N analyzed resources). The raw
         # `confidence: $conf` field below is still emitted for anyone who wants it programmatically.
-        meta: ([ (if $started != "" then ("started " + $started) else empty end),
-                 (if $updated != "" then ("updated " + $updated) else empty end),
+        # Timestamps render as the same compact relative age the incidents table uses (a
+        # Paragraph has no `format: relative`, so `rel` derives it server-side via `now`).
+        meta: ([ (if $started != "" then ("started " + ($started | rel)) else empty end),
+                 (if $updated != "" then ("updated " + ($updated | rel)) else empty end),
                  ("phase " + $phase) ] | join("  ·  ")),
         confidence: $conf,
         # IA F6-full: every analyzed resource drills into the generic /resources view (the

@@ -38,8 +38,13 @@ spec:
       title: Evidence
     dataSource: []
   widgetDataTemplate:
+  # The title (a root-cause one-liner) can run to hundreds of chars; unbounded it grabs the
+  # whole auto-layout width and crushes the trailing columns to a couple of letters
+  # (LIFECYCLE → "LI"). The Table CRD's columns carry no width/ellipsis knobs, so the cap is
+  # server-side: truncate at ~110 chars with an ellipsis (the full statement lives one click
+  # away on the incident detail).
   - forPath: dataSource
-    expression: '${ [ (.rows // [])[] | [ {valueKey:"sev",kind:"jsonSchemaType",type:"string",stringValue:"●",color:(.sevColor // "#8c8c8c")}, {valueKey:"title",kind:"jsonSchemaType",type:"string",stringValue:(.title // "")}, {valueKey:"trigger",kind:"tag",stringValue:(.trigger // "alert"),color:"gray"}, {valueKey:"ref",kind:"jsonSchemaType",type:"string",stringValue:(.ref // "—"),color:"#8c8c8c"}, {valueKey:"lifecycle",kind:"tag",stringValue:(.lifecycle // "open"),color:((.lifecycle // "open") | if . == "open" then "red" elif . == "mitigated" then "orange" else "cyan" end)}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:(.age // ""),format:"relative"}, {valueKey:"conf",kind:"jsonSchemaType",type:"string",stringValue:(.grounding // "—"),color:"#8c8c8c"}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // "")} ] ] }'
+    expression: '${ [ (.rows // [])[] | [ {valueKey:"sev",kind:"jsonSchemaType",type:"string",stringValue:"●",color:(.sevColor // "#8c8c8c")}, {valueKey:"title",kind:"jsonSchemaType",type:"string",stringValue:((.title // "") | if length > 110 then (.[0:109] + "…") else . end)}, {valueKey:"trigger",kind:"tag",stringValue:(.trigger // "alert"),color:"gray"}, {valueKey:"ref",kind:"jsonSchemaType",type:"string",stringValue:(.ref // "—"),color:"#8c8c8c"}, {valueKey:"lifecycle",kind:"tag",stringValue:(.lifecycle // "open"),color:((.lifecycle // "open") | if . == "open" then "red" elif . == "mitigated" then "orange" else "cyan" end)}, {valueKey:"age",kind:"jsonSchemaType",type:"string",stringValue:(.age // ""),format:"relative"}, {valueKey:"conf",kind:"jsonSchemaType",type:"string",stringValue:(.grounding // "—"),color:"#8c8c8c"}, {valueKey:"name",kind:"jsonSchemaType",type:"string",stringValue:(.name // "")}, {valueKey:"namespace",kind:"jsonSchemaType",type:"string",stringValue:(.namespace // "")} ] ] }'
   apiRef:
     name: incidents-list
     namespace: {{ .Release.Namespace }}
