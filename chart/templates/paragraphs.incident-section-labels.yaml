@@ -60,36 +60,6 @@ spec:
       resource: markdowns
       verb: GET
 ---
-# REASONING TRACE section — the antd Steps timeline under the shared card header.
-kind: Card
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: incident-sec-trace-card
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name, namespace]
-  widgetData:
-    title: Reasoning trace
-    titleVariant: eyebrow
-    variant: outlined
-    icon:
-      name: fa-list-ol
-      color: cyan
-    headerLeft: each step cites its evidence — no uncited claims
-    items:
-    - resourceRefId: incident-trace
-  resourcesRefs:
-    items:
-    - id: incident-trace
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-trace
-      namespace: {{ .Release.Namespace }}
-      resource: steps
-      verb: GET
----
 # REMEDIATION PLAN section — the gated apply rows under the shared card header. The card hosts
 # only the first `sections.remCount` rows (server-side templated `items`), so a 3-step plan renders
 # exactly 3 rows inside one card and a v1 report renders no card at all.
