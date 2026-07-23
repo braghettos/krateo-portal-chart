@@ -4,7 +4,7 @@ apiVersion: widgets.templates.krateo.io/v1beta1
 kind: Flex
 metadata:
   name: marketplace-flex
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ include "portal.tierNamespace" (dict "ctx" . "tier" "admin") }}
 spec:
   widgetData:
     vertical: true
