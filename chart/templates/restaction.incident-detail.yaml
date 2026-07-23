@@ -136,12 +136,16 @@ spec:
         # emoji and all: it's the alert's own name), then the rootCause statement (v1 reports with
         # no alert name), then the CR name. The full rootCause.statement lives ONLY in the Root
         # cause card (.rootCauseStatement) — the header no longer duplicates it.
-        title: (if ($sp.alertName // "") != "" then $sp.alertName elif ($rc.statement // "") != "" then $rc.statement else $n end),
+        # UX-27 (#69 §0.3): strip the leading emoji from the alert display name so the page
+        # title reads as plain text (basic printable-ASCII filter — no unicode-property regex).
+        title: (if ($sp.alertName // "") != "" then ($sp.alertName | gsub("[^ -~]"; "") | sub("^ +";"") | sub(" +$";"")) elif ($rc.statement // "") != "" then $rc.statement else $n end),
         lifecycle: $lc,
         lifecycleColor: (if $lc == "open" then "red" elif $lc == "mitigated" then "orange" else "green" end),
         trigger: ($sp.trigger // "alert"),
         phase: $phase,
-        ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) elif ($sp.alertName // "") != "" then ("alerts/" + $sp.alertName) else "—" end),
+        # UX-27 (#69 §0.5): only a REAL composition ref here — the alert-only fallback
+        # ("alerts/<name>") duplicated the clickable "Alert: …" link (0.6), so it's dropped.
+        ref: (if $comp then ((($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "") + " · " + ($comp.namespace // "")) else "—" end),
         refRoute: (if $comp then ("/compositions/" + ($comp.namespace // "") + "/" + ($comp.name // "")) else "" end),
         # UX-22 (incident↔alert coupling): the triggering alert, surfaced on the detail. alertName is
         # the display name (kept verbatim); alertRoute is a real link to /alerts/{ns}/{name} ONLY when
@@ -159,14 +163,14 @@ spec:
         # Paragraph has no `format: relative`, so `rel` derives it server-side via `now`).
         meta: ([ (if $started != "" then ("started " + ($started | rel)) else empty end),
                  (if $updated != "" then ("updated " + ($updated | rel)) else empty end),
-                 ("phase " + $phase) ] | join("  ·  ")),
+                 ("analysis stage " + $phase) ] | join("  ·  ")),
         # UX-19: the same started/updated/phase facts as a Descriptions list (label/value rows) so the
         # meta reads as the same "form" visual language as the rest of the detail, not a bare ISO run-on.
         # Timestamps are RELATIVE (via `rel`, server-side — a Descriptions value has no format:relative);
         # empty parts are OMITTED (never a dash for data we don't have — same honesty as the meta line).
         metaItems: ([ (if $started != "" then { label: "Started", value: ($started | rel) } else empty end),
                       (if $updated != "" then { label: "Updated", value: ($updated | rel) } else empty end),
-                      { label: "Phase", value: $phase } ]),
+                      { label: "Analysis stage", value: $phase } ]),
         confidence: $conf,
         # IA F6-full: every analyzed resource drills into the generic /resources view (the
         # last-mile is closed for ALL kinds, not just compositions). gvr is "group/version/plural"
@@ -210,13 +214,18 @@ spec:
         traceItems: $traceItems,
         traceCurrent: (if ($traceItems | length) > 0 then (($traceItems | length) - 1) else 0 end),
         rootCauseStatement: ($rc.statement // ""),
-        rootCauseCategory: (if ($rc.category // "") != "" then ("category: " + $rc.category) else "uncategorised" end),
+        # UX-27 (#69 §0.9): drop the "category: " prefix so the magenta chip reads as a plain
+        # classification tag, not a "category:" label that implies a (non-existent) filter action.
+        rootCauseCategory: (if ($rc.category // "") != "" then $rc.category else "uncategorised" end),
         # HONEST GROUNDING (not model theater): the root-cause footer states the DETERMINISTIC
         # evidence basis — the real count of verbatim sources + analyzed resources the agent read —
         # NOT a model-declared "confidence NN%" (a fabricated number presented as if measured, which
         # erodes trust). The raw `confidence: $conf` field is still emitted for anyone who wants it,
         # but the verdict card shows what actually backs the claim.
-        rootCauseConfidence: (if (($sources | length) > 0) or (($analyzed | length) > 0) then ("grounded in " + (($sources | length) | tostring) + " verbatim source" + (if ($sources | length) == 1 then "" else "s" end) + " · " + (($analyzed | length) | tostring) + " analyzed resource" + (if ($analyzed | length) == 1 then "" else "s" end)) else "grounded in the cited evidence" end),
+        # UX-27 (#69 §0.9): keep the verdict's grounding trust-signal but DROP the source/resource
+        # counts — they already headline the Evidence panel above, so repeating them here was pure
+        # duplication. A short non-count phrase keeps "this is grounded" without the redundant numbers.
+        rootCauseConfidence: (if (($sources | length) > 0) or (($analyzed | length) > 0) then "grounded in the cited evidence" else "grounded in the cited evidence" end),
         remSteps: $remSteps,
         remediationDesc: ((($plan | length) | tostring) + " ordered steps · each is a gated action you review before anything changes" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
         similar: $similar,

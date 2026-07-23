@@ -28,14 +28,13 @@ spec:
       title: Incident
     - valueKey: trigger
       title: Trigger
-    - valueKey: ref
-      title: Affected resource
+    # UX-27 (#72 §0.3): "Affected resource" (ref) and "Evidence" (conf) columns dropped — both
+    # are surfaced more usefully on the incident DETAIL page (relations + evidence table), so on
+    # the list they only duplicated. The ref/conf cells stay in the row payload (harmless, unused).
     - valueKey: lifecycle
       title: Lifecycle
     - valueKey: age
       title: Age
-    - valueKey: conf
-      title: Evidence
     dataSource: []
   widgetDataTemplate:
   # The title (a root-cause one-liner) can run to hundreds of chars; unbounded it grabs the

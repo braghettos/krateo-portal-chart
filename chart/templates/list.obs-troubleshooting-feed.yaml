@@ -18,6 +18,9 @@ spec:
     dataSource: []
     itemLayout: horizontal
     split: false
+    # UX-27 (#72 §0.6): suppress the "No data" box when there are zero TroubleshootingReports —
+    # otherwise the 'Continue in Autopilot' card renders an empty-state block below a populated page.
+    hideWhenEmpty: true
     header: Investigation history — select an alert to continue in Autopilot →
     itemTemplate:
       # Whole-row click → the per-alert Autopilot deep-link built server-side in the RA (@uri-encoded).
