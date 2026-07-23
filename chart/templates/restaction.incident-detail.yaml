@@ -37,7 +37,10 @@ spec:
       verb: GET
       continueOnError: true
       errorKey: alertsError
-  filter: >
+  # NOTE: literal `|` block (NOT folded `>`) — the filter contains `#` comments, and a folded
+  # block collapses newlines to spaces so every `#` would comment out the rest of the (now single-
+  # line) jq, silently breaking the whole RA. `|` preserves the line breaks so comments terminate.
+  filter: |
     # UX-19: fromdateiso8601 only parses `...SSZ` (no fractional seconds, no numeric offset). The
     # troubleshooter writes Python isoformat — `2026-07-22T21:14:00.892447+00:00` — so NORMALISE
     # first: drop the `.ffffff` fraction and fold a `+00:00`/`+0000` UTC offset to `Z` before
