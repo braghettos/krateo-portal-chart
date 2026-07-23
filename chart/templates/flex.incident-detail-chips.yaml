@@ -36,7 +36,7 @@ spec:
     - forPath: items
       expression: >-
         ${ [ { resourceRefId: "incident-lifecycle" }, { resourceRefId: "incident-trigger" } ]
-        + (if (.refRoute // "") != "" then [ { resourceRefId: "incident-ref-link" } ] else [ { resourceRefId: "incident-ref" } ] end)
+        + (if (.refRoute // "") != "" then [ { resourceRefId: "incident-ref-link" } ] else [] end)
         + (if (.alertName // "") != "" then (if (.alertRoute // "") != "" then [ { resourceRefId: "incident-alert-link" } ] else [ { resourceRefId: "incident-alert-text" } ] end) else [] end) }
   resourcesRefs:
     items:

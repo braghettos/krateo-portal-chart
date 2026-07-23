@@ -21,7 +21,8 @@ spec:
     vertical: true
     gap: small
     items:
-    - resourceRefId: incident-detail-back
+    # UX-27 (#69 §0.2): the "Back to incidents" link was removed — the breadcrumb's clickable
+    # "Incidents" segment is the single way back (no duplicate navigation control).
     - resourceRefId: incident-detail-title
     - resourceRefId: incident-detail-chips
     # UX-19: the meta is now a Descriptions list hosted in a borderless Card (the Descriptions
@@ -29,12 +30,6 @@ spec:
     - resourceRefId: incident-meta-card
   resourcesRefs:
     items:
-    - id: incident-detail-back
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-detail-back
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
     - id: incident-detail-title
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: incident-detail-title

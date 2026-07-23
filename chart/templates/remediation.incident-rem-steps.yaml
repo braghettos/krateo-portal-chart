@@ -99,7 +99,8 @@ spec:
     label: Review & apply
     icon: fa-shield-halved
     type: primary
-    size: small
+    # UX-27 (#69 §0.10): standard 'middle' control size (Brand v2 density), not 'small'.
+    size: middle
     clickActionId: rem-apply-{{ $i }}
     actions:
       navigate:

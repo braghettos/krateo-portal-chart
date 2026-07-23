@@ -49,7 +49,10 @@ spec:
             # undefined and the row click opened nothing. The literal is honest: these reports
             # ARE in the release namespace we just queried.
             namespace: "{{ .Release.Namespace }}",
-            title: (if ($rc.statement // "") != "" then $rc.statement elif (.spec.alertName // "") != "" then ("Investigation — " + .spec.alertName) else (.metadata.name // "") end),
+            # UX-27 (#72 §0.4): lead with the SHORT alert name (emoji-stripped) so the INCIDENT
+            # column matches the detail page's concise title — the long root-cause statement was
+            # grabbing the column. Falls back to the statement, then the CR name.
+            title: (if (.spec.alertName // "") != "" then (.spec.alertName | gsub("[^ -~]"; "") | sub("^ +";"") | sub(" +$";"")) elif ($rc.statement // "") != "" then $rc.statement else (.metadata.name // "") end),
             trigger: (.spec.trigger // "alert"),
             lifecycle: $lc,
             # UX-20 (Ready homonym): same presentation map as obs-troubleshooting/incident-detail —
