@@ -31,9 +31,13 @@ spec:
     allowedResources:
     - markdowns
     - buttons
-    gap: middle
-    align: center
-    justify: space-between
+    # UX-26: stack the step body over its action (vertical, left-aligned) instead of a
+    # horizontal `justify: space-between` — the old layout isolated the small gated button
+    # at the far right, leaving the right half of every step empty and the button visually
+    # detached from the step it applies to. Now the button sits directly under its step.
+    gap: small
+    vertical: true
+    align: flex-start
     items:
     - resourceRefId: incident-rem-step-md-{{ $i }}
   widgetDataTemplate:
