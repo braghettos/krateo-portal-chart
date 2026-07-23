@@ -55,7 +55,10 @@ spec:
       # label + H1); the page: slug stays kog-builder (internal). The hidden alias below keeps
       # old /kog-builder deep-links resolving to the same page.
       - { label: API Builder,       icon: fa-plug,      order: 12, path: /api-builder,        page: kog-builder }
-      - { order: 12.5, path: /kog-builder, page: kog-builder }
+      # hidden alias (route-only, no label) so old /kog-builder deep-links still resolve.
+      # order is int32 in the widget CRD — must be a whole number, and high so it sorts with
+      # the other route-only entries (/search=800, detail routes 900+), never among the 1–12 nav.
+      - { order: 801, path: /kog-builder, page: kog-builder }
       # (Builder Demo removed from the portal nav — the Autopilot-authored demo page is being
       #  re-homed as its OWN composition alongside the portal composition, not baked into the
       #  portal chart. Its page-builderdemo CRs + the /builderdemo route move out with it.)

@@ -18,9 +18,11 @@ spec:
     alignment: middle
     items:
     - resourceRefId: obs-header
-      size: 16
+      size: {{ if .Values.observabilityConsoleUrl }}16{{ else }}24{{ end }}
+    {{- if .Values.observabilityConsoleUrl }}
     - resourceRefId: obs-header-actions
       size: 8
+    {{- end }}
   resourcesRefs:
     items:
     - id: obs-header
@@ -29,9 +31,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
+    {{- if .Values.observabilityConsoleUrl }}
     - id: obs-header-actions
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: obs-header-actions
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
+    {{- end }}
