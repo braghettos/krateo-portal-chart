@@ -32,8 +32,13 @@ spec:
     # re-emitted server-side, so the field order survives (the CRD's openAPIV3Schema, by
     # contrast, is a Go map serialized alphabetically). continueOnError: a blueprint without
     # the CM simply yields no stringSchema and the Form falls back to the (alphabetical) schemaSpec.
+    # #66 (tenant self-service): the CM is co-located with its CompositionDefinition (the cdc
+    # writes it into the compdef's OWN namespace), so read it from `.compdef.metadata.namespace`
+    # — NOT the portal release namespace. On the platform install the two are identical
+    # (blueprints in krateo-system); for a tenant whose blueprints live in krateo-blueprints this
+    # is what stops the CM GET 404 → null stringSchema → the Form's "stringSchema Invalid value null".
     - name: jsonschema
-      path: ${ "/api/v1/namespaces/{{ .Release.Namespace }}/configmaps/" + .compdef.status.resource + "-" + (.compdef.status.apiVersion | split("/")[1]) + "-jsonschema-configmap" }
+      path: ${ "/api/v1/namespaces/" + (.compdef.metadata.namespace // "{{ .Release.Namespace }}") + "/configmaps/" + .compdef.status.resource + "-" + (.compdef.status.apiVersion | split("/")[1]) + "-jsonschema-configmap" }
       verb: GET
       headers:
         - 'Accept: application/json'
@@ -74,17 +79,35 @@ spec:
   # underscore-fenced keys can never collide with a blueprint's own spec property (e.g. a workload
   # blueprint's OWN `namespace`, which is the payments/workload target and stays a real spec field).
   # The Form routes these two to metadata.* via payloadToOverride and del()s ONLY them from spec —
-  # every real spec field (including the blueprint's own `namespace`) is preserved. The blueprint
-  # namespace comes from `.namespace` (the /marketplace/{namespace}/{name}/new route param — the
-  # same value that resolves the compdef GET above); it is pinned as the field's enum+default so
-  # metadata.namespace (and therefore the POST-target namespace, which snowplow/updateNameNamespace
-  # derives from body metadata.namespace) always equal the blueprint namespace — no user-picked
-  # nonexistent namespace, no "namespaces X not found" 404. The old synthetic `namespace` field
-  # (a user-picked enum from $namespaces) was the bug: it drove metadata.namespace to the workload
-  # value and del()'d `namespace` from spec, breaking both. $namespaces is now unused for identity.
+  # every real spec field (including the blueprint's own `namespace`) is preserved. #66 (tenant
+  # self-service): the composition-record namespace is a picker over `$namespaces` — the
+  # userAccessFilter output, i.e. namespaces where the USER can `create` this composition (all
+  # existent, RBAC-verified) — defaulting to the blueprint namespace when the user can create there
+  # (platform admin, unchanged), else the first allowed namespace (a tenant whose blueprints live in
+  # a read-only krateo-blueprints ns creates the record in their OWN ns). metadata.namespace (and so
+  # the POST-target ns, which snowplow/updateNameNamespace derives from body metadata.namespace) is
+  # always one of these — never a nonexistent ns, never one the user can't write to. This does NOT
+  # revive the OLD bug (a NON-fenced synthetic `namespace` enum that collided with the blueprint's
+  # own spec `namespace` and del()'d it): __composition_namespace__ is underscore-fenced, so the
+  # blueprint's own `namespace` spec field is untouched; only real, create-permitted namespaces are
+  # offered. Was previously pinned to a single [$blueprintNs] which 403'd every tenant create.
   filter: |
     (.compdef.status.apiVersion | split("/")[1]) as $ver
     | ((.namespace // "") | if . == "" then "{{ .Release.Namespace }}" else . end) as $blueprintNs
+    # #66 (tenant self-service): the composition RECORD namespace (metadata.namespace) must be one
+    # the USER can `create` this composition in — NOT blindly the blueprint's namespace. A tenant's
+    # blueprints live in a read-only krateo-blueprints ns where the tenant has NO create RBAC, so
+    # pinning to $blueprintNs made the create POST 403. `.namespaces` is the api-step's
+    # userAccessFilter output (namespaces where the user CAN create this resource — all existent,
+    # RBAC-verified). Offer those as the picker; default to $blueprintNs when it's allowed (platform
+    # admin case → unchanged), else the first allowed ns (tenant case → their own ns). Empty (no
+    # create RBAC anywhere) → fall back to [$blueprintNs] so the form still renders one option. This
+    # does NOT reintroduce the old synthetic-`namespace` bug: __composition_namespace__ is an
+    # UNDERSCORE-FENCED identity key (never collides with a blueprint's own spec `namespace`), and
+    # every option is a real, create-permitted namespace (no nonexistent-ns 404).
+    | (.namespaces // []) as $nsAll
+    | (if ($nsAll | length) > 0 then $nsAll else [$blueprintNs] end) as $nsOpts
+    | (if ($nsOpts | index($blueprintNs)) then $blueprintNs else $nsOpts[0] end) as $nsDefault
     | (.crd.spec.versions[]? | select(.name == $ver) | .schema.openAPIV3Schema.properties.spec) as $spec
     # Fields the blueprint marks hidden (title contains "(should be hidden)") are
     # omitted from the generated form — propertiesToHide derived from the schema, not hardcoded.
@@ -112,7 +135,7 @@ spec:
             else ($raw[0:($pi + ($n | length))]) as $pfx
               | ($raw[($pi + ($n | length)):]) as $rst
               | ({ __composition_name__:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-                   __composition_namespace__: { type: "string", title: "Composition namespace", description: "Where the composition record is created — distinct from any namespace the blueprint itself provisions", enum: [$blueprintNs], default: $blueprintNs } } | tojson) as $id
+                   __composition_namespace__: { type: "string", title: "Composition namespace", description: "Where the composition record is created (must be one you can create in) — distinct from any namespace the blueprint itself provisions", enum: $nsOpts, default: $nsDefault } } | tojson) as $id
               | ($pfx + $id[:-1] + "," + $rst[1:]) as $spliced
               # The two identity keys MUST be `required` so they render UP-FRONT, not under the
               # "Advanced" collapse (SchemaFields partitions on required). The old code PREPENDED a
@@ -134,7 +157,7 @@ spec:
         schemaSpec: ($spec
           | .properties = ({
               __composition_name__:      { type: "string", title: "Name",      description: "Name for the new composition instance" },
-              __composition_namespace__: { type: "string", title: "Composition namespace", description: "Where the composition record is created — distinct from any namespace the blueprint itself provisions", enum: [$blueprintNs], default: $blueprintNs }
+              __composition_namespace__: { type: "string", title: "Composition namespace", description: "Where the composition record is created (must be one you can create in) — distinct from any namespace the blueprint itself provisions", enum: $nsOpts, default: $nsDefault }
             } + (.properties // {}))
           | .required = (["__composition_name__", "__composition_namespace__"] + (.required // []))),
         propertiesToHide: $hidden,
