@@ -171,6 +171,18 @@ spec:
         metaItems: ([ (if $started != "" then { label: "Started", value: ($started | rel) } else empty end),
                       (if $updated != "" then { label: "Updated", value: ($updated | rel) } else empty end),
                       { label: "Analysis stage", value: $phase } ]),
+        # SUMMARY panel (#72 §1): the incident TL;DR — what happened / why / how to fix — at the top of
+        # the detail so an SRE gets the answer before scrolling. Derived ENTIRELY from data already
+        # gathered (no new agent field, no fabrication): the alert + affected resource, the root-cause
+        # statement, the first remediation step. Each line degrades HONESTLY when its basis is absent
+        # ("not yet determined", "no steps yet"). Rendered by card.incident-summary (a Descriptions);
+        # shown only for structured reports (sections.summary below).
+        summary: {
+          whatHappened: ((if ($sp.alertName // "") != "" then ($sp.alertName | gsub("[^ -~]"; "") | sub("^ +";"") | sub(" +$";"")) elif ($rc.statement // "") != "" then $rc.statement else $n end)
+            + (if $comp then (" — affecting " + (($comp.gvr // "") | split("/") | last) + "/" + ($comp.name // "")) else "" end)),
+          why: (if ($rc.statement // "") != "" then $rc.statement else "Root cause not yet determined — the investigation may still be running." end),
+          howToFix: (if ($plan | length) > 0 then (($plan[0].description // "") | if . == "" then (($plan | length | tostring) + " gated remediation steps below") else . end) else "No remediation steps proposed yet." end)
+        },
         confidence: $conf,
         # IA F6-full: every analyzed resource drills into the generic /resources view (the
         # last-mile is closed for ALL kinds, not just compositions). gvr is "group/version/plural"
@@ -243,6 +255,9 @@ spec:
             elif ($rpt != "") then $rpt
             else "_Analysis in progress — the investigation will appear here when the Autopilot run completes._" end),
         sections: {
+          # #72 §1: the Summary panel shows for any STRUCTURED report (has a verdict/steps/evidence);
+          # a v1 prose-only report skips it and shows the prose card instead.
+          summary: $structured,
           evidence: ((($analyzed | length) > 0) or (($sources | length) > 0)),
           analyzed: (($analyzed | length) > 0),
           sources: (($sources | length) > 0),

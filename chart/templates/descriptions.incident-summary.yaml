@@ -1,0 +1,30 @@
+# The Summary panel's three rows (What happened / Why / How to fix) as a STACKED antd Descriptions
+# (column: 1 — one label/value pair per row) so each long value (a root-cause statement can run a
+# full sentence) gets the whole row width. Values are server-side (.summary — see
+# restaction.incident-detail); the SAME "form" visual language as the meta strip (descriptions.
+# incident-meta), just single-column. No layout/field beyond those already proven by the deployed
+# meta Descriptions, so it validates against the live Descriptions CRD unchanged.
+kind: Descriptions
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-summary-desc
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    column: 1
+    variant: default
+    bordered: false
+    size: small
+    items: []
+  widgetDataTemplate:
+    - forPath: items
+      expression: '${ [ { label: "What happened", value: (.summary.whatHappened // "—") }, { label: "Why", value: (.summary.why // "—") }, { label: "How to fix", value: (.summary.howToFix // "—") } ] }'
+  resourcesRefs:
+    items: []

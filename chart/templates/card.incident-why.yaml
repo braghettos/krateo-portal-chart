@@ -1,0 +1,84 @@
+# WHY panel (#72 §1) — merges the former Root cause + Missing-context + Reasoning-trace cards into
+# ONE flat section (D1 flat / D2 verdict-first): the VERDICT (root-cause statement + category chip +
+# grounded-confidence line) on top, then the ASSUMPTIONS/GAPS callout, then the REASONING-TRACE
+# timeline as the audit trail you expand to check the work. Children are plain content widgets —
+# NOT sub-cards (no double borders); the two mid-panel dividers are lightweight Markdown headings.
+# Items are templated off the sections flags so each sub-block appears only when its data exists
+# (a report with a verdict but no gaps/trace renders just the verdict). Card children are NOT bound
+# by the Flex allowedResources enum, so hosting paragraphs/tags/markdowns/alerts/steps is fine.
+kind: Card
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-why-card
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    title: Why — root cause
+    titleVariant: eyebrow
+    variant: outlined
+    icon:
+      name: fa-circle-exclamation
+      color: red
+    headerLeft: the verdict, the assumptions behind it, and the reasoning trace
+    items:
+    - resourceRefId: incident-rootcause-statement
+  widgetDataTemplate:
+    # Verdict first (statement + category chip + grounded-confidence), then the gaps callout, then
+    # the reasoning trace — each gated on its own sections flag.
+    - forPath: items
+      expression: >-
+        ${ (.sections // {}) as $s
+        | (if ($s.rootcause // false) then [ { resourceRefId: "incident-rootcause-statement" }, { resourceRefId: "incident-rootcause-category" }, { resourceRefId: "incident-rootcause-confidence" } ] else [] end)
+        + (if ($s.gaps // false) then [ { resourceRefId: "incident-why-gaps-label" }, { resourceRefId: "incident-gaps" } ] else [] end)
+        + (if ($s.trace // false) then [ { resourceRefId: "incident-why-trace-label" }, { resourceRefId: "incident-trace" } ] else [] end) }
+  resourcesRefs:
+    items:
+    - id: incident-rootcause-statement
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause-statement
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: incident-rootcause-category
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause-category
+      namespace: {{ .Release.Namespace }}
+      resource: tags
+      verb: GET
+    - id: incident-rootcause-confidence
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rootcause-confidence
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: incident-why-gaps-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-why-gaps-label
+      namespace: {{ .Release.Namespace }}
+      resource: markdowns
+      verb: GET
+    - id: incident-gaps
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-gaps
+      namespace: {{ .Release.Namespace }}
+      resource: alerts
+      verb: GET
+    - id: incident-why-trace-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-why-trace-label
+      namespace: {{ .Release.Namespace }}
+      resource: markdowns
+      verb: GET
+    - id: incident-trace
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-trace
+      namespace: {{ .Release.Namespace }}
+      resource: steps
+      verb: GET
