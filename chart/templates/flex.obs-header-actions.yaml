@@ -6,8 +6,12 @@
 # the range band keeps FILTER chips only.
 # R2 #8: the "Incidents" hand-off Button was REMOVED (reverses batch-2 #15, which had added
 # it here) — /incidents is already a first-class nav item, so a duplicate header button was
-# redundant. "View in console" stays. When no observabilityConsoleUrl is configured this
-# cluster has no children and simply renders nothing (the header collapses to its title stack).
+# redundant. "View in console" stays. When no observabilityConsoleUrl is configured this Flex
+# would have ZERO children — and an item-less Flex is INVALID per the widget CRD (items is a
+# required, non-empty field), which wedges the whole composition reconcile. So the ENTIRE CR
+# is Helm-gated on the console URL, and row.obs-header-row only references it under the same
+# guard (title col spans 24 when actions are absent). Emit nothing rather than an empty Flex.
+{{- if .Values.observabilityConsoleUrl }}
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -36,3 +40,4 @@ spec:
       resource: buttons
       verb: GET
     {{- end }}
+{{- end }}
