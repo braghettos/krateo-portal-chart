@@ -57,3 +57,15 @@ spokeReadbackEndpointSecret: krateo-spoke-demo-endpoint
 # default: "krateo-system"
 # @schema
 spokeReadbackEndpointNamespace: krateo-system
+
+# @schema
+# description: RBAC namespace tiers for portal page widgets. Each page-root Flex is placed in one tier; the sidebar Menu references it there, so snowplow resolves visibility AS THE USER and the frontend hides pages the user's Role cannot GET. Empty string = .Release.Namespace (the default single-namespace layout, no RBAC tiering). Set `admin` (and optionally `tenant`) to distinct namespaces to split page visibility by audience.
+# type: object
+# @schema
+tiers:
+  # Shared chrome + pages every authenticated user sees (Dashboard). Empty = release namespace.
+  common: ""
+  # Pages a tenant persona sees (Blueprints). Empty = release namespace (collapsed onto common).
+  tenant: ""
+  # Admin-only pages (Compositions, Clusters, Observability, Incidents, Alerts, Marketplace, Settings, the three Builders). Empty = release namespace.
+  admin: ""
