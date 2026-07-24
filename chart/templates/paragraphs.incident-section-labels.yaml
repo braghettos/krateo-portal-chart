@@ -28,21 +28,18 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
-    title: Evidence
+    title: What happened
     titleVariant: eyebrow
     variant: outlined
     icon:
       name: fa-magnifying-glass
       color: cyan
-    headerLeft: what the agent read, verbatim
     items:
     - resourceRefId: incident-analyzed
     - resourceRefId: incident-evidence
   widgetDataTemplate:
-    # Title carries the live source/analyzed counts (UX-23); the two content widgets are included
-    # only when their own data exists (evidence section is shown when EITHER is non-empty).
-    - forPath: title
-      expression: '${ .evidenceCardTitle // "Evidence" }'
+    # Only the items list is templated — the title is a plain "What happened" section label
+    # (not a stat-style count; counts belong in body copy, not the card title).
     - forPath: items
       expression: '${ (if ((.analyzedRows // []) | length) > 0 then [ { resourceRefId: "incident-analyzed" } ] else [] end) + (if ((.evidenceMd // "") != "") then [ { resourceRefId: "incident-evidence" } ] else [] end) }'
   resourcesRefs:
@@ -77,18 +74,15 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
-    title: Remediation plan
+    title: How to fix
     titleVariant: eyebrow
     variant: outlined
     icon:
       name: fa-screwdriver-wrench
       color: cyan
-    headerLeft: ordered · every apply is gated
     items:
     - resourceRefId: incident-rem-step-0
   widgetDataTemplate:
-    - forPath: headerLeft
-      expression: '${ .remediationDesc // "ordered · every apply is gated" }'
     # Include exactly the first sections.remCount rows (0..remCount-1), mirroring the page Flex.
     - forPath: items
       expression: '${ [ range(0; (.sections.remCount // 0)) ] | map({ resourceRefId: ("incident-rem-step-" + tostring) }) }'

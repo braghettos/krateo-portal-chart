@@ -18,7 +18,7 @@ spec:
     - paragraphs
     - tags
     gap: small
-    align: baseline
+    align: center
     wrap: true
     items:
     - resourceRefId: incident-detail-title
