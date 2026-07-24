@@ -41,9 +41,10 @@ spec:
     items:
     - resourceRefId: incident-rem-step-md-{{ $i }}
   widgetDataTemplate:
-    # Applied steps (observedOutcome recorded) read as receipts: markdown only, no Button.
+    # Applied steps → receipt (markdown only); current step → markdown + button; future steps → markdown only.
+    # Sequential lock: button appears ONLY for the current (first unapplied) step index.
     - forPath: items
-      expression: '${ [ { resourceRefId: "incident-rem-step-md-{{ $i }}" } ] + (if (((.remSteps // [])[{{ $i }}] // {}).applied // false) then [] else [ { resourceRefId: "incident-rem-apply-{{ $i }}" } ] end) }'
+      expression: '${ [ { resourceRefId: "incident-rem-step-md-{{ $i }}" } ] + (if (((.remSteps // [])[{{ $i }}] // {}).applied // false) then [] elif ((.remCurrentStep // 99) == {{ $i }}) then [ { resourceRefId: "incident-rem-apply-{{ $i }}" } ] else [] end) }'
   resourcesRefs:
     items:
     - id: incident-rem-step-md-{{ $i }}
