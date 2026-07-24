@@ -35,12 +35,29 @@ spec:
   #   with a per-tenant RoleBinding.
   # See also snowplow #118 (userAccessFilter cache staleness + refilter
   # fidelity) — the instance-step userAccessFilter still depends on that path.
+  # #70: types are discovered from BOTH the release ns (below) AND the tenant blueprint ns
+  # (crdsBlueprints, next) — a tenant's blueprint moved to krateo-blueprints (#53) is discovered
+  # there; the two instance sets are merged (dedup by uid) in the final filter.
   - name: crds
     path: /apis/core.krateo.io/v1alpha1/namespaces/{{ .Release.Namespace }}/compositiondefinitions
     verb: GET
     filter: "[.crds.items[]? | select(.status.resource != null and .status.apiVersion != null) | {plural: .status.resource, version: (.status.apiVersion | split(\"/\")[1])}] | unique"
     continueOnError: true
     errorKey: crdsError
+  # #70: ALSO discover types whose CompositionDefinition lives in the tenant BLUEPRINT namespace
+  # (krateo-acmp #53 moves a tenant's browsable blueprints out of the system ns into krateo-blueprints).
+  # Same NAMESPACED, user-token list as `crds` above — dispatched as the caller, so a tenant needs only
+  # a plain namespaced Role there (which #53 already grants for browsing blueprints); NO ClusterRole
+  # (a cluster-scope list would need one, defeating the tier). continueOnError: on a non-tenant cluster
+  # the namespace is absent → the list 404s harmlessly and the union below degrades to just `crds`.
+  # Namespace overridable via .Values.blueprintNamespace (default krateo-blueprints). Per-INSTANCE
+  # visibility still gated by allCompositionsBlueprints' userAccessFilter, so no platform leak.
+  - name: crdsBlueprints
+    path: /apis/core.krateo.io/v1alpha1/namespaces/{{ .Values.blueprintNamespace | default "krateo-blueprints" }}/compositiondefinitions
+    verb: GET
+    filter: "[.crdsBlueprints.items[]? | select(.status.resource != null and .status.apiVersion != null) | {plural: .status.resource, version: (.status.apiVersion | split(\"/\")[1])}] | unique"
+    continueOnError: true
+    errorKey: crdsBlueprintsError
   - name: allCompositions
     # Phase 3' / portal-chart 0.30.177 — namespace-dim REMOVED from iterator.
     #
@@ -70,6 +87,27 @@ spec:
     filter: >
       [.allCompositions.items[]?
        | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // []), wh: .status.workloadHealthy, whMsg: (.status.healthMessage // ""), platform: ((((.metadata.labels // {})["krateo.io/composition-name"]) == "installer") or (((.metadata.labels // {})["krateo.io/composition-definition-name"]) == "installer"))}]
+  # #70: instance listing for the blueprint-namespace types — IDENTICAL proven shape as
+  # allCompositions (cluster-scope list per plural, per-item userAccessFilter gating by
+  # .metadata.namespace so a tenant sees only its own instances), just iterating crdsBlueprints.
+  # The final filter merges .allCompositions + .allCompositionsBlueprints (dedup by uid). On a
+  # cluster without the blueprint namespace, crdsBlueprints is empty → this iterates nothing.
+  - name: allCompositionsBlueprints
+    dependsOn:
+      name: crdsBlueprints
+      iterator: ".crdsBlueprints"
+    path: ${ "/apis/composition.krateo.io/" + (.version) + "/" + (.plural) }
+    verb: GET
+    continueOnError: true
+    errorKey: allCompositionsBlueprintsError
+    userAccessFilter:
+      verb: list
+      group: composition.krateo.io
+      resourcesFrom: "[ (.crdsBlueprints // [])[] | .plural ]"
+      namespaceFrom: .metadata.namespace
+    filter: >
+      [.allCompositionsBlueprints.items[]?
+       | {uid: .metadata.uid, name: .metadata.name, ns: .metadata.namespace, ts: .metadata.creationTimestamp, kind: .kind, av: .apiVersion, conditions: (.status.conditions // []), wh: .status.workloadHealthy, whMsg: (.status.healthMessage // ""), platform: ((((.metadata.labels // {})["krateo.io/composition-name"]) == "installer") or (((.metadata.labels // {})["krateo.io/composition-definition-name"]) == "installer"))}]
   # Final shape. `list` stays the FULL (ns-scoped) set — the dashboard stat/donut/delta
   # widgets share this RA and read `.list` for totals, so it must NOT be date/status
   # filtered. The compositions PAGE reads `.filtered` (status + time-window applied) and
@@ -94,7 +132,7 @@ spec:
     | ((.to // "") | tostring) as $to
     | ((.q // "") | ascii_downcase) as $q
     | now as $now
-    | ((.allCompositions // []) | map(select(($projects | length) == 0 or (([.ns] - $projects) | length == 0))) | map(. + ((.conditions // []) as $c | (any($c[]?; .type == "Ready" and .status == "True")) as $ready | (any($c[]?; .type == "Ready" and .status == "False")) as $notready | (any($c[]?; .type == "Synced" and .status == "False")) as $unsynced | {conditions: ((.conditions // []) + (if .wh == false then [{type: "Workload", status: "False", reason: "Unhealthy", message: (.whMsg // "")}] else [] end)), state: (if .wh == false then "failed" elif $ready then "healthy" elif $notready then "failed" else "pending" end), railState: (if .wh == false then "failed" elif $ready and ($unsynced | not) then "healthy" elif $ready and $unsynced then "drift" elif $notready then "failed" else "pending" end), healthPercent: (if .wh == false then 20 elif $ready and ($unsynced | not) then 100 elif $ready and $unsynced then 50 elif $notready then 20 else 50 end)}))) as $all
+    | ((((.allCompositions // []) + (.allCompositionsBlueprints // [])) | unique_by(.uid)) | map(select(($projects | length) == 0 or (([.ns] - $projects) | length == 0))) | map(. + ((.conditions // []) as $c | (any($c[]?; .type == "Ready" and .status == "True")) as $ready | (any($c[]?; .type == "Ready" and .status == "False")) as $notready | (any($c[]?; .type == "Synced" and .status == "False")) as $unsynced | {conditions: ((.conditions // []) + (if .wh == false then [{type: "Workload", status: "False", reason: "Unhealthy", message: (.whMsg // "")}] else [] end)), state: (if .wh == false then "failed" elif $ready then "healthy" elif $notready then "failed" else "pending" end), railState: (if .wh == false then "failed" elif $ready and ($unsynced | not) then "healthy" elif $ready and $unsynced then "drift" elif $notready then "failed" else "pending" end), healthPercent: (if .wh == false then 20 elif $ready and ($unsynced | not) then 100 elif $ready and $unsynced then 50 elif $notready then 20 else 50 end)}))) as $all
     | (if $range == "24h" then {lo: ($now - 86400), hi: ($now + 86400)} elif $range == "7d" then {lo: ($now - 604800), hi: ($now + 86400)} elif $range == "30d" then {lo: ($now - 2592000), hi: ($now + 86400)} elif $range == "all" then {lo: 0, hi: ($now + 86400)} elif $from != "" and $to != "" then {lo: ($from | tonumber), hi: ($to | tonumber)} else {lo: 0, hi: ($now + 86400)} end) as $win
     | ($all | map(select(((.ts | fromdateiso8601?) // 0) >= $win.lo and ((.ts | fromdateiso8601?) // 0) <= $win.hi))) as $dated
     | ($dated | map(select(if $scope == "all" then true elif $scope == "platform" then .platform else (.platform | not) end))) as $scoped
