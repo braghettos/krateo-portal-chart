@@ -17,10 +17,9 @@ spec:
     gap: large
     items:
     - resourceRefId: blueprints-header
-    # The category chips are ONE data-driven Listy(chip) — the old chips-only
-    # blueprints-category-group Flex and its four looped Buttons are gone
-    # (widget-sprawl collapse).
-    - resourceRefId: blueprints-category-chips
+    # #75 §0.2: category chips + search on one line (blueprints-filterbar), replacing the standalone
+    # chips row + the frontend PageSearch above the grid.
+    - resourceRefId: blueprints-filterbar
     - resourceRefId: blueprints-grid
   resourcesRefs:
     items:
@@ -30,11 +29,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: blueprints-category-chips
+    - id: blueprints-filterbar
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: blueprints-category-chips
+      name: blueprints-filterbar
       namespace: {{ .Release.Namespace }}
-      resource: listies
+      resource: flexes
       verb: GET
     - id: blueprints-grid
       apiVersion: widgets.templates.krateo.io/v1beta1
