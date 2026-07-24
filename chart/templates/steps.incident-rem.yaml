@@ -1,11 +1,10 @@
 # REMEDIATION STEPS navigator — antd Steps (vertical, small) showing ALL plan steps with
 # sequential status computed server-side:
-#   · finish  — already applied (observedOutcome recorded)
-#   · process — the FIRST unapplied step (remCurrentStep index); this is the active step
-#   · wait    — future steps locked until the current one is submitted
-# current mirrors remCurrentStep so the active step gets the antd "process" highlight ring.
-# The step content (markdown + button) lives in the sibling incident-rem-step-{i} Flex below,
-# which the remediation card includes for only the active step.
+#   · finish  — already applied; resourceRefId → Flex with markdown receipt (no button)
+#   · process — the current step; resourceRefId → Flex with markdown + "Review & apply" button
+#   · wait    — future steps (locked); no resourceRefId — only title/status shows inline
+# The Steps widget renders each step's referenced Flex widget inside the step itself, so the
+# action button lives within the step rather than below the entire navigator.
 kind: Steps
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -26,7 +25,22 @@ spec:
   widgetDataTemplate:
     - forPath: current
       expression: '${ .remCurrentStep // 0 }'
+    # resourceRefId added to applied steps (receipt) and the current step (button).
+    # Future steps (index > remCurrentStep) show only title+status — no inline widget.
     - forPath: items
-      expression: '${ (.remStepsForWidget // []) }'
+      expression: >-
+        ${ (.remCurrentStep // 0) as $cur
+        | (.remStepsForWidget // [])
+        | to_entries
+        | map(.value + (if .key <= $cur then { resourceRefId: ("incident-rem-step-" + (.key | tostring)) } else {} end))
+        }
   resourcesRefs:
-    items: []
+    items:
+    {{- range $i := until 6 }}
+    - id: incident-rem-step-{{ $i }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-step-{{ $i }}
+      namespace: {{ $.Release.Namespace }}
+      resource: flexes
+      verb: GET
+    {{- end }}

@@ -106,25 +106,21 @@ spec:
       name: fa-screwdriver-wrench
       color: cyan
     items:
-    - resourceRefId: incident-rem-step-0
+    - resourceRefId: incident-rem-widget
   widgetDataTemplate:
-    # All plan steps rendered inline — each step Flex contains its own markdown + button.
-    # The button is only shown for the current (first unapplied) step; applied steps show as
-    # receipts; future steps show markdown only. Sequential lock is enforced per-step in the
-    # Flex widgetDataTemplate (remCurrentStep == i). Slice to remCount so a 3-step plan
-    # renders exactly 3 rows and a report with no remediation renders no card.
+    # Single Steps widget that shows all plan steps with finish/process/wait status.
+    # The Steps widget itself embeds each step's Flex (markdown + button) via resourceRefId,
+    # so the action button lives inside the step — not below the navigator.
     - forPath: items
-      expression: '${ [{ resourceRefId: "incident-rem-step-0" }, { resourceRefId: "incident-rem-step-1" }, { resourceRefId: "incident-rem-step-2" }, { resourceRefId: "incident-rem-step-3" }, { resourceRefId: "incident-rem-step-4" }, { resourceRefId: "incident-rem-step-5" }][0:(.sections.remCount // 0)] }'
+      expression: '${ [ { resourceRefId: "incident-rem-widget" } ] }'
   resourcesRefs:
     items:
-    {{- range $i := until 6 }}
-    - id: incident-rem-step-{{ $i }}
+    - id: incident-rem-widget
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-rem-step-{{ $i }}
-      namespace: {{ $.Release.Namespace }}
-      resource: flexes
+      name: incident-rem-widget
+      namespace: {{ .Release.Namespace }}
+      resource: steps
       verb: GET
-    {{- end }}
 ---
 # SIMILAR INCIDENTS label — the Similar strip below stays a lightweight related-links list, not a
 # heavy content card, so it reads as a footer affordance rather than a fifth investigation section.
