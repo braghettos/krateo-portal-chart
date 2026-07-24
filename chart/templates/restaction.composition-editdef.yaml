@@ -1,11 +1,18 @@
 # Edit-form data source — resolves, for ONE composition (?extras .name/.namespace):
-#   schemaSpec : the composition's own CRD spec schema (form fields)
+#   schemaSpec : the form fields — from the blueprint's jsonschema ConfigMap (values.schema.json),
+#                NOT the CRD openAPIV3Schema (#74: a namespace-scoped tenant can't GET a cluster-
+#                scoped CRD, and a CD .status doesn't carry the schema).
 #   values     : the current .spec (pre-fills the form)
 #   gvr        : apiVersion/resource/name/namespace (the PATCH target)
-# Compositions are heterogeneous per-blueprint kinds, so discover generically (list
-# composition.krateo.io CRDs incl. their spec schema; list each; pick name+namespace).
-# Only fetched when the Edit drawer opens — the heavy discovery isn't on the detail
-# page's load path. Extras reach RA api steps on this snowplow (same as composition-detail).
+# Compositions are heterogeneous per-blueprint kinds, so discover the TYPE generically. #74 (tenant
+# self-service — sibling of #66/#70/#72): discover via a CompositionDefinition list under a
+# userAccessFilter (snowplow lists as its SA, then refilters to the CDs the CALLER can list) — covers
+# every namespace the caller is granted, with NO cluster-wide customresourcedefinitions list (which
+# runs as the caller and 403s for a tenant → empty form). The schema comes from the per-version
+# jsonschema ConfigMap the core-provider/cdc publishes in the CD's OWN namespace (namespaced, tenant-
+# readable), keyed <resource>-<version>-jsonschema-configmap — the SAME source the create form uses
+# (restaction.blueprint-formdef, #66). Only fetched when the Edit drawer opens. Extras reach RA api
+# steps on this snowplow (same as composition-detail).
 apiVersion: templates.krateo.io/v1
 kind: RESTAction
 metadata:
@@ -15,32 +22,66 @@ metadata:
     krateo.io/verbose: "true"
 spec:
   api:
+    # Type discovery via CompositionDefinitions under a UAF (#74) — plural/version/kind/group + the
+    # CD's own namespace (where its jsonschema ConfigMap lives). No CRD schema here (a CD .status
+    # doesn't carry it — the schema is read from the CM below).
     - name: crds
-      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
       verb: GET
       headers:
         - 'Accept: application/json'
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: compositiondefinitions
+        namespaceFrom: .metadata.namespace
       continueOnError: true
-      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | (((([.spec.versions[] | select(.served and .storage)])[0]) // (([.spec.versions[] | select(.served)])[0])).name) as $v | {plural: .status.acceptedNames.plural, kind: .status.acceptedNames.kind, group: .spec.group, version: $v, schema: (.spec.versions[] | select(.name == $v) | .schema.openAPIV3Schema.properties.spec)}]"
+      filter: "[.crds.items[]? | select(.status.resource != null and .status.apiVersion != null) | {plural: .status.resource, kind: (.status.kind // \"\"), group: (.status.apiVersion | split(\"/\")[0]), version: (.status.apiVersion | split(\"/\")[1]), cdNamespace: (.metadata.namespace // \"\")}]"
     - name: found
       dependsOn:
         name: crds
         iterator: .crds
-      path: ${ "/apis/composition.krateo.io/" + .version + "/" + .plural }
+      # #74: NAMESPACE-SCOPED to the composition's ns (?extras .namespace) — was a cluster-wide list
+      # (→ 403 for a namespace-scoped tenant). The composition is always in .namespace.
+      path: ${ "/apis/composition.krateo.io/" + .version + "/namespaces/" + .namespace + "/" + .plural }
       verb: GET
       headers:
         - 'Accept: application/json'
       continueOnError: true
       filter: "[.found.items[]? | del(.metadata.managedFields, .metadata.annotations[\"kubectl.kubernetes.io/last-applied-configuration\"])]"
-  filter: >
+    # #74: the form SCHEMA — the per-version jsonschema ConfigMap in the CD's OWN namespace
+    # (namespaced, tenant-readable), keyed <resource>-<version>-jsonschema-configmap. Iterate ONLY the
+    # CD whose kind matches THIS composition (from found), so exactly one CM is fetched. The
+    # crds→found→jsonschema dependsOn chain guarantees both .crds and .found are resolved when this
+    # step's iterator + path evaluate. continueOnError: absent CM → null → empty schema (no error).
+    - name: jsonschema
+      dependsOn:
+        name: found
+        iterator: '.name as $n | .namespace as $ns | ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0].kind // "") as $k | [ .crds[]? | select($k != "" and .kind == $k) ]'
+      path: ${ "/api/v1/namespaces/" + .cdNamespace + "/configmaps/" + .plural + "-" + .version + "-jsonschema-configmap" }
+      verb: GET
+      headers:
+        - 'Accept: application/json'
+      continueOnError: true
+      errorKey: jsonschemaError
+  # LITERAL block (|), NOT folded (>): the filter carries `#` comments, and folding joins lines with
+  # spaces so a `#` would swallow the jq after it (the composition-events filter shipped broken this
+  # way once). `|` preserves newlines so comments terminate.
+  filter: |
     .name as $n
     | .namespace as $ns
     | ([ .found[]? | select(.metadata.name == $n and .metadata.namespace == $ns) ][0] // {}) as $d
     | ($d.apiVersion // "") as $av
     | ([ .crds[]? | select(.group == ($av | split("/")[0]) and .kind == $d.kind) ][0] // {}) as $crd
-    | ([ (($crd.schema.properties) // {}) | to_entries[] | select((.value.title // "") | test("should be hidden"; "i")) | .key ]) as $hidden
+    # Form fields from the blueprint's values.schema.json (in the jsonschema CM), parsed to an object
+    # for the Form's `schema` (form.composition-edit reads .schemaSpec). Absent/malformed CM → empty
+    # schema (the form shows no fields rather than erroring). Field ORDER isn't preserved (the Form
+    # consumes the parsed object, not a stringSchema) — same as the prior CRD-derived schema.
+    | ((.jsonschema.data["values.schema.json"]) // null) as $raw
+    | (if $raw == null then {} else (try ($raw | fromjson) catch {}) end) as $schema
+    | ([ (($schema.properties) // {}) | to_entries[] | select((.value.title // "") | test("should be hidden"; "i")) | .key ]) as $hidden
     | {
-        schemaSpec: ($crd.schema // {}),
+        schemaSpec: $schema,
         values: ($d.spec // {}),
         propertiesToHide: $hidden,
         gvr: {
