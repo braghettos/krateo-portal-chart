@@ -31,18 +31,34 @@ metadata:
     krateo.io/verbose: "true"
 spec:
   api:
+    # #72: discover composition TYPES from CompositionDefinitions under a userAccessFilter — NOT a
+    # cluster-wide customresourcedefinitions list. The CRD list runs as the CALLER (no UAF → caller
+    # token, internal/dynamic/sa_client.go); a namespace-scoped tenant can't list CRDs cluster-wide
+    # → 403 → empty → blank rail. Listing CompositionDefinitions cluster-wide under a UAF on
+    # `compositiondefinitions` has snowplow list as its SA (cluster-wide grant) then refilter to the
+    # CDs the CALLER can list — so every namespace the caller is granted is covered, no hardcoded ns.
+    # {plural, version} shape unchanged (found iterates it).
     - name: crds
-      path: /apis/apiextensions.k8s.io/v1/customresourcedefinitions
+      path: /apis/core.krateo.io/v1alpha1/compositiondefinitions
       verb: GET
       headers:
         - 'Accept: application/json'
-      filter: "[.crds.items[] | select(.spec.group == \"composition.krateo.io\") | {plural: .status.acceptedNames.plural, version: ((([.spec.versions[] | select(.served and .storage)])[0]) // (([.spec.versions[] | select(.served)])[0])).name}]"
+      userAccessFilter:
+        verb: list
+        group: core.krateo.io
+        resource: compositiondefinitions
+        namespaceFrom: .metadata.namespace
+      filter: "[.crds.items[]? | select(.status.resource != null and .status.apiVersion != null) | {plural: .status.resource, version: (.status.apiVersion | split(\"/\")[1])}]"
       continueOnError: true
     - name: found
       dependsOn:
         name: crds
         iterator: .crds
-      path: ${ "/apis/composition.krateo.io/" + (.version) + "/" + (.plural) }
+      # #72: NAMESPACE-SCOPED to the target's ns (?extras .namespace) — was a cluster-wide list
+      # (no /namespaces/ segment), which runs as the caller and 403s for a namespace-scoped tenant.
+      # The composition is always in .namespace, and the `resources` iterator already selects the
+      # target by _cn/_cns, so scoping here loses nothing and makes it tenant-authorizable.
+      path: ${ "/apis/composition.krateo.io/" + (.version) + "/namespaces/" + (.namespace) + "/" + (.plural) }
       verb: GET
       headers:
         - 'Accept: application/json'
