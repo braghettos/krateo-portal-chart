@@ -12,13 +12,17 @@ metadata:
   annotations:
     "krateo.io/verbose": "true"
 spec:
+  # #72 §0.7: the "Continue in Autopilot" (eyebrow "CONTINUE IN AUTOPILOT") title is removed — the
+  # section is already labelled "Autopilot investigations" (incidents-investigations-label), and the
+  # panel now carries an explicit "Investigate with Autopilot" CTA. Body = a right-aligned CTA row +
+  # the investigations Table (was a Listy). The `extra` count badge stays (informative, not the
+  # offending header copy).
   widgetData:
-    title: Continue in Autopilot
-    titleVariant: eyebrow
     variant: outlined
     extra: 'Autopilot RCA on alert-fire'
     items:
-    - resourceRefId: obs-troubleshooting-feed
+    - resourceRefId: obs-troubleshooting-cta
+    - resourceRefId: obs-troubleshooting-table
   widgetDataTemplate:
   - forPath: extra
     expression: '${ ((.count // 0)|tostring) + " reports · Autopilot RCA" }'
@@ -27,9 +31,15 @@ spec:
     namespace: {{ .Release.Namespace }}
   resourcesRefs:
     items:
-    - id: obs-troubleshooting-feed
+    - id: obs-troubleshooting-cta
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: obs-troubleshooting-feed
+      name: obs-troubleshooting-cta
       namespace: {{ .Release.Namespace }}
-      resource: listies
+      resource: flexes
+      verb: GET
+    - id: obs-troubleshooting-table
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: obs-troubleshooting-table
+      namespace: {{ .Release.Namespace }}
+      resource: tables
       verb: GET
