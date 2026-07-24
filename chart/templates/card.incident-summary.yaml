@@ -21,7 +21,6 @@ spec:
     icon:
       name: fa-clipboard-list
       color: cyan
-    headerLeft: what happened · why · how to fix
     items:
     - resourceRefId: incident-summary-desc
   resourcesRefs:

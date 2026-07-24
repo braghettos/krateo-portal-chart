@@ -13,6 +13,6 @@ spec:
   # F6 (snowplow#130): extras keys that partition this widget's cache cell.
   keyExtras: [name, namespace]
   widgetData:
-    markdown: "**Reasoning trace** — each step cites its evidence, no uncited claims"
+    markdown: "**Reasoning trace**"
   resourcesRefs:
     items: []
