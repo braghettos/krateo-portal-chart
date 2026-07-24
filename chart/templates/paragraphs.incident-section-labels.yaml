@@ -11,6 +11,30 @@
 # NB Card children are NOT constrained by the container allowedResources enum (Cards are
 # unconstrained — see card.incident-gaps-card), so a Card can host Table/Markdown/Steps/Flex freely.
 
+# EVIDENCE lead-in (issue #69 Reiteration 2): plain prose sentence above the table+sources block,
+# e.g. "After evaluating 5 resources across 4 sources, the agent found the following:". Replaces
+# the removed stat-style eyebrow title. Static-ish copy driven from RA evidenceLeadIn (server-side
+# singular/plural). Static text: ' ' until the apiRef resolves.
+kind: Paragraph
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-evidence-leadin
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    text: ' '
+  widgetDataTemplate:
+    - forPath: text
+      expression: '${ .evidenceLeadIn // "" }'
+  resourcesRefs:
+    items: []
+---
 # EVIDENCE section (UX-23): the "N sources · N analyzed resources" count folds into the CARD TITLE
 # (one presentation with the list, no separate grey caption); the card hosts the analyzed Table and
 # the numbered source cards Markdown as one block.
@@ -38,12 +62,18 @@ spec:
     - resourceRefId: incident-analyzed
     - resourceRefId: incident-evidence
   widgetDataTemplate:
-    # Only the items list is templated — the title is a plain "What happened" section label
-    # (not a stat-style count; counts belong in body copy, not the card title).
+    # Lead-in sentence always first, then the analyzed table (when rows exist), then the evidence
+    # markdown (when sources exist). Lead-in renders even when only one axis has data.
     - forPath: items
-      expression: '${ (if ((.analyzedRows // []) | length) > 0 then [ { resourceRefId: "incident-analyzed" } ] else [] end) + (if ((.evidenceMd // "") != "") then [ { resourceRefId: "incident-evidence" } ] else [] end) }'
+      expression: '${ [ { resourceRefId: "incident-evidence-leadin" } ] + (if ((.analyzedRows // []) | length) > 0 then [ { resourceRefId: "incident-analyzed" } ] else [] end) + (if ((.evidenceMd // "") != "") then [ { resourceRefId: "incident-evidence" } ] else [] end) }'
   resourcesRefs:
     items:
+    - id: incident-evidence-leadin
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-evidence-leadin
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
     - id: incident-analyzed
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: incident-analyzed
@@ -83,9 +113,11 @@ spec:
     items:
     - resourceRefId: incident-rem-step-0
   widgetDataTemplate:
-    # Include exactly the first sections.remCount rows (0..remCount-1), mirroring the page Flex.
+    # Include exactly the first sections.remCount rows (0..remCount-1), with a Divider between each
+    # consecutive pair for clear visual separation (issue #69 Reiteration 2). Step 0 has no leading
+    # Divider; step N (N>0) gets incident-rem-div-(N-1) prepended.
     - forPath: items
-      expression: '${ [ range(0; (.sections.remCount // 0)) ] | map({ resourceRefId: ("incident-rem-step-" + tostring) }) }'
+      expression: '${ [ range(0; (.sections.remCount // 0)) ] | to_entries | map(if .key > 0 then [{ resourceRefId: ("incident-rem-div-" + ((.key - 1) | tostring)) }, { resourceRefId: ("incident-rem-step-" + (.key | tostring)) }] else [{ resourceRefId: "incident-rem-step-0" }] end) | flatten }'
   resourcesRefs:
     items:
     {{- range $i := until 6 }}
@@ -94,6 +126,14 @@ spec:
       name: incident-rem-step-{{ $i }}
       namespace: {{ $.Release.Namespace }}
       resource: flexes
+      verb: GET
+    {{- end }}
+    {{- range $i := until 5 }}
+    - id: incident-rem-div-{{ $i }}
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-div-{{ $i }}
+      namespace: {{ $.Release.Namespace }}
+      resource: dividers
       verb: GET
     {{- end }}
 ---

@@ -215,6 +215,10 @@ spec:
                 aPlural: (if $ok then $plural else "" end),
                 aName: (if $ok then $nm else "" end) })),
         evidenceDesc: ("what the agent read, verbatim — " + (($sources | length) | tostring) + " sources · " + (($analyzed | length) | tostring) + " analyzed resources"),
+        # Issue #69 Reiteration 2: plain-language lead-in sentence for the evidence section —
+        # "After evaluating X resources across Y sources, the agent found the following:" — replaces
+        # the stat-style card title (removed). Singular/plural handled server-side.
+        evidenceLeadIn: ("After evaluating " + (($analyzed | length) | tostring) + " resource" + (if ($analyzed | length) == 1 then "" else "s" end) + " across " + (($sources | length) | tostring) + " source" + (if ($sources | length) == 1 then "" else "s" end) + ", the agent found the following:"),
         # UX-23: the evidence count folds into the section CARD title so the "N sources · N analyzed
         # resources" caption is ONE presentation with the list below (no separate grey Paragraph).
         # Singular/plural handled server-side; a section with only one axis omits the empty half.
