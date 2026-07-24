@@ -29,13 +29,15 @@ spec:
     headerLeft: the verdict, the assumptions behind it, and the reasoning trace
     items:
     - resourceRefId: incident-rootcause-statement
+    - resourceRefId: incident-rootcause-meta
   widgetDataTemplate:
-    # Verdict first (statement + category chip + grounded-confidence), then the gaps callout, then
-    # the reasoning trace — each gated on its own sections flag.
+    # Verdict first: statement + category+confidence inline (meta flex), then gaps callout, then
+    # reasoning trace — each gated on its own sections flag. category+confidence share one flex row
+    # (incident-rootcause-meta) so they render inline, matching the render's baseline row.
     - forPath: items
       expression: >-
         ${ (.sections // {}) as $s
-        | (if ($s.rootcause // false) then [ { resourceRefId: "incident-rootcause-statement" }, { resourceRefId: "incident-rootcause-category" }, { resourceRefId: "incident-rootcause-confidence" } ] else [] end)
+        | (if ($s.rootcause // false) then [ { resourceRefId: "incident-rootcause-statement" }, { resourceRefId: "incident-rootcause-meta" } ] else [] end)
         + (if ($s.gaps // false) then [ { resourceRefId: "incident-why-gaps-label" }, { resourceRefId: "incident-gaps" } ] else [] end)
         + (if ($s.trace // false) then [ { resourceRefId: "incident-why-trace-label" }, { resourceRefId: "incident-trace" } ] else [] end) }
   resourcesRefs:
@@ -46,17 +48,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: paragraphs
       verb: GET
-    - id: incident-rootcause-category
+    - id: incident-rootcause-meta
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-rootcause-category
+      name: incident-rootcause-meta
       namespace: {{ .Release.Namespace }}
-      resource: tags
-      verb: GET
-    - id: incident-rootcause-confidence
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-rootcause-confidence
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
+      resource: flexes
       verb: GET
     - id: incident-why-gaps-label
       apiVersion: widgets.templates.krateo.io/v1beta1
