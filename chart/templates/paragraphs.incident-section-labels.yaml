@@ -59,13 +59,14 @@ spec:
       name: fa-magnifying-glass
       color: cyan
     items:
-    - resourceRefId: incident-analyzed
-    - resourceRefId: incident-evidence
+    - resourceRefId: incident-evidence-leadin
+    - resourceRefId: incident-evidence-tabs
   widgetDataTemplate:
-    # Lead-in sentence always first, then the analyzed table (when rows exist), then the evidence
-    # markdown (when sources exist). Lead-in renders even when only one axis has data.
+    # Lead-in prose sentence always first; the two-tab Tabs widget (Resources + Sources) follows
+    # whenever there is any evidence data. If neither axis has data the card still shows the
+    # lead-in so the section renders honestly rather than disappearing entirely.
     - forPath: items
-      expression: '${ [ { resourceRefId: "incident-evidence-leadin" } ] + (if ((.analyzedRows // []) | length) > 0 then [ { resourceRefId: "incident-analyzed" } ] else [] end) + (if ((.evidenceMd // "") != "") then [ { resourceRefId: "incident-evidence" } ] else [] end) }'
+      expression: '${ [ { resourceRefId: "incident-evidence-leadin" } ] + (if ((.sections.evidence // false)) then [ { resourceRefId: "incident-evidence-tabs" } ] else [] end) }'
   resourcesRefs:
     items:
     - id: incident-evidence-leadin
@@ -74,17 +75,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: paragraphs
       verb: GET
-    - id: incident-analyzed
+    - id: incident-evidence-tabs
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-analyzed
+      name: incident-evidence-tabs
       namespace: {{ .Release.Namespace }}
-      resource: tables
-      verb: GET
-    - id: incident-evidence
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-evidence
-      namespace: {{ .Release.Namespace }}
-      resource: markdowns
+      resource: tabs
       verb: GET
 ---
 # REMEDIATION PLAN section — the gated apply rows under the shared card header. The card hosts
@@ -111,29 +106,29 @@ spec:
       name: fa-screwdriver-wrench
       color: cyan
     items:
+    - resourceRefId: incident-rem-widget
     - resourceRefId: incident-rem-step-0
   widgetDataTemplate:
-    # Include exactly the first sections.remCount rows (0..remCount-1), with a Divider between each
-    # consecutive pair for clear visual separation (issue #69 Reiteration 2). Step 0 has no leading
-    # Divider; step N (N>0) gets incident-rem-div-(N-1) prepended.
+    # Steps navigator at top (shows all steps with finish/process/wait status), then the CURRENT
+    # step's content Flex (markdown + button) — only one step's detail is shown at a time.
+    # remCurrentStep is the index of the first unapplied step (server-side from RA filter).
+    # When all steps are applied (remCurrentStep == remCount), only the navigator shows.
     - forPath: items
-      expression: '${ [ range(0; (.sections.remCount // 0)) ] | to_entries | map(if .key > 0 then [{ resourceRefId: ("incident-rem-div-" + ((.key - 1) | tostring)) }, { resourceRefId: ("incident-rem-step-" + (.key | tostring)) }] else [{ resourceRefId: "incident-rem-step-0" }] end) | flatten }'
+      expression: '${ [ { resourceRefId: "incident-rem-widget" } ] + (if ((.remCurrentStep // 99) < (.sections.remCount // 0)) then [ { resourceRefId: ("incident-rem-step-" + ((.remCurrentStep // 0) | tostring)) } ] else [] end) }'
   resourcesRefs:
     items:
+    - id: incident-rem-widget
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-rem-widget
+      namespace: {{ .Release.Namespace }}
+      resource: steps
+      verb: GET
     {{- range $i := until 6 }}
     - id: incident-rem-step-{{ $i }}
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: incident-rem-step-{{ $i }}
       namespace: {{ $.Release.Namespace }}
       resource: flexes
-      verb: GET
-    {{- end }}
-    {{- range $i := until 5 }}
-    - id: incident-rem-div-{{ $i }}
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-rem-div-{{ $i }}
-      namespace: {{ $.Release.Namespace }}
-      resource: dividers
       verb: GET
     {{- end }}
 ---

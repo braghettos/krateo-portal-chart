@@ -1,0 +1,33 @@
+# EVIDENCE SOURCES table — the verbatim sources the agent read, rendered as a Table for the
+# "Sources" tab of the "What happened" Tabs widget. Columns: type (source kind, uppercased),
+# ref (the URL/path/object identifier), excerpt (the verbatim text the agent read). No row
+# navigation — sources are evidence records, not navigable cluster objects.
+kind: Table
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-sources-table
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  keyExtras: [name, namespace]
+  widgetData:
+    allowedResources: []
+    bordered: false
+    size: small
+    columns:
+    - valueKey: type
+      title: Type
+    - valueKey: ref
+      title: Reference
+    - valueKey: excerpt
+      title: Excerpt
+    dataSource: []
+  widgetDataTemplate:
+  - forPath: dataSource
+    expression: '${ [ (.sourcesRows // [])[] | [ {valueKey:"type",kind:"jsonSchemaType",type:"string",stringValue:(.type // "")}, {valueKey:"ref",kind:"jsonSchemaType",type:"string",stringValue:(.ref // ""),color:"#8c8c8c"}, {valueKey:"excerpt",kind:"jsonSchemaType",type:"string",stringValue:(.excerpt // ""),color:"#595959"} ] ] }'
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  resourcesRefs:
+    items: []

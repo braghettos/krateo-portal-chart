@@ -31,13 +31,13 @@ spec:
     allowedResources:
     - markdowns
     - buttons
-    # UX-26: stack the step body over its action (vertical, left-aligned) instead of a
-    # horizontal `justify: space-between` — the old layout isolated the small gated button
-    # at the far right, leaving the right half of every step empty and the button visually
-    # detached from the step it applies to. Now the button sits directly under its step.
+    # Horizontal layout: markdown content on the left, "Review & apply" button on the right.
+    # The card now shows only the CURRENT (first unapplied) step's Flex, so there is no
+    # redundant button appearing for every step at once.
     gap: small
-    vertical: true
+    vertical: false
     align: flex-start
+    justify: space-between
     items:
     - resourceRefId: incident-rem-step-md-{{ $i }}
   widgetDataTemplate:

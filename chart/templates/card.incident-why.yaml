@@ -27,45 +27,18 @@ spec:
       name: fa-circle-exclamation
       color: red
     items:
-    - resourceRefId: incident-rootcause-statement
+    - resourceRefId: incident-why-tabs
   widgetDataTemplate:
-    # Verdict statement first, then gaps callout, then reasoning trace — each gated on its own
-    # sections flag. Category tag and confidence line removed (issue #69 Reiteration 2).
+    # Single Tabs widget: "Reasoning trace" (Steps, default/first), "Verdict" (Paragraph, when
+    # rootcause exists), "Gaps & assumptions" (Alert, when gaps/assumptions exist). Tabs widget
+    # itself gates each tab via its own widgetDataTemplate, so this card just passes the Tabs ref.
     - forPath: items
-      expression: >-
-        ${ (.sections // {}) as $s
-        | (if ($s.rootcause // false) then [ { resourceRefId: "incident-rootcause-statement" } ] else [] end)
-        + (if ($s.gaps // false) then [ { resourceRefId: "incident-why-gaps-label" }, { resourceRefId: "incident-gaps" } ] else [] end)
-        + (if ($s.trace // false) then [ { resourceRefId: "incident-why-trace-label" }, { resourceRefId: "incident-trace" } ] else [] end) }
+      expression: '${ [ { resourceRefId: "incident-why-tabs" } ] }'
   resourcesRefs:
     items:
-    - id: incident-rootcause-statement
+    - id: incident-why-tabs
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-rootcause-statement
+      name: incident-why-tabs
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: incident-why-gaps-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-why-gaps-label
-      namespace: {{ .Release.Namespace }}
-      resource: markdowns
-      verb: GET
-    - id: incident-gaps
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-gaps
-      namespace: {{ .Release.Namespace }}
-      resource: alerts
-      verb: GET
-    - id: incident-why-trace-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-why-trace-label
-      namespace: {{ .Release.Namespace }}
-      resource: markdowns
-      verb: GET
-    - id: incident-trace
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-trace
-      namespace: {{ .Release.Namespace }}
-      resource: steps
+      resource: tabs
       verb: GET

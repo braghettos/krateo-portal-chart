@@ -1,0 +1,32 @@
+# REMEDIATION STEPS navigator — antd Steps (vertical, small) showing ALL plan steps with
+# sequential status computed server-side:
+#   · finish  — already applied (observedOutcome recorded)
+#   · process — the FIRST unapplied step (remCurrentStep index); this is the active step
+#   · wait    — future steps locked until the current one is submitted
+# current mirrors remCurrentStep so the active step gets the antd "process" highlight ring.
+# The step content (markdown + button) lives in the sibling incident-rem-step-{i} Flex below,
+# which the remediation card includes for only the active step.
+kind: Steps
+apiVersion: widgets.templates.krateo.io/v1beta1
+metadata:
+  name: incident-rem-widget
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "krateo.io/verbose": "true"
+spec:
+  keyExtras: [name, namespace]
+  apiRef:
+    name: incident-detail
+    namespace: {{ .Release.Namespace }}
+  widgetData:
+    orientation: vertical
+    size: small
+    current: 0
+    items: []
+  widgetDataTemplate:
+    - forPath: current
+      expression: '${ .remCurrentStep // 0 }'
+    - forPath: items
+      expression: '${ (.remStepsForWidget // []) }'
+  resourcesRefs:
+    items: []

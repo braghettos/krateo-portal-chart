@@ -115,11 +115,13 @@ spec:
             navigateTo: "/marketplace",
             danger: ($rv == "DELETE" and $actionable),
             applied: (($s.observedOutcome // "") != ""),
+            title: ($s.description // ""),
             headers: (if $rv == "PATCH" then ["Content-Type: application/merge-patch+json"] else ["Content-Type: application/json"] end),
             successMessage: ("Remediation step " + (($i + 1) | tostring) + " submitted — verify: " + ($s.successCriterion // "see plan")),
             md: ("**" + (($i + 1) | tostring) + ". " + ($s.description // "") + "**\n\n```\n" + $op + (if $actionable and (($s.payload // {}) | length) > 0 then ("\n" + (($s.payload // {}) | tojson)) else "" end) + "\n```" + (if ($s.successCriterion // "") != "" then ("\n\nsuccessCriterion: **" + $s.successCriterion + "**") else "" end) + (if ($s.observedOutcome // "") != "" then ("\n\n✓ observedOutcome: " + $s.observedOutcome) else "" end))
           }
       )) as $remSteps
+    | ([ $remSteps[] | select((.applied // false) | not) | .i ] | first // ($remSteps | length)) as $remCurrentStep
     | (if ($rc.category // "") != "" then
         ([ $items[]
            | select(((.metadata.name // "") != $n) or ((.metadata.namespace // "") != $ns))
@@ -243,6 +245,22 @@ spec:
         # duplication. A short non-count phrase keeps "this is grounded" without the redundant numbers.
         rootCauseConfidence: (if (($sources | length) > 0) or (($analyzed | length) > 0) then "grounded in the cited evidence" else "grounded in the cited evidence" end),
         remSteps: $remSteps,
+        remCurrentStep: $remCurrentStep,
+        # Steps-widget items for the "How to fix" navigation rail — one item per plan step with
+        # status finish/process/wait so the user sees at a glance what's done, what's active,
+        # and what's locked. Only the first unapplied step ($remCurrentStep) is "process".
+        remStepsForWidget: ($remSteps | map({
+          eyebrow: ("step " + ((.i + 1) | tostring)),
+          title: (.title // ("Step " + ((.i + 1) | tostring))),
+          description: "",
+          status: (if (.applied // false) then "finish" elif (.i == $remCurrentStep) then "process" else "wait" end)
+        })),
+        # Evidence sources as table rows for the "Sources" tab — each row is {type, ref, excerpt}.
+        sourcesRows: ($sources | map({
+          type: ((.type // "object") | ascii_upcase),
+          ref: (.ref // ""),
+          excerpt: (.excerpt // "")
+        })),
         remediationDesc: ((($plan | length) | tostring) + " ordered steps · each is a gated action you review before anything changes" + (if ($plan | length) > 6 then " · showing the first 6" else "" end)),
         similar: $similar,
         # HONESTY (IA incidents-deepdive): a FAILED run must not be dressed up as analysis.
