@@ -23,18 +23,20 @@ spec:
     items:
     # UX-27 (#69 §0.2): the "Back to incidents" link was removed — the breadcrumb's clickable
     # "Incidents" segment is the single way back (no duplicate navigation control).
-    - resourceRefId: incident-detail-title
+    # #69 §0.4: the title now shares its line with the Lifecycle + Trigger tags (incident-detail-
+    # titleline); the chips row below keeps only the affected-resource ref + the clickable Alert link.
+    - resourceRefId: incident-detail-titleline
     - resourceRefId: incident-detail-chips
     # UX-19: the meta is now a Descriptions list hosted in a borderless Card (the Descriptions
     # plural isn't in the Flex child enum; Card children are unconstrained — incident-meta-card).
     - resourceRefId: incident-meta-card
   resourcesRefs:
     items:
-    - id: incident-detail-title
+    - id: incident-detail-titleline
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-detail-title
+      name: incident-detail-titleline
       namespace: {{ .Release.Namespace }}
-      resource: paragraphs
+      resource: flexes
       verb: GET
     - id: incident-detail-chips
       apiVersion: widgets.templates.krateo.io/v1beta1
