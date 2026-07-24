@@ -1,5 +1,5 @@
-# rootCause.category tag (mockup .cattag, magenta = classification) — "uncategorised"
-# when the agent declared a cause without a failure class (honest absence, not invented).
+# rootCause.category tag — "uncategorised" when the agent declared a cause without a failure
+# class. Red signals an error/failure classification, matching the render's visual language.
 kind: Tag
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,7 +15,7 @@ spec:
     namespace: {{ .Release.Namespace }}
   widgetData:
     label: uncategorised
-    color: magenta
+    color: red
   widgetDataTemplate:
     - forPath: label
       expression: '${ .rootCauseCategory // "uncategorised" }'
