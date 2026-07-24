@@ -118,7 +118,20 @@ spec:
             title: ($s.description // ""),
             headers: (if $rv == "PATCH" then ["Content-Type: application/merge-patch+json"] else ["Content-Type: application/json"] end),
             successMessage: ("Remediation step " + (($i + 1) | tostring) + " submitted — verify: " + ($s.successCriterion // "see plan")),
-            md: ("**" + (($i + 1) | tostring) + ". " + ($s.description // "") + "**\n\n```\n" + $op + (if $actionable and (($s.payload // {}) | length) > 0 then ("\n" + (($s.payload // {}) | tojson)) else "" end) + "\n```" + (if ($s.successCriterion // "") != "" then ("\n\nsuccessCriterion: **" + $s.successCriterion + "**") else "" end) + (if ($s.observedOutcome // "") != "" then ("\n\n✓ observedOutcome: " + $s.observedOutcome) else "" end))
+            md: (
+              "**" + (($i + 1) | tostring) + ". " + ($s.description // "") + "**"
+              + "\n\n```\n" + $op
+              + (if $actionable then (
+                  "\n\napiVersion: " + $tv.apiVersion
+                  + "\nkind: " + $tv.resource
+                  + "\nmetadata:\n  name: " + $tn
+                  + (if $tns != "" then ("\n  namespace: " + $tns) else "" end)
+                  + (if ($s.payload // {}) != {} then ("\n\n# payload\n" + (($s.payload // {}) | tojson)) else "" end)
+                ) else "" end)
+              + "\n```"
+              + (if ($s.successCriterion // "") != "" then ("\n\n✅ **Verify:** " + $s.successCriterion) else "" end)
+              + (if ($s.observedOutcome // "") != "" then ("\n\n✅ **Applied:** " + $s.observedOutcome) else "" end)
+            )
           }
       )) as $remSteps
     | ([ $remSteps[] | select((.applied // false) | not) | .i ] | first // ($remSteps | length)) as $remCurrentStep
