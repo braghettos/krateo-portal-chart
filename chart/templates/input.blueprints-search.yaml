@@ -14,6 +14,11 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
+    # `name` is REQUIRED by the Input CRD schema (widgetData.required). With queryParam set the
+    # widget renders as a standalone Input.Search and `name` is unused for the URL binding (queryParam
+    # drives ?q=), but the field must still be present or the CDC apply is rejected
+    # ("spec.widgetData.name: Required value") and the whole portal composition wedges (ReconcileError).
+    name: q
     queryParam: q
     placeholder: Search blueprints by name or description…
     allowClear: true
