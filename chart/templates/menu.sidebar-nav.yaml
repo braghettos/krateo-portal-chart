@@ -141,10 +141,13 @@ spec:
         namespace: {{ include "portal.tierNamespace" (dict "ctx" . "tier" "admin") }}
         resource: flexes
         verb: GET
+      # #68: Compositions is a COMMON-tier page (release namespace, tenant-readable) so tenants see
+      # their own Krateos — its ref namespace must match page-compositions' new home, else the
+      # RBAC menu-ref stamp (not resourceName-aware, snowplow#123) can't resolve it.
       - id: compositions
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: page-compositions
-        namespace: {{ include "portal.tierNamespace" (dict "ctx" . "tier" "admin") }}
+        namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
       - id: clusters
