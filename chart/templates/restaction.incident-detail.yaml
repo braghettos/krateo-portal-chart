@@ -120,15 +120,22 @@ spec:
             successMessage: ("Remediation step " + (($i + 1) | tostring) + " submitted — verify: " + ($s.successCriterion // "see plan")),
             md: (
               (if $actionable then (
-                "```\n" + $op
-                + "\n\napiVersion: " + $tv.apiVersion
-                + "\nkind: " + $tv.resource
-                + "\nmetadata:\n  name: " + $tn
-                + (if $tns != "" then ("\n  namespace: " + $tns) else "" end)
-                + (if ($s.payload // {}) != {} then ("\n\n# payload\n" + (($s.payload // {}) | tojson)) else "" end)
-                + "\n```"
+                "Clicking **Review & apply** will **" + $vb + "** `" + $tv.resource + "/" + $tn + "`"
+                + (if $tns != "" then (" in namespace `" + $tns + "`") else "" end) + "."
+                + (if ($s.payload // {}) != {} then (
+                    "\n\nThe following changes will be sent:\n\n```json\n" + (($s.payload // {}) | tojson) + "\n```"
+                  ) else "" end)
               ) else (
-                if $tn != "" then ("`" + $tn + "`" + (if $tns != "" then (" in namespace `" + $tns + "`") else "" end)) else "" end
+                (if ($tv.resource // "") == "" then
+                  ("Resource type `" + ($s.gvr // "unknown") + "` is not installed on this cluster — an operator or CRD may be needed before this step can run.")
+                elif $tn == "" then
+                  "No specific target was identified for this step — review the remediation plan manually."
+                else
+                  ("This step needs `" + $tv.resource + "/" + $tn + "`"
+                   + (if $tns != "" then (" in namespace `" + $tns + "`") else "" end)
+                   + " to exist. It must be provisioned from a blueprint rather than applied in place.")
+                end)
+                + " Use **Provision in Marketplace** to find a blueprint that can create it."
               ) end)
               + (if ($s.successCriterion // "") != "" then ("\n\n> **Verify:** " + $s.successCriterion) else "" end)
               + (if ($s.observedOutcome // "") != "" then ("\n\n> ✅ **Applied:** " + $s.observedOutcome) else "" end)
@@ -266,7 +273,7 @@ spec:
         remStepsForWidget: ($remSteps | map({
           eyebrow: ("step " + ((.i + 1) | tostring)),
           title: (.title // ("Step " + ((.i + 1) | tostring))),
-          description: (if .actionable then (.restVerb + " " + .resource + "/" + .name + (if .namespace != "" then (" -n " + .namespace) else "" end)) elif .name != "" then (.name + (if .namespace != "" then (" in " + .namespace) else "" end)) else "" end),
+          description: "",
           status: (if (.applied // false) then "finish" elif (.i == $remCurrentStep) then "process" else "wait" end)
         })),
         # Evidence sources as table rows for the "Sources" tab — each row is {type, ref, excerpt}.
