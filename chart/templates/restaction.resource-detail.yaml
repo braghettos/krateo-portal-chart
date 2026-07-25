@@ -65,5 +65,5 @@ spec:
         conditions: [ $conds[] | { type: (.type // ""), status: (.status // ""), reason: (.reason // ""),
                                    state: (if (.status // "") == "True" then "healthy" elif (.status // "") == "False" then "failed" else "pending" end) } ],
         conditionsCount: ($conds | length),
-        manifestJson: (($o | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])) | tojson)
+        manifestJson: (if (($o.metadata.name // "") != "") then (($o | del(.metadata.managedFields, .metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])) | tojson) else "" end)
       }
