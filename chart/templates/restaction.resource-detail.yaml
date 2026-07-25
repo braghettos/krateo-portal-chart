@@ -60,8 +60,12 @@ spec:
         found: (($o.metadata.name // "") != ""),
         kindName: ($kind + " · " + ($o.metadata.name // (.name // ""))),
         eyebrow: ($o.apiVersion // (if $g == "" then (.version // "") else ($g + "/" + (.version // "")) end)),
-        subtitle: ([ (if $nsd then ("namespace " + ($o.metadata.namespace // (.namespace // ""))) else "cluster-scoped" end),
-                     (if ($o.metadata.creationTimestamp // "") != "" then ("created " + ($o.metadata.creationTimestamp)) else empty end) ] | join(" · ")),
+        subtitle: (if (($o.metadata.name // "") != "") then
+            ([ (if $nsd then ("namespace " + ($o.metadata.namespace // (.namespace // ""))) else "cluster-scoped" end),
+               (if ($o.metadata.creationTimestamp // "") != "" then ("created " + ($o.metadata.creationTimestamp)) else empty end) ] | join(" · "))
+          else
+            ("Not found" + (if (.namespace // "") != "" then (" in namespace " + .namespace) else "" end))
+          end),
         conditions: [ $conds[] | { type: (.type // ""), status: (.status // ""), reason: (.reason // ""),
                                    state: (if (.status // "") == "True" then "healthy" elif (.status // "") == "False" then "failed" else "pending" end) } ],
         conditionsCount: ($conds | length),
