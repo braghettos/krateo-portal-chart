@@ -1,8 +1,7 @@
 # Convention page root for /incidents — the SRE page (mockup §B): pagehead, lifecycle
 # filter chips (live counts, server-side), the incident table (one row per
-# TroubleshootingReport, row click → detail), the exception-only "awaiting investigation"
-# strip (firing alerts without a report; hidden when none), and the secondary band with
-# the panels the IA split moved off /observability (Autopilot feed + alert rules).
+# TroubleshootingReport, row click → detail), and the exception-only "awaiting
+# investigation" strip (firing alerts without a report; hidden when none).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -17,7 +16,6 @@ spec:
     - paragraphs
     - tables
     - listies
-    - rows
     vertical: true
     gap: middle
     items:
@@ -28,10 +26,6 @@ spec:
     # PRIMARY: the incident table.
     - resourceRefId: incidents-table
     - resourceRefId: incidents-awaiting
-    # UX-16: SECONDARY band, clearly labelled — the per-alert Autopilot investigation feed sits
-    # below a "Autopilot investigations" section label so it never reads as mixed into the table.
-    - resourceRefId: incidents-investigations-label
-    - resourceRefId: incidents-secondary-row
   resourcesRefs:
     items:
     - id: incidents-header
@@ -57,16 +51,4 @@ spec:
       name: incidents-awaiting
       namespace: {{ .Release.Namespace }}
       resource: listies
-      verb: GET
-    - id: incidents-investigations-label
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incidents-investigations-label
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: incidents-secondary-row
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incidents-secondary-row
-      namespace: {{ .Release.Namespace }}
-      resource: rows
       verb: GET
