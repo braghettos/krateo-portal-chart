@@ -126,7 +126,7 @@ spec:
                     "\n\nThe following changes will be sent:\n\n```json\n" + (($s.payload // {}) | tojson) + "\n```"
                   ) else "" end)
               ) else (
-                (if ($tv.resource // "") == "" then
+                "_" + (if ($tv.resource // "") == "" then
                   ("Resource type `" + ($s.gvr // "unknown") + "` is not installed on this cluster — an operator or CRD may be needed before this step can run.")
                 elif $tn == "" then
                   "No specific target was identified for this step — review the remediation plan manually."
@@ -135,10 +135,10 @@ spec:
                    + (if $tns != "" then (" in namespace `" + $tns + "`") else "" end)
                    + " to exist. It must be provisioned from a blueprint rather than applied in place.")
                 end)
-                + " Use **Provision in Marketplace** to find a blueprint that can create it."
+                + " Use **Provision in Marketplace** to find a blueprint that can create it._"
               ) end)
-              + (if ($s.successCriterion // "") != "" then ("\n\n> **Verify:** " + $s.successCriterion) else "" end)
-              + (if ($s.observedOutcome // "") != "" then ("\n\n> ✅ **Applied:** " + $s.observedOutcome) else "" end)
+              + (if ($s.successCriterion // "") != "" then ("\n\n---\n\n**Verify:** " + $s.successCriterion) else "" end)
+              + (if ($s.observedOutcome // "") != "" then ("\n\n**Applied** ✅ " + $s.observedOutcome) else "" end)
             )
           }
       )) as $remSteps
