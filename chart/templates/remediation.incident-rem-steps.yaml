@@ -123,9 +123,9 @@ spec:
     - forPath: danger
       expression: '${ ((.remSteps // [])[{{ $i }}] // {}).danger // false }'
     - forPath: label
-      expression: '${ if (((.remSteps // [])[{{ $i }}] // {}).actionable // false) then "Review & apply" else "Provision in Marketplace" end }'
+      expression: '${ if (((.remSteps // [])[{{ $i }}] // {}).actionable // false) then "Review & apply" else "Ask Autopilot" end }'
     - forPath: icon
-      expression: '${ if (((.remSteps // [])[{{ $i }}] // {}).actionable // false) then "fa-shield-halved" else "fa-store" end }'
+      expression: '${ if (((.remSteps // [])[{{ $i }}] // {}).actionable // false) then "fa-shield-halved" else "fa-robot" end }'
     - forPath: actions
       expression: '${ (((.remSteps // [])[{{ $i }}]) // {}) as $s | (if ($s.actionable // false) then { rest: [ { id: "rem-apply-{{ $i }}", type: "rest", resourceRefId: ("rem-target-{{ $i }}-" + ($s.verbKey // "patch")), headers: ($s.headers // ["Content-Type: application/json"]), payload: ($s.payload // {}), successMessage: ($s.successMessage // "Remediation step submitted"), loading: { display: true } } ] } else { navigate: [ { id: "rem-apply-{{ $i }}", type: "navigate", path: ($s.navigateTo // "/marketplace"), loading: { display: true } } ] } end) }'
   resourcesRefs:

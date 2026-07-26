@@ -112,7 +112,7 @@ spec:
             namespace: $tns,
             payload: ($s.payload // {}),
             actionable: $actionable,
-            navigateTo: ("/marketplace" + (if $tn != "" then ("?q=" + $tn) else "" end)),
+            navigateTo: ("/incidents?ask=" + (("Help me provision the missing resource" + (if $tn != "" then (" “" + $tn + "”") else "" end) + " needed to resolve this incident. Find and install the right blueprint from the Marketplace.") | @uri)),
             danger: ($rv == "DELETE" and $actionable),
             applied: (($s.observedOutcome // "") != ""),
             title: ($s.description // ""),
