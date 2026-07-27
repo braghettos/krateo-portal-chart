@@ -20,28 +20,27 @@ spec:
       - navmenuitems
       - pages
     items:
+      # ── Operations ──────────────────────────────────────────────────────────────
       - { label: Dashboard,    icon: fa-gauge,        order: 1, path: /dashboard,    resourceRefId: dashboard }
       - { label: Compositions, icon: fa-cubes,        order: 2, path: /compositions, resourceRefId: compositions }
-      # Clusters → page-clusters: the hub-and-spoke registry (registered KubernetesTargets a
-      # CompositionDefinition can deploy to; health rolled up from CompositionDefinition.status.target).
-      - { label: Clusters,     icon: fa-server,       order: 3, path: /clusters,     resourceRefId: clusters }
-      # (per-composition resource topology now lives on the composition detail page as a FlowChart —
-      #  the cluster-wide /estate graph was removed: it had to list every composition, unusable at scale.)
+      # Blueprints → page-blueprints (header + the now-selectable catalog table).
+      - { label: Blueprints,   icon: fa-layer-group,  order: 3, path: /blueprints,   resourceRefId: blueprints }
+      - { label: Marketplace,  icon: fa-store,        order: 4, path: /marketplace,  resourceRefId: marketplace }
+      # ── Observability ────────────────────────────────────────────────────────────
+      - { type: divider, order: 10 }
       # Observability → page-observability: aggregates compositions health, reconciliation,
       # by-kind/by-project distribution, inventory and recent activity into one view.
-      - { label: Observability, icon: fa-chart-line,  order: 4, path: /observability, resourceRefId: observability }
+      - { label: Observability, icon: fa-chart-line,  order: 11, path: /observability, resourceRefId: observability }
       # Incidents → page-incidents: the SRE page — one row per TroubleshootingReport
       # (lifecycle chips, gated remediation on the detail pages). Alerts + the Autopilot
       # troubleshooting feed moved here from /observability in the IA split.
-      - { label: Incidents,    icon: fa-triangle-exclamation, order: 5, path: /incidents, resourceRefId: incidents }
+      - { label: Incidents,    icon: fa-triangle-exclamation, order: 12, path: /incidents, resourceRefId: incidents }
       # Alerts → page-alerts (IA D/4): the alerting CONFIGURATION surface — the alert-rules
       # table (thresholds/intervals/state). Rules are config, not incidents, so they moved off
       # the /incidents triage page to here; /incidents keeps only firing signal + investigation.
-      - { label: Alerts,       icon: fa-bell,         order: 6, path: /alerts,       resourceRefId: alerts }
-      # Blueprints → page-blueprints (header + the now-selectable catalog table).
-      - { label: Blueprints,   icon: fa-layer-group,  order: 7, path: /blueprints,   resourceRefId: blueprints }
-      - { label: Marketplace,  icon: fa-store,        order: 8, path: /marketplace,  resourceRefId: marketplace }
-      - { label: Settings,     icon: fa-gear,         order: 9, path: /settings,     resourceRefId: settings }
+      - { label: Alerts,       icon: fa-bell,         order: 13, path: /alerts,       resourceRefId: alerts }
+      # ── Builders ─────────────────────────────────────────────────────────────────
+      - { type: divider, order: 20 }
       # The Autopilot builders — three sibling deliverables surfaces, each = how-it-works +
       # its previously-published deliverables (linkable) + an empty-state rail CTA. The
       # authoring flow itself lives in the Autopilot rail; these pages show what it produced.
@@ -49,16 +48,24 @@ spec:
       #   Blueprint Builder           → authored blueprints (PR ⋈ CompositionDefinition); each
       #                                 row links to /blueprints/<ns>/<chart>.
       #   API Builder (KOG, CHART-K1) → the RestDefinition registry (generated API kinds).
-      - { label: Portal Builder,    icon: fa-hammer,    order: 10, path: /portal-builder,    resourceRefId: portal-builder }
-      - { label: Blueprint Builder, icon: fa-pen-ruler, order: 11, path: /blueprint-builder, resourceRefId: blueprint-builder }
+      - { label: Portal Builder,    icon: fa-hammer,    order: 21, path: /portal-builder,    resourceRefId: portal-builder }
+      - { label: Blueprint Builder, icon: fa-pen-ruler, order: 22, path: /blueprint-builder, resourceRefId: blueprint-builder }
       # /api-builder is the canonical path (UX round-2 #29 — consistent with the "API Builder"
       # label + H1); the page: slug stays kog-builder (internal). The hidden alias below keeps
       # old /kog-builder deep-links resolving to the same page.
-      - { label: API Builder,       icon: fa-plug,      order: 12, path: /api-builder,        resourceRefId: api-builder }
+      - { label: API Builder,       icon: fa-plug,      order: 23, path: /api-builder,        resourceRefId: api-builder }
       # hidden alias (route-only, no label) so old /kog-builder deep-links still resolve.
       # order is int32 in the widget CRD — must be a whole number, and high so it sorts with
-      # the other route-only entries (/search=800, detail routes 900+), never among the 1–12 nav.
+      # the other route-only entries (/search=800, detail routes 900+), never among the 1–23 nav.
       - { order: 801, path: /kog-builder, resourceRefId: api-builder }
+      # ── Administration ───────────────────────────────────────────────────────────
+      - { type: divider, order: 30 }
+      - { label: Settings,     icon: fa-gear,         order: 31, path: /settings,     resourceRefId: settings }
+      # Clusters → page-clusters: the hub-and-spoke registry (registered KubernetesTargets a
+      # CompositionDefinition can deploy to; health rolled up from CompositionDefinition.status.target).
+      - { label: Clusters,     icon: fa-server,       order: 32, path: /clusters,     resourceRefId: clusters }
+      # (per-composition resource topology now lives on the composition detail page as a FlowChart —
+      #  the cluster-wide /estate graph was removed: it had to list every composition, unusable at scale.)
       # (Builder Demo removed from the portal nav — the Autopilot-authored demo page is being
       #  re-homed as its OWN composition alongside the portal composition, not baked into the
       #  portal chart. Its page-builderdemo CRs + the /builderdemo route move out with it.)
@@ -109,7 +116,7 @@ spec:
       # DISCOVERS namespaced vs cluster-scoped from the apiserver, so the {namespace} segment is
       # a filler for cluster-scoped kinds (pass "cluster"). group "core" → the core API group.
       - { order: 960, path: "/resources/{namespace}/{group}/{version}/{plural}/{name}", page: resource-detail }
-      # (The /kog-builder route is now the visible "API Builder" nav entry above, order 11.
+      # (The /kog-builder route is now the visible "API Builder" nav entry above, order 23.
       #  Autopilot still deep-links here after a gated publish / from the empty-state ?ask= CTA.)
       # Builder-published pages (#106) — each Autopilot-authored page drops a nav fragment at
       # files/nav-fragments/<slug>.yaml ({ item: {<nav entry>} }). The Portal builder writes it as
