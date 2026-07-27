@@ -15,6 +15,7 @@ spec:
     justify: space-between
     align: flex-start
     gap: middle
+    wrap: true
     allowedResources:
       - flexes
     items:
