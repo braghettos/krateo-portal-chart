@@ -17,7 +17,7 @@ spec:
     label: Deploy to fleet
     icon: fa-share-nodes
     type: default
-    size: small
+    size: middle
     clickActionId: open-fleet-rollout
     actions:
       openDrawer:

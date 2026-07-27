@@ -19,8 +19,8 @@ spec:
     gap: small
     items:
       - resourceRefId: blueprint-detail-marketplace
-      - resourceRefId: blueprint-detail-create
       - resourceRefId: blueprint-detail-fleet
+      - resourceRefId: blueprint-detail-create
       - resourceRefId: blueprint-detail-delete
   resourcesRefs:
     items:

@@ -23,13 +23,11 @@ spec:
       - cards
     items:
       - resourceRefId: card-blueprint-detail-update
-      - resourceRefId: card-blueprint-detail-metadata
   widgetDataTemplate:
     - forPath: items
       expression: >-
         ${ [ { resourceRefId: "card-blueprint-detail-update" } ]
-        + (if (((.availableVersions // []) - [(.currentVersion // "")]) | length) > 0 then [ { resourceRefId: "card-blueprint-impact-picker" } ] else [] end)
-        + [ { resourceRefId: "card-blueprint-detail-metadata" } ] }
+        + (if (((.availableVersions // []) - [(.currentVersion // "")]) | length) > 0 then [ { resourceRefId: "card-blueprint-impact-picker" } ] else [] end) }
   resourcesRefs:
     items:
       - id: card-blueprint-detail-update
@@ -41,12 +39,6 @@ spec:
       - id: card-blueprint-impact-picker
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: card-blueprint-impact-picker
-        namespace: {{ .Release.Namespace }}
-        resource: cards
-        verb: GET
-      - id: card-blueprint-detail-metadata
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-blueprint-detail-metadata
         namespace: {{ .Release.Namespace }}
         resource: cards
         verb: GET

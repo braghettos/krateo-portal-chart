@@ -14,21 +14,13 @@ spec:
     vertical: true
     gap: small
     allowedResources:
-      - buttons
       - flexes
       - paragraphs
     items:
-      - resourceRefId: blueprint-detail-back
       - resourceRefId: blueprint-detail-title-line
       - resourceRefId: blueprint-detail-subtitle
   resourcesRefs:
     items:
-      - id: blueprint-detail-back
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: blueprint-detail-back
-        namespace: {{ .Release.Namespace }}
-        resource: buttons
-        verb: GET
       - id: blueprint-detail-title-line
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: blueprint-detail-title-line

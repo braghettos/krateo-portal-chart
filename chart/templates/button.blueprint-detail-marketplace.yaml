@@ -20,7 +20,7 @@ spec:
   widgetData:
     label: View in marketplace
     type: default
-    size: small
+    size: middle
     icon: fa-store
     clickActionId: marketplace
     actions:

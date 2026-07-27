@@ -17,19 +17,11 @@ spec:
   widgetData:
     title: Details
     extra: ""
-    # Render the extra as a status badge-pill: success (green health semantics) when up to
-    # date, warning→amber when a newer version exists. NOTE (status-pill spec): the Card CRD
-    # has no tag-style extra variant (text|badge only), so `badge` + semantic extraStatus is
-    # the nearest schema-valid form; the badge's mono/uppercase/tint styling is frontend CSS.
-    extraVariant: badge
-    extraStatus: success
     items:
       - resourceRefId: descriptions-blueprint-detail-info
   widgetDataTemplate:
     - forPath: extra
       expression: '${ if .updateAvailable then ("Update available → " + .latestVersion) else "Up to date" end }'
-    - forPath: extraStatus
-      expression: '${ if .updateAvailable then "warning" else "success" end }'
   resourcesRefs:
     items:
       - id: descriptions-blueprint-detail-info

@@ -18,7 +18,7 @@ spec:
     label: Create
     icon: fa-plus
     type: primary
-    size: small
+    size: middle
     clickActionId: create
     actions:
       navigate:

@@ -17,12 +17,19 @@ spec:
       - cards
     items:
       - resourceRefId: card-blueprint-detail-info
+      - resourceRefId: card-blueprint-detail-metadata
       - resourceRefId: card-blueprint-detail-compositions
   resourcesRefs:
     items:
       - id: card-blueprint-detail-info
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: card-blueprint-detail-info
+        namespace: {{ .Release.Namespace }}
+        resource: cards
+        verb: GET
+      - id: card-blueprint-detail-metadata
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: card-blueprint-detail-metadata
         namespace: {{ .Release.Namespace }}
         resource: cards
         verb: GET
