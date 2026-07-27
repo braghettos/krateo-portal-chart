@@ -17,11 +17,15 @@ spec:
   widgetData:
     title: Details
     extra: ""
+    extraVariant: tag
+    extraStatus: green
     items:
       - resourceRefId: descriptions-blueprint-detail-info
   widgetDataTemplate:
     - forPath: extra
       expression: '${ if .updateAvailable then ("Update available → " + .latestVersion) else "Up to date" end }'
+    - forPath: extraStatus
+      expression: '${ if .updateAvailable then "gold" else "green" end }'
   resourcesRefs:
     items:
       - id: descriptions-blueprint-detail-info
