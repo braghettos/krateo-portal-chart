@@ -1,4 +1,9 @@
-kind: Row
+# #81 §0.1: was a two-COLUMN Row (greeting col + actions col) that put the 24h/7d/30d/All
+# range pills on the title line. Restructured to a VERTICAL Flex so the greeting/title/subtitle
+# block renders ALONE first and the filter row (range chips + Create button, header-actions-flex,
+# justify: flex-end) sits on its OWN row BELOW it — matching the Incidents/Blueprints pattern
+# (header block, then filter row as a separate sibling). No widget removed.
+kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
   name: header-row
@@ -9,11 +14,11 @@ spec:
   widgetData:
     allowedResources:
     - flexes
+    vertical: true
+    gap: small
     items:
     - resourceRefId: header-greeting-flex
-      size: 16
     - resourceRefId: header-actions-flex
-      size: 8
   resourcesRefs:
     items:
     - id: header-greeting-flex

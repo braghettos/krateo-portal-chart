@@ -41,7 +41,9 @@ spec:
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: header-row
       namespace: {{ .Release.Namespace }}
-      resource: rows
+      # #81 §0.1: header-row was a Row, now a vertical Flex (greeting stacked above the
+      # filter row) — so it resolves under the flexes resource, not rows.
+      resource: flexes
       verb: GET
     - id: onboarding-empty
       apiVersion: widgets.templates.krateo.io/v1beta1
