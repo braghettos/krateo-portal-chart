@@ -52,6 +52,8 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
+    # Scroll target for the Summary panel's "What happened" table-of-contents link (#69).
+    anchorId: incident-what-happened
     title: What happened
     titleVariant: eyebrow
     variant: outlined
@@ -99,6 +101,8 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
+    # Scroll target for the Summary panel's "How to fix" table-of-contents link (#69).
+    anchorId: incident-how-to-fix
     title: How to fix
     titleVariant: eyebrow
     variant: outlined

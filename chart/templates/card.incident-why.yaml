@@ -20,6 +20,8 @@ spec:
     name: incident-detail
     namespace: {{ .Release.Namespace }}
   widgetData:
+    # Scroll target for the Summary panel's "Why" table-of-contents link (#69).
+    anchorId: incident-why
     title: Why did it happen
     titleVariant: eyebrow
     variant: outlined

@@ -22,12 +22,12 @@ spec:
       name: fa-clipboard-list
       color: cyan
     items:
-    - resourceRefId: incident-summary-desc
+    - resourceRefId: incident-summary-md
   resourcesRefs:
     items:
-    - id: incident-summary-desc
+    - id: incident-summary-md
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-summary-desc
+      name: incident-summary-md
       namespace: {{ .Release.Namespace }}
-      resource: descriptions
+      resource: markdowns
       verb: GET
