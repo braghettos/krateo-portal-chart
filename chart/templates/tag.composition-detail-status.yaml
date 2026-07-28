@@ -23,12 +23,16 @@ spec:
   # Ready=True → "Ready" (green — health), Ready=False → "NotReady" (red, the K8s-native
   # kubectl token — never spaced/sentence-cased), absent → "Unknown" (gray).
   # ONE override outranks Ready: the engine's workload projection. workloadHealthy == false
-  # (crashlooping pods behind a Ready=True comp) → "Unhealthy" (red) — the pill must not
-  # read green while the actual workload is down. (.workloadHealthy = RA-exposed raw field.)
+  # (crashlooping / rolling-out pods behind a Ready comp) → the pill must not read green while
+  # the actual workload is down. MIRROR the list rail's severity split (.workloadHealthy = RA-
+  # exposed raw field): Ready=True + workloadHealthy=false → "Degraded" (gold — reconciled,
+  # workload unready: rolling out or degraded, NOT a hard failure); Ready-absent/False +
+  # workloadHealthy=false → "Unhealthy" (red). Keeps the detail pill consistent with the
+  # /compositions rail, which shows the same case gold — clicking a gold row no longer lands on red.
   widgetDataTemplate:
     - forPath: label
-      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "Unhealthy" elif $r == null then "Unknown" elif $r.status == "True" then "Ready" else "NotReady" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then (if ($r != null and $r.status == "True") then "Degraded" else "Unhealthy" end) elif $r == null then "Unknown" elif $r.status == "True" then "Ready" else "NotReady" end }'
     - forPath: color
-      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then "red" elif $r == null then "gray" elif $r.status == "True" then "green" else "red" end }'
+      expression: '${ (.detail.status.conditions // []) as $c | ($c | map(select(.type == "Ready")) | .[0]) as $r | if .workloadHealthy == false then (if ($r != null and $r.status == "True") then "gold" else "red" end) elif $r == null then "gray" elif $r.status == "True" then "green" else "red" end }'
   resourcesRefs:
     items: []

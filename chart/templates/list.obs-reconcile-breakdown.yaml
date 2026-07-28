@@ -33,11 +33,12 @@ spec:
             healthy: green
             drift: violet
             pending: orange
+            degraded: gold
             failed: red
         variant: line
     dataSource: []
   widgetDataTemplate:
     - forPath: dataSource
-      expression: '${ (.list // []) as $l | ($l | length) as $n | [ {state:"healthy",label:"Converged"}, {state:"drift",label:"Drift"}, {state:"pending",label:"Pending"}, {state:"failed",label:"Failed"} ] | map(. as $s | ([ $l[] | select(.railState == $s.state) ] | length) as $c | { state: $s.state, label: $s.label, count: ($c | tostring), percent: (if $n > 0 then ($c * 100 / $n | floor) else 0 end), route: ("/compositions?status=" + $s.state) }) | map(select((.count | tonumber) > 0)) }'
+      expression: '${ (.list // []) as $l | ($l | length) as $n | [ {state:"healthy",label:"Converged"}, {state:"drift",label:"Drift"}, {state:"pending",label:"Pending"}, {state:"degraded",label:"Degraded"}, {state:"failed",label:"Failed"} ] | map(. as $s | ([ $l[] | select(.railState == $s.state) ] | length) as $c | { state: $s.state, label: $s.label, count: ($c | tostring), percent: (if $n > 0 then ($c * 100 / $n | floor) else 0 end), route: ("/compositions?status=" + $s.state) }) | map(select((.count | tonumber) > 0)) }'
   resourcesRefs:
     items: []
