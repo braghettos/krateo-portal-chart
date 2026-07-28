@@ -10,7 +10,12 @@ spec:
     allowedResources:
     - buttons
     - listies
-    justify: flex-end
+    # #80 §0.1: the range chips (24h/7d/30d/All) must sit at the START of the row, not bunched
+    # against the right edge with the button. `space-between` puts the chips left and keeps the
+    # primary "Create composition" button pinned RIGHT — which also keeps it as the right-edge
+    # reference the dashboard panels now align to (#80 §0.2). (`flex-start`, per the issue text,
+    # would drag the button left off that edge and undo the §0.2 alignment.)
+    justify: space-between
     align: center
     gap: small
     items:
