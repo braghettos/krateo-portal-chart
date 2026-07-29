@@ -170,18 +170,12 @@ spec:
       - buttons
       - flexes
       - paragraphs
+    # #82 §0.4: back-link removed (the breadcrumb "MARKETPLACE / <chart>" already covers back-nav).
     items:
-      - resourceRefId: marketplace-detail-back
       - resourceRefId: marketplace-detail-title-line
       - resourceRefId: marketplace-detail-subtitle
   resourcesRefs:
     items:
-      - id: marketplace-detail-back
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-detail-back
-        namespace: {{ .Release.Namespace }}
-        resource: buttons
-        verb: GET
       - id: marketplace-detail-title-line
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-detail-title-line
@@ -195,32 +189,9 @@ spec:
         resource: paragraphs
         verb: GET
 ---
-# "← Back to marketplace"
-kind: Button
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: marketplace-detail-back
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name]
-  widgetData:
-    label: Back to marketplace
-    type: link
-    size: small
-    icon: fa-arrow-left
-    clickActionId: back-nav
-    actions:
-      navigate:
-        - id: back-nav
-          path: /marketplace
-          type: navigate
-  resourcesRefs:
-    items: []
----
-# Title line: chart name (H2) + maturity Tag.
+# Title line: chart name (H2). (#82 §0.7: the maturity/status Tag was removed — it rendered as an
+# empty coloured dot for most catalog entries, and the maturity/version it could show is already in
+# the subtitle line below.)
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -237,10 +208,8 @@ spec:
     gap: middle
     allowedResources:
       - paragraphs
-      - tags
     items:
       - resourceRefId: marketplace-detail-title
-      - resourceRefId: marketplace-detail-status
   resourcesRefs:
     items:
       - id: marketplace-detail-title
@@ -248,12 +217,6 @@ spec:
         name: marketplace-detail-title
         namespace: {{ .Release.Namespace }}
         resource: paragraphs
-        verb: GET
-      - id: marketplace-detail-status
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-detail-status
-        namespace: {{ .Release.Namespace }}
-        resource: tags
         verb: GET
 ---
 # Chart name as H2.
@@ -276,34 +239,6 @@ spec:
   widgetDataTemplate:
     - forPath: text
       expression: '${ .name }'
-  resourcesRefs:
-    items: []
----
-# Maturity Tag (e.g. Beta / Stable), sentence case per the status-pill spec; amber for beta,
-# red for alpha (risk severity), blue otherwise (a maturity level is a category, not health —
-# and cyan is brand/interactive only). Installed keeps green (positive terminal state, same
-# family as "Up to date"). Hidden if empty.
-kind: Tag
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: marketplace-detail-status
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name]
-  apiRef:
-    name: marketplace-detail
-    namespace: {{ .Release.Namespace }}
-  widgetData:
-    label: ""
-    color: blue
-  widgetDataTemplate:
-    - forPath: label
-      expression: '${ if .installed then ("Installed · v" + .installedVersion) else ((.maturity // "") | if . == "" then "" else ((.[0:1] | ascii_upcase) + .[1:]) end) end }'
-    - forPath: color
-      expression: '${ if .installed then "green" elif (.maturity == "beta") then "amber" elif (.maturity == "alpha") then "red" else "blue" end }'
   resourcesRefs:
     items: []
 ---
@@ -374,7 +309,8 @@ spec:
     label: Install
     icon: fa-download
     type: primary
-    size: small
+    # #82 §0.5: middle (was small) — matches the blueprint-detail action buttons (#78 §0.4).
+    size: middle
     clickActionId: act
     actions:
       navigate:
@@ -391,7 +327,10 @@ spec:
   resourcesRefs:
     items: []
 ---
-# 2-column grid (15 : 9) — left About, right Source & links.
+# #82 §0.6: ONE full-width panel (was a 15:9 two-column grid). The right "Source & links" column
+# had too little content for its own panel, so the single meaningful facts folded into the About
+# card: an "Installed" row + the home/sources/package links. The right column, its Source card and
+# its keywords/versions Descriptions are removed.
 kind: Row
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -408,20 +347,12 @@ spec:
     alignment: top
     items:
       - resourceRefId: marketplace-detail-col-left
-        size: 15
-      - resourceRefId: marketplace-detail-col-right
-        size: 9
+        size: 24
   resourcesRefs:
     items:
       - id: marketplace-detail-col-left
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-detail-col-left
-        namespace: {{ .Release.Namespace }}
-        resource: flexes
-        verb: GET
-      - id: marketplace-detail-col-right
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-detail-col-right
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
@@ -465,9 +396,12 @@ spec:
   keyExtras: [name]
   widgetData:
     title: About
+    # #82 §0.6: description + metadata rows + the home/sources/package links (moved here from the
+    # deleted "Source & links" panel), so it's one panel instead of two.
     items:
       - resourceRefId: marketplace-detail-description
       - resourceRefId: descriptions-marketplace-detail-about
+      - resourceRefId: marketplace-detail-links
   resourcesRefs:
     items:
       - id: marketplace-detail-description
@@ -481,6 +415,12 @@ spec:
         name: descriptions-marketplace-detail-about
         namespace: {{ .Release.Namespace }}
         resource: descriptions
+        verb: GET
+      - id: marketplace-detail-links
+        apiVersion: widgets.templates.krateo.io/v1beta1
+        name: marketplace-detail-links
+        namespace: {{ .Release.Namespace }}
+        resource: paragraphs
         verb: GET
 ---
 kind: Paragraph
@@ -525,66 +465,9 @@ spec:
     items: []
   widgetDataTemplate:
     - forPath: items
-      expression: '${ [ { label: "Latest version", value: (.version // "") }, { label: "App version", value: (.appVersion // "") }, { label: "Category", value: (.category // "") }, { label: "Maturity", value: (.maturity // "") }, { label: "Krateo supported", value: (.krateoSupportedVersion // "") }, { label: "Type", value: (.type // "") }, { label: "Published", value: (.created // "") }, { label: "Digest", value: ((.digest // "")[0:19]) } ] | map(select(.value != "" and .value != null)) }'
+      expression: '${ [ { label: "Latest version", value: (.version // "") }, { label: "App version", value: (.appVersion // "") }, { label: "Category", value: (.category // "") }, { label: "Maturity", value: (.maturity // "") }, { label: "Krateo supported", value: (.krateoSupportedVersion // "") }, { label: "Type", value: (.type // "") }, { label: "Published", value: (.created // "") }, { label: "Digest", value: ((.digest // "")[0:19]) }, { label: "Installed", value: (if .installed then ("yes · v" + .installedVersion) else "no" end) } ] | map(select(.value != "" and .value != null)) }'
   resourcesRefs:
     items: []
----
-kind: Flex
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: marketplace-detail-col-right
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name]
-  widgetData:
-    vertical: true
-    gap: middle
-    allowedResources:
-      - cards
-    items:
-      - resourceRefId: card-marketplace-detail-source
-  resourcesRefs:
-    items:
-      - id: card-marketplace-detail-source
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: card-marketplace-detail-source
-        namespace: {{ .Release.Namespace }}
-        resource: cards
-        verb: GET
----
-# "Source & links" card — linkified home/sources/package paragraph + keywords/versions rows.
-kind: Card
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: card-marketplace-detail-source
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name]
-  widgetData:
-    title: Source & links
-    items:
-      - resourceRefId: marketplace-detail-links
-      - resourceRefId: descriptions-marketplace-detail-source
-  resourcesRefs:
-    items:
-      - id: marketplace-detail-links
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-detail-links
-        namespace: {{ .Release.Namespace }}
-        resource: paragraphs
-        verb: GET
-      - id: descriptions-marketplace-detail-source
-        apiVersion: widgets.templates.krateo.io/v1beta1
-        name: descriptions-marketplace-detail-source
-        namespace: {{ .Release.Namespace }}
-        resource: descriptions
-        verb: GET
 ---
 # Home + sources + chart package URLs — Paragraph auto-linkifies raw URLs.
 kind: Paragraph
@@ -606,30 +489,5 @@ spec:
   widgetDataTemplate:
     - forPath: text
       expression: '${ ([ (if (.home // "") != "" then ("Home   " + .home) else empty end), (if ((.sources // []) | length) > 0 then ("Sources   " + (.sources | join("   "))) else empty end), (if (.chartUrl // "") != "" then ("Package   " + .chartUrl) else empty end) ] | join("\n")) }'
-  resourcesRefs:
-    items: []
----
-# Keywords + available versions as rows.
-kind: Descriptions
-apiVersion: widgets.templates.krateo.io/v1beta1
-metadata:
-  name: descriptions-marketplace-detail-source
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    "krateo.io/verbose": "true"
-spec:
-  # F6 (snowplow#130): extras keys that partition this widget's cache cell.
-  keyExtras: [name]
-  apiRef:
-    name: marketplace-detail
-    namespace: {{ .Release.Namespace }}
-  widgetData:
-    column: 1
-    bordered: true
-    size: small
-    items: []
-  widgetDataTemplate:
-    - forPath: items
-      expression: '${ [ { label: "Keywords", value: (.keywordsText // "") }, { label: "Available versions", value: (.availableVersionsText // "") }, { label: "Installed", value: (if .installed then ("yes · v" + .installedVersion) else "no" end) } ] | map(select(.value != "" and .value != null)) }'
   resourcesRefs:
     items: []

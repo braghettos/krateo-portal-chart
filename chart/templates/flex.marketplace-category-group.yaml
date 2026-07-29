@@ -12,11 +12,14 @@ spec:
   widgetData:
     vertical: true
     gap: small
+    # #82 §0.1: the category chips share their row with the catalog search (marketplace-chips-row, a
+    # space-between Flex) — hence `flexes` joins the enum. Source toggle above, sort toggle below.
     allowedResources:
       - listies
+      - flexes
     items:
       - resourceRefId: marketplace-source-toggle
-      - resourceRefId: marketplace-category-chips
+      - resourceRefId: marketplace-chips-row
       - resourceRefId: marketplace-sort-toggle
   resourcesRefs:
     items:
@@ -26,11 +29,11 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: listies
         verb: GET
-      - id: marketplace-category-chips
+      - id: marketplace-chips-row
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-category-chips
+        name: marketplace-chips-row
         namespace: {{ .Release.Namespace }}
-        resource: listies
+        resource: flexes
         verb: GET
       - id: marketplace-sort-toggle
         apiVersion: widgets.templates.krateo.io/v1beta1
