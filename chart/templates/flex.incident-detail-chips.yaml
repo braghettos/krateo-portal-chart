@@ -31,12 +31,13 @@ spec:
     items:
     - resourceRefId: incident-ref
   widgetDataTemplate:
-    # #69 §0.4: Lifecycle + Trigger moved to the title line (incident-detail-titleline). This row now
-    # carries only the affected-resource ref (when a composition was isolated) + the clickable Alert link.
+    # #69 §0.4: Lifecycle + Trigger moved to the title line (incident-detail-titleline).
+    # #83 §0.2: the triggering-alert link moved OUT of this row into its own "Related alerts" footer
+    # section (flex.page-incident-detail, next to Similar incidents). This row now carries ONLY the
+    # affected-resource ref (when a composition was isolated).
     - forPath: items
       expression: >-
-        ${ (if (.refRoute // "") != "" then [ { resourceRefId: "incident-ref-link" } ] else [] end)
-        + (if (.alertName // "") != "" then (if (.alertRoute // "") != "" then [ { resourceRefId: "incident-alert-link" } ] else [ { resourceRefId: "incident-alert-text" } ] end) else [] end) }
+        ${ (if (.refRoute // "") != "" then [ { resourceRefId: "incident-ref-link" } ] else [] end) }
   resourcesRefs:
     items:
     - id: incident-ref-link
@@ -50,16 +51,4 @@ spec:
       name: incident-ref
       namespace: {{ .Release.Namespace }}
       resource: paragraphs
-      verb: GET
-    - id: incident-alert-link
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-alert-link
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    - id: incident-alert-text
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: incident-alert-text
-      namespace: {{ .Release.Namespace }}
-      resource: tags
       verb: GET

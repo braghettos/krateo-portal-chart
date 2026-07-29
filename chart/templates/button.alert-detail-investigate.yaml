@@ -23,7 +23,8 @@ spec:
   widgetData:
     label: Investigate with Autopilot
     type: default
-    size: small
+    # #83 §0.7: middle (was small) now it rides in the Info card's header action slot (extraRefId).
+    size: middle
     icon: fa-wand-magic-sparkles
     clickActionId: investigate
     actions:

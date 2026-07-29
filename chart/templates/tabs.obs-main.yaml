@@ -20,12 +20,13 @@ spec:
   widgetData:
     allowedResources:
       - cols
+    # #83 §0.1: no per-tab `title:` — each tab's content already opens with its own section
+    # heading + subtitle (obs-tab-reconciliation / obs-tab-telemetry), so a Tabs-level title here
+    # rendered a second, redundant heading line above that. The `label` is the tab's name.
     items:
       - label: Reconciliation
-        title: Composition health from live cluster snapshots
         resourceRefId: obs-tab-reconciliation
       - label: Telemetry
-        title: Live telemetry from the OTel → ClickHouse pipeline
         resourceRefId: obs-tab-telemetry
   resourcesRefs:
     items:

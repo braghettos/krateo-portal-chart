@@ -1,8 +1,11 @@
-# Alert detail pagehead — back-link, H1 title (spec.displayName), chips line (live State tag),
-# meta line (phase · lastSynced), then the "Investigate with Autopilot" action. Mirrors
-# incident-detail-header-block / composition-detail-header-block so the three detail pageheads
-# read identically. The investigate button sits under the meta line as the pagehead's single
-# CTA (the ask flow the OLD /alerts row-click owned, moved here — item 25).
+# Alert detail pagehead — just the title-line now (H1 + inline live State tag). #83 cleanup:
+#   §0.3 back-link removed (the breadcrumb already covers back-navigation);
+#   §0.4 title + State tag folded into flex.alert-detail-titleline (was a separate title row + a
+#        full-width chips row);
+#   §0.5 the phase/synced meta line moved into the Info card's Descriptions (Phase + Synced rows);
+#   §0.7 the "Investigate with Autopilot" CTA moved into the Info card's header action slot.
+# So the pagehead is now a single title-line wrapper (kept as its own block so the page structure
+# and the incident/composition pagehead parity are unchanged).
 kind: Flex
 apiVersion: widgets.templates.krateo.io/v1beta1
 metadata:
@@ -15,46 +18,16 @@ spec:
   keyExtras: [name, namespace]
   widgetData:
     allowedResources:
-    - buttons
-    - paragraphs
     - flexes
     vertical: true
     gap: small
     items:
-    - resourceRefId: alert-detail-back
-    - resourceRefId: alert-detail-title
-    - resourceRefId: alert-detail-chips
-    - resourceRefId: alert-detail-meta
-    - resourceRefId: alert-detail-investigate
+    - resourceRefId: alert-detail-titleline
   resourcesRefs:
     items:
-    - id: alert-detail-back
+    - id: alert-detail-titleline
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: alert-detail-back
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
-      verb: GET
-    - id: alert-detail-title
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: alert-detail-title
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: alert-detail-chips
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: alert-detail-chips
+      name: alert-detail-titleline
       namespace: {{ .Release.Namespace }}
       resource: flexes
-      verb: GET
-    - id: alert-detail-meta
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: alert-detail-meta
-      namespace: {{ .Release.Namespace }}
-      resource: paragraphs
-      verb: GET
-    - id: alert-detail-investigate
-      apiVersion: widgets.templates.krateo.io/v1beta1
-      name: alert-detail-investigate
-      namespace: {{ .Release.Namespace }}
-      resource: buttons
       verb: GET

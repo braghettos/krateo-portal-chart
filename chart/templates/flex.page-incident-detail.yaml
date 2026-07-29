@@ -38,6 +38,10 @@ spec:
     - cards
     - steps
     - listies
+    # #83 §0.2: the "Related alerts" footer section renders the alert as a link Button (buttons) or,
+    # when the alert's route couldn't be resolved, an inert Tag (tags) — both now page-level items.
+    - buttons
+    - tags
     vertical: true
     gap: middle
     items:
@@ -57,6 +61,7 @@ spec:
         + (if (($s.rootcause // false) or ($s.gaps // false) or ($s.trace // false)) then [ { resourceRefId: "incident-why-card" } ] else [] end)
         + (if ($s.remediation // false) then [ { resourceRefId: "incident-sec-remediation-card" } ] else [] end)
         + (if ($s.similar // false) then [ { resourceRefId: "incident-sec-similar-label" }, { resourceRefId: "incident-similar" } ] else [] end)
+        + (if (.alertName // "") != "" then [ { resourceRefId: "incident-related-alerts-label" }, (if (.alertRoute // "") != "" then { resourceRefId: "incident-alert-link" } else { resourceRefId: "incident-alert-text" } end) ] else [] end)
         + (if ($s.prose == true) or ($s == {}) then [ { resourceRefId: "incident-prose" } ] else [] end) }
   resourcesRefs:
     items:
@@ -111,4 +116,25 @@ spec:
       name: incident-prose
       namespace: {{ .Release.Namespace }}
       resource: markdowns
+      verb: GET
+    # #83 §0.2: Related alerts footer section — the label + the triggering-alert link (moved here
+    # from flex.incident-detail-chips). alert-link is a Button (when alertRoute resolved), else the
+    # inert alert-text Tag; gated on .alertName in the items template above.
+    - id: incident-related-alerts-label
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-related-alerts-label
+      namespace: {{ .Release.Namespace }}
+      resource: paragraphs
+      verb: GET
+    - id: incident-alert-link
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-alert-link
+      namespace: {{ .Release.Namespace }}
+      resource: buttons
+      verb: GET
+    - id: incident-alert-text
+      apiVersion: widgets.templates.krateo.io/v1beta1
+      name: incident-alert-text
+      namespace: {{ .Release.Namespace }}
+      resource: tags
       verb: GET
