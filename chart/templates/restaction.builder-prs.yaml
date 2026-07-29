@@ -48,7 +48,14 @@ spec:
             # Sentence-cased chip label ("Open"/"Merged"/"Closed"/"Pending") — the raw lowercase
             # `state` stays for the colour-map keys.
             stateLabel: (if $state == "" then "" else ((($state)[0:1] | ascii_upcase) + ($state)[1:]) end),
-            # PR open age — the raw creationTimestamp; the Listy formats it `relative` ("14d ago").
+            # #84 §0.2: the Table's Status cell takes a single colour (the Listy used a colour-map);
+            # resolve it server-side — open→blue / merged→green (a landed deliverable) / closed→gray /
+            # pending→gold. Same vocabulary the Listy's map used.
+            stateColor: (if $state == "open" then "blue" elif $state == "merged" then "green" elif $state == "closed" then "gray" else "gold" end),
+            # #84 §0.2: the PR "#N" cell (same derivation as blueprint-builder-deliverables); "" until
+            # the provider writes status.number.
+            pr:    (if ((.status.number) // 0) > 0 then ("#" + ((.status.number) | tostring)) else "" end),
+            # PR open age — the raw creationTimestamp; the Table formats it `relative` ("14d ago").
             created: (.metadata.creationTimestamp // ""),
             # The GitHub PR URL (status.html_url) — the Listy row's external navigateTo. A PR
             # with no URL yet (freshly created, pre-reconcile) gets "" → the row is inert.

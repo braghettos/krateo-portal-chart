@@ -22,7 +22,8 @@ spec:
     gap: middle
     items:
     - resourceRefId: blueprint-builder-header
-    - resourceRefId: blueprint-builder-ask
+    # #84 §0.1: CTA rides in a right-aligned wrapper Flex (was a bare left-aligned button).
+    - resourceRefId: blueprint-builder-ask-cta
     - resourceRefId: blueprint-builder-deliverables
     - resourceRefId: blueprint-builder-hint
   resourcesRefs:
@@ -33,11 +34,11 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: blueprint-builder-ask
+    - id: blueprint-builder-ask-cta
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: blueprint-builder-ask
+      name: blueprint-builder-ask-cta
       namespace: {{ .Release.Namespace }}
-      resource: buttons
+      resource: flexes
       verb: GET
     - id: blueprint-builder-deliverables
       apiVersion: widgets.templates.krateo.io/v1beta1

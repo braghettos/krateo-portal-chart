@@ -14,9 +14,10 @@ spec:
   widgetData:
     label: Ask Autopilot →
     icon: fa-wand-magic-sparkles
-    size: small
-    type: default
-    variant: outlined
+    # #84 §0.1: the page's primary CTA — a filled primary button (was an outlined default), a
+    # comfortable middle size (was small), right-aligned via flex.blueprint-builder-ask-cta.
+    size: middle
+    type: primary
     clickActionId: blueprint-builder-ask
     actions:
       navigate:

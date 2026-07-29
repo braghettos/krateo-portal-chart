@@ -10,15 +10,16 @@ metadata:
     "krateo.io/verbose": "true"
 spec:
   widgetData:
+    # #84: the CTA now rides in a right-aligned wrapper Flex (§0.1) and the PR feed is a Table
+    # (§0.2, was a Listy) — so the page renders flexes (header + cta wrapper) and tables (builder-prs).
     allowedResources:
     - flexes
-    - listies
-    - buttons
+    - tables
     vertical: true
     gap: middle
     items:
     - resourceRefId: portal-builder-header
-    - resourceRefId: portal-builder-ask
+    - resourceRefId: portal-builder-ask-cta
     - resourceRefId: builder-prs
   resourcesRefs:
     items:
@@ -28,15 +29,15 @@ spec:
       namespace: {{ .Release.Namespace }}
       resource: flexes
       verb: GET
-    - id: portal-builder-ask
+    - id: portal-builder-ask-cta
       apiVersion: widgets.templates.krateo.io/v1beta1
-      name: portal-builder-ask
+      name: portal-builder-ask-cta
       namespace: {{ .Release.Namespace }}
-      resource: buttons
+      resource: flexes
       verb: GET
     - id: builder-prs
       apiVersion: widgets.templates.krateo.io/v1beta1
       name: builder-prs
       namespace: {{ .Release.Namespace }}
-      resource: listies
+      resource: tables
       verb: GET
