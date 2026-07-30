@@ -14,10 +14,11 @@ spec:
     allowedResources:
     - listies
     - inputs
-    # #86 §0.4: was space-between, which shoved the chips hard-left and the search hard-right with a
-    # wide dead gap between them on roomy headers. Centre the pair with a generous gap so they read as
-    # one grouped filter control rather than two stranded elements.
-    justify: center
+    # #86 §0.4 Release C (fedepini via DevTools): `justify: center` was the wrong tool — it treats the
+    # chips-group + search as ONE block and centres THAT, so the (narrower) search box floats mid-row
+    # instead of pinning right. Back to `space-between` (chips left, search right); keep the wider
+    # `gap: large` — space-between treats gap as a FLOOR, so the breathing room is preserved.
+    justify: space-between
     align: center
     gap: large
     wrap: true
