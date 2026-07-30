@@ -36,7 +36,10 @@ spec:
     # redundant button appearing for every step at once.
     gap: small
     vertical: false
-    align: flex-start
+    # #86 §0.8: centre (was flex-start) so the "Review & apply" button aligns to the VERTICAL MIDDLE
+    # of the step's markdown block rather than pinning to its first text line — reads balanced when
+    # the step description wraps to multiple lines.
+    align: center
     justify: space-between
     items:
     - resourceRefId: incident-rem-step-md-{{ $i }}

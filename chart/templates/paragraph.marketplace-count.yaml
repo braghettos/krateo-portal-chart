@@ -21,7 +21,9 @@ spec:
     text: ""
     type: secondary
   widgetDataTemplate:
+    # #86 §0.3: wrap the count in parentheses ("(397 charts)") so it reads unambiguously as an
+    # annotation OF the "Marketplace" title beside it, not a second word in the heading.
     - forPath: text
-      expression: '${ ((.count | tostring) + " " + (.countLabel // "charts")) }'
+      expression: '${ ("(" + (.count | tostring) + " " + (.countLabel // "charts") + ")") }'
   resourcesRefs:
     items: []

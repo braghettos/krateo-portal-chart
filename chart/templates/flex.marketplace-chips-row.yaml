@@ -14,9 +14,12 @@ spec:
     allowedResources:
     - listies
     - inputs
-    justify: space-between
+    # #86 §0.4: was space-between, which shoved the chips hard-left and the search hard-right with a
+    # wide dead gap between them on roomy headers. Centre the pair with a generous gap so they read as
+    # one grouped filter control rather than two stranded elements.
+    justify: center
     align: center
-    gap: middle
+    gap: large
     wrap: true
     items:
     - resourceRefId: marketplace-category-chips

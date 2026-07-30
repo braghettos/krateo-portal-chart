@@ -14,7 +14,9 @@ spec:
     allowedResources:
     - paragraphs
     gap: small
-    align: center
+    # #86 §0.3: baseline (not centre) so the small "(397 charts)" count sits on the title's TEXT
+    # baseline rather than centred against the heading's cap height — reads as an inline annotation.
+    align: baseline
     wrap: true
     items:
     - resourceRefId: marketplace-title
