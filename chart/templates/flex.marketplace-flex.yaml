@@ -14,7 +14,7 @@ spec:
       - listies
     items:
       - resourceRefId: marketplace-header
-      - resourceRefId: marketplace-category-group
+      - resourceRefId: marketplace-filters-row
       - resourceRefId: marketplace-grid
   resourcesRefs:
     items:
@@ -24,9 +24,11 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
-      - id: marketplace-category-group
+      # #86 (fedepini): was marketplace-category-group directly; now the outer space-between
+      # marketplace-filters-row (search left, category-group right).
+      - id: marketplace-filters-row
         apiVersion: widgets.templates.krateo.io/v1beta1
-        name: marketplace-category-group
+        name: marketplace-filters-row
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
