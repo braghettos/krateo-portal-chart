@@ -12,6 +12,7 @@ spec:
     allowedResources:
       - flexes
       - listies
+      - rows
     items:
       - resourceRefId: marketplace-header
       - resourceRefId: marketplace-filters-row
@@ -24,13 +25,14 @@ spec:
         namespace: {{ .Release.Namespace }}
         resource: flexes
         verb: GET
-      # #86 (fedepini): was marketplace-category-group directly; now the outer space-between
-      # marketplace-filters-row (search left, category-group right).
+      # #86 (fedepini): was marketplace-category-group directly; now the marketplace-filters-row
+      # Row — search LEFT (span 6), the 3-line filters block RIGHT (span 18). A Row (not Flex) so
+      # the search width is deterministic and can't collapse under flex-shrink.
       - id: marketplace-filters-row
         apiVersion: widgets.templates.krateo.io/v1beta1
         name: marketplace-filters-row
         namespace: {{ .Release.Namespace }}
-        resource: flexes
+        resource: rows
         verb: GET
       - id: marketplace-grid
         apiVersion: widgets.templates.krateo.io/v1beta1
