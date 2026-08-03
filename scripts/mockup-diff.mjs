@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const MOCKUP_DIR = process.env.MOCKUP_DIR || join(process.env.HOME || '', 'Downloads/krateo-mockups/src')
-const CHART_DIR = process.env.CHART_DIR || join(HERE, '..', 'chart', 'templates')
+const CHART_DIR = process.env.CHART_DIR || join(HERE, '..', 'helm', 'portal', 'templates')
 
 // Mockup page → its backing chart CR (name as it appears in metadata.name).
 // `frontend:true` = rendered by the frontend bootstrap, not a snowplow widget CR.

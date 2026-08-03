@@ -39,7 +39,7 @@ WHAT THIS SCRIPT DOES:
 
 USAGE:
   python3 scripts/lint-keyextras.py            # from the repo root (or anywhere)
-  CHART_DIR=chart ROUTES_WIDGET=sidebar-nav CHROME_HEADER_WIDGET=header-context \
+  CHART_DIR=helm/portal ROUTES_WIDGET=sidebar-nav CHROME_HEADER_WIDGET=header-context \
       python3 scripts/lint-keyextras.py
 
 Requires: helm on PATH, PyYAML.
@@ -54,7 +54,7 @@ import tempfile
 import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CHART_DIR = os.environ.get("CHART_DIR", os.path.join(HERE, "..", "chart"))
+CHART_DIR = os.environ.get("CHART_DIR", os.path.join(HERE, "..", "helm", "portal"))
 ROUTES_WIDGET = os.environ.get("ROUTES_WIDGET", "sidebar-nav")
 CHROME_HEADER_WIDGET = os.environ.get("CHROME_HEADER_WIDGET", "header-context")
 WIDGET_API_GROUP = "widgets.templates.krateo.io"
