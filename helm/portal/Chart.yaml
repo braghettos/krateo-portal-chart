@@ -27,7 +27,7 @@ keywords:
   - blueprint
   - composable
 sources:
-  - https://github.com/braghettos/portal
+  - https://github.com/krateo-platformops/portal
 annotations:
   krateo.io/category: application
   krateo.io/maturity: stable

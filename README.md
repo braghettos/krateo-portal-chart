@@ -4,13 +4,13 @@ Krateo PlatformOps **portal-starter** blueprint — seeds the Composable Portal'
 (navmenus, routes, pages, panels, RestActions, and the demo-system RBAC) so a fresh install
 renders a usable portal. Distinct from the `frontend` chart (the SPA itself).
 
-Part of the [krateo-installer](https://github.com/braghettos/krateo-installer) ecosystem.
+Part of the [krateo-installer](https://github.com/krateo-platformops/installer) ecosystem.
 
 ## What it ships
 
 | Path | Chart | OCI artifact |
 |------|-------|--------------|
-| `chart/` | `portal` | `oci://ghcr.io/braghettos/krateo/portal` |
+| `chart/` | `portal` | `oci://ghcr.io/krateo-platformops/charts/portal` |
 
 `chart/templates/` holds the portal content as Krateo resources: `navmenu*`, `route*`,
 `routesloader`, `page*`, `panel*`, `datagrid*`, `restaction*`, plus `rbac.*` and the
@@ -31,7 +31,7 @@ metadata:
   namespace: krateo-system
 spec:
   chart:
-    url: oci://ghcr.io/braghettos/krateo/portal
+    url: oci://ghcr.io/krateo-platformops/charts/portal
     version: "1.2.2"
 ```
 
@@ -86,9 +86,9 @@ chrome widgets that do not declare `projects`.
 ## Release
 
 Push a semver tag (`X.Y.Z`) — CI packages `chart/` and publishes to
-`oci://ghcr.io/braghettos/krateo`.
+`oci://ghcr.io/krateo-platformops/charts`.
 
 ## Links
 
-- Installer umbrella: https://github.com/braghettos/krateo-installer
+- Installer umbrella: https://github.com/krateo-platformops/installer
 - Composable Portal (frontend): https://github.com/krateoplatformops/frontend

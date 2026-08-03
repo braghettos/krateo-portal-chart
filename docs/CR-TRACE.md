@@ -1,4 +1,4 @@
-# TRACE REPORT — braghettos/krateo-portal-chart CR inventory
+# TRACE REPORT — krateo-platformops/portal CR inventory
 
 > Generated 2026-06-23 by a 13-agent reachability sweep (orphan-trace workflow) over
 > the chart's CRs, ahead of the consolidated fresh-GKE install. Method: build the root

@@ -8,5 +8,5 @@ metadata:
   namespace: krateo-system
 spec:
   chart:
-    url: oci://ghcr.io/braghettos/krateo/portal
+    url: oci://ghcr.io/krateo-platformops/charts/portal
     version: "1.2.2"
