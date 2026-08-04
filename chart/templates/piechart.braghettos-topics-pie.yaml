@@ -1,0 +1,19 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: PieChart
+metadata:
+  name: braghettos-topics-pie
+  namespace: krateo-system
+spec:
+  apiRef:
+    name: braghettos-repos
+    namespace: krateo-system
+  resourcesRefs:
+    items: []
+  widgetData:
+    angleField: count
+    colorField: topic
+    data: []
+    title: Repositories by Topic
+  widgetDataTemplate:
+    - expression: '${ [ .items[]? | if ((.topics // []) | length) > 0 then .topics[] else "untagged" end ] | group_by(.) | map({ topic: .[0], count: length }) }'
+      forPath: data
