@@ -1,0 +1,11 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Paragraph
+metadata:
+  name: braghettos-topics-heading
+  namespace: krateo-system
+spec:
+  resourcesRefs:
+    items: []
+  widgetData:
+    strong: true
+    text: braghettos Repositories Grouped by Topics
