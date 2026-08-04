@@ -1,0 +1,6 @@
+item:
+  icon: fa-github
+  label: braghettos Repositories
+  order: 950
+  page: braghettos-topics
+  path: /braghettos-topics
