@@ -1,0 +1,44 @@
+apiVersion: widgets.templates.krateo.io/v1beta1
+kind: Flex
+metadata:
+  name: page-braghettos-topics
+  namespace: krateo-system
+spec:
+  resourcesRefs:
+    items:
+      - apiVersion: widgets.templates.krateo.io/v1beta1
+        id: braghettos-topics-heading
+        name: braghettos-topics-heading
+        namespace: krateo-system
+        resource: paragraphs
+        verb: GET
+      - apiVersion: widgets.templates.krateo.io/v1beta1
+        id: braghettos-topics-pie
+        name: braghettos-topics-pie
+        namespace: krateo-system
+        resource: piecharts
+        verb: GET
+      - apiVersion: widgets.templates.krateo.io/v1beta1
+        id: braghettos-languages-pie
+        name: braghettos-languages-pie
+        namespace: krateo-system
+        resource: piecharts
+        verb: GET
+      - apiVersion: widgets.templates.krateo.io/v1beta1
+        id: braghettos-topics-table
+        name: braghettos-topics-table
+        namespace: krateo-system
+        resource: tables
+        verb: GET
+  widgetData:
+    allowedResources:
+      - paragraphs
+      - piecharts
+      - tables
+    gap: middle
+    items:
+      - resourceRefId: braghettos-topics-heading
+      - resourceRefId: braghettos-topics-pie
+      - resourceRefId: braghettos-languages-pie
+      - resourceRefId: braghettos-topics-table
+    vertical: true
