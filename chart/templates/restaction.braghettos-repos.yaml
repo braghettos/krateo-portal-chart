@@ -1,0 +1,29 @@
+apiVersion: templates.krateo.io/v1
+kind: RESTAction
+metadata:
+  name: braghettos-repos
+  namespace: krateo-system
+spec:
+  api:
+    - endpointRef:
+        name: github-endpoint
+        namespace: krateo-system
+      headers:
+        - 'User-Agent: krateo'
+      name: repos
+      path: /users/braghettos/repos?per_page=100
+      verb: GET
+  filter: |
+    {
+      "items": [
+        .repos[] | {
+          "name": .name,
+          "topics": (.topics // []),
+          "topic": ((.topics[0]) // "untagged"),
+          "description": (.description // ""),
+          "html_url": .html_url,
+          "stargazers_count": .stargazers_count,
+          "language": (.language // "N/A")
+        }
+      ]
+    }
