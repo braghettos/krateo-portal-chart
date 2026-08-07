@@ -1,3 +1,12 @@
+---
+type: Architecture
+title: "CR-TRACE — the 2026-06-23 CR reachability sweep"
+description: "Point-in-time trace report: 13-agent reachability sweep over the chart's then-180 CRs ahead of the consolidated fresh-GKE install (the chart renders ~530 CRs at 1.6.0 — historical record, not current inventory)."
+resource: oci://ghcr.io/krateo-platformops/charts/portal
+tags: [archive]
+timestamp: 2026-06-23T00:00:00Z
+---
+
 # TRACE REPORT — krateo-platformops/portal CR inventory
 
 > Generated 2026-06-23 by a 13-agent reachability sweep (orphan-trace workflow) over

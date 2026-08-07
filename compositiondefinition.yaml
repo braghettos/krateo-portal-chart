@@ -9,4 +9,4 @@ metadata:
 spec:
   chart:
     url: oci://ghcr.io/krateo-platformops/charts/portal
-    version: "1.2.2"
+    version: "1.6.0"

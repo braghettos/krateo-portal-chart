@@ -1,94 +1,69 @@
-# krateo-portal-chart
+# portal
 
-Krateo PlatformOps **portal-starter** blueprint — seeds the Composable Portal's content
-(navmenus, routes, pages, panels, RestActions, and the demo-system RBAC) so a fresh install
-renders a usable portal. Distinct from the `frontend` chart (the SPA itself).
+The **portal blueprint chart** of Krateo PlatformOps — the content of the Composable
+Portal (pages, widgets, RESTActions, personas, demo-system), shipped as a Krateo
+composition.
 
-Part of the [krateo-installer](https://github.com/krateo-platformops/installer) ecosystem.
+## What is this
 
-## What it ships
+A chart repo, not a service: `helm/portal/` renders ~530 Krateo custom resources —
+the app-shell Layout, the sidebar Menu (the single route source), every page's widget
+tree (`widgets.templates.krateo.io/v1beta1`), the 45 `RESTAction`s that feed them,
+two demo personas with their RBAC, and the `demo-system` namespace. The frontend SPA
+([krateo-platformops/frontend](https://github.com/krateo-platformops/frontend)) renders
+what this chart declares; [snowplow](https://github.com/krateo-platformops/snowplow)
+resolves it. Full picture: [docs/index.md](docs/index.md).
 
-| Path | Chart | OCI artifact |
-|------|-------|--------------|
-| `chart/` | `portal` | `oci://ghcr.io/krateo-platformops/charts/portal` |
+## Install
 
-`chart/templates/` holds the portal content as Krateo resources: `navmenu*`, `route*`,
-`routesloader`, `page*`, `panel*`, `datagrid*`, `restaction*`, plus `rbac.*` and the
-`demo-system` namespace. Toggles in `values.yaml`: `enableAdminUser`, `enableCyberjokerUser`,
-`enableDemoSystemNamespace`.
-
-## How the installer consumes it
-
-The installer umbrella emits a `CompositionDefinition` that points `core-provider` at the OCI
-chart; `core-provider` generates `Portal.composition.krateo.io` and reconciles one Composition
-per instance:
-
-```yaml
-apiVersion: core.krateo.io/v1alpha1
-kind: CompositionDefinition
-metadata:
-  name: portal
-  namespace: krateo-system
-spec:
-  chart:
-    url: oci://ghcr.io/krateo-platformops/charts/portal
-    version: "1.2.2"
-```
-
-## Local validation
+Normally provisioned by the **Krateo installer** (feature `portal`, pinned at `1.6.0`).
+Standalone, via the composition model (never a direct `helm install` on a live platform):
 
 ```sh
-helm lint chart
-helm template smoke chart
-python3 scripts/lint-keyextras.py   # F6 cache-key declaration gate (see below)
+# 1. Register the blueprint — core-provider generates the Portal CRD + controller:
+kubectl apply -f compositiondefinition.yaml
+
+# 2. Instantiate it — one Portal CR = one reconciled portal-content release:
+kubectl apply -f examples/portal-composition/portal.yaml
 ```
 
-## Authoring rule: `spec.keyExtras`
+Details and the local-render loop: [docs/usage.md](docs/usage.md).
 
-**Any widget rendered on a parameterized route (or consuming query context) MUST
-declare, in its chart template, exactly the request-extras keys it receives:**
+## Configure
 
-```yaml
-spec:
-  keyExtras: [name, namespace]   # e.g. the /compositions/{namespace}/{name} route params
-  # or, for chrome widgets receiving the shell's project scope:
-  keyExtras: [projects]
+See [docs/configuration.md](docs/configuration.md). Most used:
+
+| Value | Default | Effect |
+|---|---|---|
+| `tenant` | `krateo-enterprise` | Display name in the sider tenant chip + page eyebrows. |
+| `enableDemoSystemNamespace` | `true` | Creates the `demo-system` namespace + the demo persona's grants in it. |
+| `tiers.{common,tenant,admin}` | `""` (release ns) | Opt-in RBAC namespace tiering of page visibility. |
+
+## Examples
+
+- [examples/portal-composition](examples/portal-composition) — register the blueprint
+  (`CompositionDefinition`) and instantiate a `Portal` composition with custom values.
+
+## Docs
+
+- [docs/index.md](docs/index.md) — the map (bundle + design records + chart-adjacent corpora)
+- [docs/overview.md](docs/overview.md) — what the chart deploys and how it works
+- [docs/usage.md](docs/usage.md) — installer path, composition registration, local render
+- [docs/configuration.md](docs/configuration.md) — the whole values surface
+- [docs/api.md](docs/api.md) — the emitted contract: Portal composition API + AuditRecord CRD
+- [docs/examples.md](docs/examples.md) — examples index
+- [docs/release.md](docs/release.md) — how a release ships
+- [docs/log.md](docs/log.md) — curated history
+
+Authoring rule for chart contributors: [docs/authoring-keyextras.md](docs/authoring-keyextras.md)
+(`spec.keyExtras`, CI-enforced).
+
+## Develop & release
+
+```sh
+helm lint helm/portal && helm template smoke helm/portal
+python3 scripts/lint-keyextras.py   # F6 cache-key declaration gate
 ```
 
-Why (snowplow ≥ 1.7.11, F6 self-quarantine Put-guard):
-
-- A widget that receives request extras it does **not** declare is refused by the
-  cache guard: it serves 200 but is **never cached** — cold resolve on *every*
-  visit, including revisits. It fails safe (no wrong content), but caching is
-  permanently defeated. This was the exact shape of the PR #21 chrome gap and the
-  issue #26 structural gap (84 guard declines per browser walk).
-- Declarations are only real if **chart-baked** — live widget-CR edits are
-  reverted by the composition controller on the next portal reconcile.
-- Identity keys (`username`, `groups`, `displayName`) as *caller identity* never
-  need declaring — snowplow exempts them. A **route param** that happens to be
-  named `username` (e.g. `/settings/access/{username}`, the *viewed* persona)
-  still must be declared: it partitions the widget's content.
-
-How to verify a new/changed widget against snowplow ≥ 1.7.11: navigate its route
-and check there is no `"Widget request carried extras not declared in
-spec.keyExtras; declining to cache"` WARN naming it (counter:
-`snowplow_widget_skipped_undeclared_extras_put_total`), and that a revisit logs
-an L1 HIT at an `extras_len>0` key.
-
-CI enforces the route half of this rule: `scripts/lint-keyextras.py` (the
-`keyextras` job in `.github/workflows/lint.yaml`) renders the chart, derives the
-route table from the `sidebar-nav` Menu (`{param}` path segments → the extras
-keys the route injects), walks each route's widget tree transitively via
-same-chart `resourcesRefs`, and **fails** if any reachable widget's `keyExtras`
-misses that route's params. It also **warns** (non-gating) for app-shell/header
-chrome widgets that do not declare `projects`.
-
-## Release
-
-Push a semver tag (`X.Y.Z`) — CI packages `chart/` and publishes to
-`oci://ghcr.io/krateo-platformops/charts`.
-
-## Links
-
-- Installer umbrella: https://github.com/krateo-platformops/installer
-- Composable Portal (frontend): https://github.com/krateoplatformops/frontend
+Tag `X.Y.Z` (no `v` prefix) — CI packages `helm/portal/` and publishes to
+`oci://ghcr.io/krateo-platformops/charts/portal`. Runbook: [docs/release.md](docs/release.md).

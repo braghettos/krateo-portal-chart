@@ -1,7 +1,26 @@
+---
+type: Decision
+title: "Design — snowplow RESTAction YAML api-step (serve a fetched YAML body as JSON to jq)"
+description: "The enabler design that let a RESTAction api step consume YAML endpoints (Helm index.yaml) — implemented in snowplow (external fetch + YAML→JSON, >= 1.4.0) and consumed by this chart's blueprints-catalog."
+resource: oci://ghcr.io/krateo-platformops/charts/portal
+tags: [snowplow, restaction, design]
+status: implemented
+timestamp: 2026-08-07T00:00:00Z
+---
+
 # Design — snowplow RESTAction "YAML api-step" (serve a fetched YAML body as JSON to jq)
 
-> Status: ready for implementation. Repo: **snowplow** (`internal/resolvers/restactions/api`).
-> Companion: `krateo-portal-chart/docs/marketplace-registry-discovery.md` (the consumer; this is
+> **Implementation reality (verified):** shipped in snowplow — the external
+> `endpointRef` fetch converts a YAML response body to JSON before the jq filter runs
+> (snowplow's own record: ADR 0006 "snowplow-owned external fetch (YAML acceptance)",
+> `external_fetch.go`; required version ≥ 1.4.0). This chart consumes it in
+> [`restaction.blueprints-catalog`](../helm/portal/templates/restaction.blueprints-catalog.yaml),
+> which relies on content-type-based acceptance (`Accept: application/x-yaml, text/yaml,
+> application/json` headers) rather than a per-step `yaml: true` flag. The consumer
+> design is [marketplace-registry-discovery](./marketplace-registry-discovery.md).
+
+> Original status line: ready for implementation. Repo: **snowplow** (`internal/resolvers/restactions/api`).
+> Companion: `docs/marketplace-registry-discovery.md` (the consumer; this is
 > its enabler #1). This doc is self-contained — a snowplow session can implement from it alone.
 
 ## 1. Why
@@ -70,7 +89,7 @@ entries:
       version: "0.3.0"
       icon: https://example/icon.svg
       keywords: [aws, eks, kubernetes, blueprint]
-      urls: [oci://ghcr.io/braghettos/charts/aws-eks-stack]
+      urls: [oci://ghcr.io/example/charts/aws-eks-stack]
   prometheus:
     - { name: prometheus, version: "25.0.0", keywords: [monitoring] }
 ```
