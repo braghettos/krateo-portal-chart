@@ -37,7 +37,7 @@ kubectl get secret admin-password -n krateo-system -o jsonpath='{.data.password}
 
 | Value | Type | Default | Effect |
 |---|---|---|---|
-| `enableDemoSystemNamespace` | bool | `true` | Creates the `demo-system` Namespace (the demo target for instantiating blueprints) and, if `enableCyberjokerUser` is also true, grants `devs` inside it: `get/list` compositiondefinitions, `create/get/list` every `composition.krateo.io` kind, `get/list` every widget kind. |
+| `enableDemoSystemNamespace` | bool | `true` | Creates the `demo-system` Namespace (the demo target for instantiating blueprints) and, if `enableCyberjokerUser` is also true, grants `devs` inside it: `get/list` compositiondefinitions, `create/get/list` every `composition.krateo.io` kind, `get/list` every widget kind and restactions, `get` configmaps. |
 
 > The chart no longer deploys demo `Route` resources into `demo-system` (older docs
 > and the `values.yaml` comment still say so) — provisioning is the namespace + the

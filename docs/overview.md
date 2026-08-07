@@ -94,8 +94,9 @@ With `enableDemoSystemNamespace: true` (the default) the chart creates the
 **`demo-system` namespace** — the canonical target where demo compositions are
 instantiated — and, when the `cyberjoker` persona is also enabled, grants the `devs`
 group inside it: `get/list` on `compositiondefinitions.core.krateo.io`,
-`create/get/list` on every `composition.krateo.io` kind, and `get/list` on every
-widget kind. Combined with cyberjoker's release-namespace read grants (widgets +
+`create/get/list` on every `composition.krateo.io` kind, `get/list` on every
+widget kind and on RESTActions, and `get` on ConfigMaps. Combined with
+cyberjoker's release-namespace read grants (widgets +
 RESTActions) and cluster-wide `list namespaces` / `get,list` CRDs, this makes
 `cyberjoker` a working namespace-scoped persona: it can browse the portal and
 instantiate blueprints **only** in `demo-system`. The `admin` persona is the

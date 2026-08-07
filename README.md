@@ -61,8 +61,10 @@ Authoring rule for chart contributors: [docs/authoring-keyextras.md](docs/author
 ## Develop & release
 
 ```sh
-helm lint helm/portal && helm template smoke helm/portal
-python3 scripts/lint-keyextras.py   # F6 cache-key declaration gate
+# Chart.yaml carries the CHART_VERSION release placeholder — lint/render a substituted copy:
+cp -r helm/portal /tmp/portal-render && sed -i 's/CHART_VERSION/0.0.0-dev/g' /tmp/portal-render/Chart.yaml
+helm lint /tmp/portal-render && helm template smoke /tmp/portal-render
+python3 scripts/lint-keyextras.py   # F6 cache-key declaration gate (does its own tempdir render)
 ```
 
 Tag `X.Y.Z` (no `v` prefix) — CI packages `helm/portal/` and publishes to
