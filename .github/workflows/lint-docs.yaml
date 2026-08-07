@@ -1,0 +1,15 @@
+# PR-time documentation conformance — the shared org linter enforcing the Krateo
+# Documentation Standard (krateo-platformops/.github/DOCS-STANDARD.md).
+name: lint-docs
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-docs:
+    uses: krateo-platformops/.github/.github/workflows/lint-docs.yaml@main

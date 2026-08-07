@@ -1,0 +1,12 @@
+# Registers the portal blueprint: core-provider derives the Portal CRD
+# (composition.krateo.io/v1-6-0) + its controller from the published OCI chart's
+# values.schema.json. Apply before creating a Portal CR.
+apiVersion: core.krateo.io/v1alpha1
+kind: CompositionDefinition
+metadata:
+  name: portal
+  namespace: krateo-system
+spec:
+  chart:
+    url: oci://ghcr.io/krateo-platformops/charts/portal
+    version: "1.6.0"

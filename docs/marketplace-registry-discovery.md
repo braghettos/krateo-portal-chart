@@ -1,6 +1,30 @@
+---
+type: Decision
+title: "Design — Marketplace as registry-driven blueprint discovery"
+description: "The design that split Marketplace (discover installable charts from external sources) from Blueprints (installed CompositionDefinitions), with the two enablers; the Helm-repo slice shipped, the rest diverged."
+resource: oci://ghcr.io/krateo-platformops/charts/portal
+tags: [marketplace, design]
+status: diverged
+timestamp: 2026-08-07T00:00:00Z
+---
+
 # Design — Marketplace as registry-driven blueprint discovery
 
-> Status: **ready for implementation handoff** (decisions locked; see §8, §11, Appendices A–B).
+> **Implementation reality (verified against the chart at 1.6.0):** the *scope split*
+> (§1), the *install flow* (§6) and the *Helm-repo fast path* (§5, enabler #1) shipped —
+> as `restaction.blueprints-catalog` (not `marketplace-catalog`), merging TWO fixed
+> helm-repo indexes (`/charts/blueprints/index.yaml` + `/charts/operators/index.yaml`
+> via the `blueprints-endpoint` Secret) with an installed-state LEFT-JOIN onto
+> CompositionDefinitions, and snowplow ≥ 1.4.0 doing the YAML→JSON api-step conversion
+> ([enabler doc](./snowplow-yaml-api-step-enabler.md), `status: implemented`).
+> **Diverged / not built:** the `keywords: [blueprint]` marker filter (§3 DECIDED) —
+> the shipped RA takes each index whole and stamps `source: blueprint|operator` by
+> index instead; the `ChartSource` source-config CRD/ConfigMap (§4) — the source is a
+> single chart-baked Secret; the chart-inspector `/metadata` endpoint and the OCI/tgz
+> discovery paths (§5, enabler #2; Appendix B). The remainder is preserved as the
+> decision record.
+
+> Original status line: **ready for implementation handoff** (decisions locked; see §8, §11, Appendices A–B).
 > Scope: how the Marketplace page sources its tiles, and how it differs from Blueprints.
 
 ## 1. Problem / motivation
@@ -28,7 +52,7 @@ generated as today).
 `CompositionDefinition.spec.chart` (verified against the CRD) supports exactly the three sources
 the Marketplace should browse:
 
-- `url: oci://…` — an **OCI** chart artifact (e.g. `oci://ghcr.io/braghettos/charts/aws-eks-stack`).
+- `url: oci://…` — an **OCI** chart artifact (e.g. `oci://ghcr.io/example/charts/aws-eks-stack`).
 - `url: https://….tgz` — a **downloadable tgz** chart.
 - `repo: <name>` + `url` (+ `version`) — a classic **Helm repository**.
 - plus `version`, `credentials` (private repos), `insecureSkipVerifyTLS`.
@@ -192,9 +216,9 @@ entries:
     - name: aws-eks-stack
       version: "0.3.0"
       description: A Krateo composite blueprint that provisions an AWS EKS cluster…
-      icon: https://github.com/krateoplatformops/krateo/.../logo.svg
+      icon: https://example.com/aws-eks-stack/logo.svg
       keywords: [aws, eks, kubernetes, ack, stack, blueprint]      # chart author adds the marker
-      urls: [oci://ghcr.io/braghettos/charts/aws-eks-stack]
+      urls: [oci://ghcr.io/example/charts/aws-eks-stack]
   prometheus:                                                       # not a blueprint
     - { name: prometheus, version: "25.0.0", keywords: [monitoring] }   # filtered out
 ```
@@ -228,7 +252,7 @@ The chart-inspector already pulls charts (with credentials, cached) for the core
 needs to expose the pulled `Chart.yaml`. Proposed contract:
 
 ```
-GET /metadata?url=oci://ghcr.io/braghettos/charts/aws-eks-stack&version=0.3.0
+GET /metadata?url=oci://ghcr.io/example/charts/aws-eks-stack&version=0.3.0
     (+ Authorization / credentials header for private)
 → 200 application/json  { "name": "...", "version": "0.3.0", "keywords": [...],
                           "icon": "https://…", "description": "...", "annotations": {...} }

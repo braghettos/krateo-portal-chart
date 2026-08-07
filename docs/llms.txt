@@ -1,0 +1,25 @@
+# portal — LLM doc index (pinned: 1.6.0)
+# One line per file; regenerate the pin on release. Read files at the tag matching the
+# deployed chart version (the derived Portal API version is the chart version, dots→dashes).
+docs/index.md: the map — what the portal blueprint chart is + links to the whole bundle
+docs/overview.md: what the chart deploys and how it works — widget/RA content plane, composition model, routes, tiers, demo-system
+docs/usage.md: installer path, CompositionDefinition registration, Portal CR instantiation, local helm-template loop
+docs/configuration.md: the whole values surface (= the Portal CR spec) — personas, demo-system, branding, spoke read-back, tiers
+docs/api.md: the emitted contract — derived Portal composition API, the AuditRecord CRD, consumed CR kinds
+docs/examples.md: index of the runnable examples
+docs/release.md: how a release ships — plain-semver tag → OCI chart → installer pin bump
+docs/log.md: curated history
+docs/authoring-keyextras.md: the spec.keyExtras cache-key declaration rule (CI-enforced)
+examples/portal-composition/README.md: register the blueprint + instantiate a Portal composition
+examples/portal-composition/compositiondefinition.yaml: the registration manifest (kubectl apply -f)
+examples/portal-composition/portal.yaml: the Portal instance manifest (kubectl apply -f)
+compositiondefinition.yaml: the standalone registration sample at the released version
+# Design records (status frontmatter = verified against the implementation):
+docs/marketplace-registry-discovery.md: Marketplace-as-discovery design — status diverged (Helm-repo slice shipped as blueprints-catalog; source CRD + OCI/tgz not built)
+docs/snowplow-yaml-api-step-enabler.md: the snowplow YAML→JSON api-step enabler — status implemented (in snowplow, >= 1.4.0)
+# Archive (tags: [archive]; point-in-time, NOT current truth):
+docs/CR-TRACE.md: 2026-06-23 CR-reachability sweep over the then-180 CRs (the chart renders ~530 today)
+# Chart-adjacent corpora (authoritative for their scope):
+helm/portal/files/nav-fragments/README.md: drop-in sidebar entries for Autopilot-authored pages (#106)
+helm/portal/tests/blueprints-catalog/README.md: jq fixtures for the marketplace catalog filter
+helm/portal/tests/blueprint-render/README.md: jq fixtures for the blueprint-preview render seam

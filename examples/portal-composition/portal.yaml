@@ -1,0 +1,19 @@
+# One Portal CR = one reconciled release of the portal content chart. The spec is
+# the chart's values surface (docs/configuration.md). The apiVersion embeds the
+# registered chart version (dots -> dashes): keep it in step with the
+# CompositionDefinition's spec.chart.version.
+apiVersion: composition.krateo.io/v1-6-0
+kind: Portal
+metadata:
+  name: portal
+  namespace: krateo-system
+spec:
+  tenant: acme-platform
+  enableAdminUser: true
+  enableCyberjokerUser: true
+  enableDemoSystemNamespace: true
+  observabilityConsoleUrl: ""
+  tiers:
+    common: ""
+    tenant: ""
+    admin: ""
